@@ -128,7 +128,7 @@
         {:else if prompt}
           <div>
             <h2 class="text-sm font-medium mt-4 mb-1">Prompt</h2>
-            <p class="mb-2 text-sm text-gray-500">
+            <p class="mb-6 text-sm text-gray-500">
               To improve the quality of this prompt, <a
                 href={`/settings/edit_task/${project_id}/${task_id}`}
                 class="link">edit the task instructions or requirements</a
