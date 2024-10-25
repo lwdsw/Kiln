@@ -94,7 +94,6 @@ def connect_run_api(app: FastAPI):
                 detail=f"Unknown prompt method: {request.ui_prompt_method}",
             )
         prompt_builder = prompt_builder_class(task)
-        print("PROMPT BUILDER", prompt_builder)
         adapter = LangChainPromptAdapter(
             task,
             model_name=request.model_name,

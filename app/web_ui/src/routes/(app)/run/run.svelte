@@ -267,10 +267,7 @@
           Structure Valid
         </div>
       {/if}
-      <Output
-        structured={!!task.output_json_schema}
-        raw_output={run.output.output}
-      />
+      <Output raw_output={run.output.output} />
       <div>
         <div class="mt-2">
           <button class="text-xs link" on:click={toggle_raw_data}
@@ -281,12 +278,7 @@
         <div class={show_raw_data ? "" : "hidden"}>
           <h1 class="text-xl font-bold mt-2 mb-2" id="raw_data">Raw Data</h1>
           <div class="text-sm">
-            <pre
-              class="bg-base-200 p-4 rounded-lg whitespace-pre-wrap break-words">{JSON.stringify(
-                run,
-                null,
-                2,
-              )}</pre>
+            <Output raw_output={JSON.stringify(run, null, 2)} />
           </div>
         </div>
       </div>
@@ -393,10 +385,7 @@
             The model has attempted to fix the output given your instructions.
             Review the result.
           </p>
-          <Output
-            structured={!!task.output_json_schema}
-            raw_output={repair_run?.output.output || ""}
-          />
+          <Output raw_output={repair_run?.output.output || ""} />
           <div>
             <div class="mt-2 text-sm text-gray-500">
               Based on the repair instructions: &quot;{repair_instructions ||
@@ -407,10 +396,7 @@
           <p class="text-sm text-gray-500 mb-4">
             The model has fixed the output given your instructions.
           </p>
-          <Output
-            structured={!!task.output_json_schema}
-            raw_output={run?.repaired_output?.output || ""}
-          />
+          <Output raw_output={run?.repaired_output?.output || ""} />
           <div>
             <div class="mt-2 text-sm text-gray-500">
               Based on the repair instructions: &quot;{repair_instructions ||

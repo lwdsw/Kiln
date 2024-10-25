@@ -39,6 +39,7 @@
   },
   "type": "module",
   "dependencies": {
+    "highlight.js": "^11.10.0",
     "openapi-fetch": "^0.12.2",
     "posthog-js": "^1.167.1"
   }

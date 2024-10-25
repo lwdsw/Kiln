@@ -1,7 +1,6 @@
 from typing import Dict
 
 import kiln_ai.datamodel as datamodel
-from kiln_ai.adapters.prompt_builders import SimplePromptBuilder
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.messages.base import BaseMessage
@@ -77,6 +76,7 @@ class LangChainPromptAdapter(BaseAdapter):
             HumanMessage(content=user_msg),
         ]
         response = self.model.invoke(messages)
+
         if self.has_structured_output():
             if (
                 not isinstance(response, dict)

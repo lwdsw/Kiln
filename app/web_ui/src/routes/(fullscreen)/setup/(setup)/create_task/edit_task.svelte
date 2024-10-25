@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Task } from "$lib/types"
+  import Output from "../../../../(app)/run/output.svelte"
   import FormElement from "$lib/utils/form_element.svelte"
   import FormList from "$lib/utils/form_list.svelte"
   import FormContainer from "$lib/utils/form_container.svelte"
@@ -343,12 +344,9 @@
         <div>
           You can't edit a task's input format after creating it. It would
           invalidate all past data.
-          <pre
-            class="bg-base-200 p-4 rounded-lg whitespace-pre-wrap break-words text-xs mt-2 text-gray-500">Current Schema: {JSON.stringify(
-              JSON.parse(task.input_json_schema || '"plaintext"'),
-              null,
-              2,
-            )}</pre>
+          <Output
+            raw_output={task.input_json_schema || "Input Format: Plain text"}
+          />
         </div>
       {:else}
         <SchemaSection
@@ -372,12 +370,9 @@
         <div>
           You can't edit a task's output format after creating it. It would
           invalidate all past data.
-          <pre
-            class="bg-base-200 p-4 rounded-lg whitespace-pre-wrap break-words text-xs mt-2 text-gray-500">Current Schema: {JSON.stringify(
-              JSON.parse(task.output_json_schema || '"plaintext"'),
-              null,
-              2,
-            )}</pre>
+          <Output
+            raw_output={task.output_json_schema || "Output Format: Plain text"}
+          />
         </div>
       {:else}
         <SchemaSection
