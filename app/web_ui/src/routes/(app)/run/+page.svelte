@@ -37,6 +37,7 @@
       submitting = true
       error = null
       response = null
+      run_complete = false
       const {
         data, // only present if 2XX response
         error: fetch_error, // only present if 4XX or 5XX response
@@ -70,6 +71,7 @@
   function clear_all() {
     input_form.clear_input()
     response = null
+    run_complete = false
   }
 
   function next_task_run() {
