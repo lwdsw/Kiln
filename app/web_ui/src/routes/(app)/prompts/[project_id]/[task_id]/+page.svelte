@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Output from "../../../run/output.svelte"
   import AppPage from "../../../app_page.svelte"
   import { client } from "$lib/api_client"
   import { current_task } from "$lib/stores"
@@ -142,8 +143,7 @@
                 ></span
               >.
             </p>
-            <pre
-              class="bg-base-200 p-4 rounded-lg whitespace-pre-wrap break-words">{prompt}</pre>
+            <Output raw_output={prompt} />
           </div>
         {:else}
           <div class="text-error">
