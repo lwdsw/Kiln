@@ -48,14 +48,7 @@ You can download our latest desktop app build [here](https://github.com/Kiln-AI/
 
 ## What is this for?
 
-Kiln AI is based on a simple idea: building ML products is like any other product. That means:
-
-- Unexpected bugs emerge from users.
-- New/unexpected use cases will emerge.
-- Product goals will change over time.
-- Underlying tech will get better, and you’ll need to be able to adopt it to keep up.
-
-Classic data science doesn’t quite align with ML product development. You can have the best evaluations ever, but if the dataset doesn’t match the product goals, it doesn’t matter. Kiln aims to fix that.
+Classic data science doesn’t quite align with ML product development goals. You can have the best evaluations ever, but if the dataset doesn’t match the product goals, it doesn’t matter. Kiln aims to fix that:
 
 #### Kiln helps your whole team continuously improve your dataset.
 
