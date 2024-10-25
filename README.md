@@ -38,9 +38,7 @@ Kiln includes:
 
 #### MacOS and Windows
 
-You can download our latest desktop app build [here](https://github.com/Kiln-AI/kiln/actions/workflows/build_desktop.yml). Click a recent run, and download the appropriate build from the “Artifacts” section.
-
-Note: These alpha releases are not signed, and you may need to [allow unidentified apps](https://www.macworld.com/article/672947/how-to-open-a-mac-app-from-an-unidentified-developer.html) to run them. Our official releases will be signed once we enter beta.
+You can download our latest desktop app build [here](https://github.com/Kiln-AI/Kiln/releases/latest). Download the appropriate build for your machine (Mac or Windows).
 
 ## Install Python Library
 
