@@ -1,6 +1,6 @@
 <p align="center">
     <picture>
-        <img width="300" alt="Kiln AI Logo" src="https://github.com/user-attachments/assets/5fbcbdf7-1feb-45c9-bd73-99a46dd0a47f">
+        <img width="205" alt="Kiln AI Logo" src="https://github.com/user-attachments/assets/5fbcbdf7-1feb-45c9-bd73-99a46dd0a47f">
     </picture>
 </p>
 
@@ -59,13 +59,13 @@ Kiln AI is based on a simple idea: building ML products is like any other produc
 
 Classic data science doesn’t quite align with ML product development. You can have the best evaluations ever, but if the dataset doesn’t match the product goals, it doesn’t matter. Kiln aims to fix that.
 
-> Kiln helps your whole team continuously improve your dataset.
+#### Kiln helps your whole team continuously improve your dataset.
 
 Our apps make it easy to continuously iterate and improve your dataset. When using the app, it automatically captures all the inputs/outputs/model parameters and everything else you need to reproduce an issue, repair the result, and capture high-quality data for multi-shot prompting or fine-tuning. QA and PM can easily identify issues sooner and help generate the dataset needed to fix the issue.
 
 Our apps are extremely user-friendly and designed for non-technical users. This includes one-click to launch, no command line required, no GPU required, and a consumer-grade UI.
 
-> Kiln makes it easier to try new models and techniques.
+#### Kiln makes it easier to try new models and techniques.
 
 For experimentation, Kiln includes no-code data-science tools to quickly try a variety of approaches and models in a few clicks.
 
@@ -73,7 +73,7 @@ These tools leverage your dataset, and the quality gets better the more you use 
 
 Currently, we support about a dozen models and a variety of prompting solutions (few-shot, multi-shot, chain of thought), with plans for more models and complex techniques (fine-tuning, RAG).
 
-> Deep integrations with our library and REST APIs.
+#### Deep integrations with our library and REST APIs.
 
 If you have a data science team and want to go deeper, our Python library has everything you need. Ingest the Kiln data format into your pipeline. Create custom evaluations. Use Kiln data in notebooks. Build fine-tunes. Extend or replace any part of the pipeline.
 
