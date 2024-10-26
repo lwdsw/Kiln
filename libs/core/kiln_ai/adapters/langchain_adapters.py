@@ -1,9 +1,10 @@
 from typing import Dict
 
-import kiln_ai.datamodel as datamodel
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.messages.base import BaseMessage
+
+import kiln_ai.datamodel as datamodel
 
 from .base_adapter import AdapterInfo, BaseAdapter, BasePromptBuilder
 from .ml_model_list import langchain_model_from

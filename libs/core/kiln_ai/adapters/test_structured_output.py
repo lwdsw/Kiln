@@ -3,8 +3,9 @@ from typing import Dict
 
 import jsonschema
 import jsonschema.exceptions
-import kiln_ai.datamodel as datamodel
 import pytest
+
+import kiln_ai.datamodel as datamodel
 from kiln_ai.adapters.base_adapter import AdapterInfo, BaseAdapter
 from kiln_ai.adapters.langchain_adapters import LangChainPromptAdapter
 from kiln_ai.adapters.ml_model_list import (

@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 import pytest
 
-from libs.core.kiln_ai.adapters.ml_model_list import (
+from kiln_ai.adapters.ml_model_list import (
     ModelProviderName,
     check_provider_warnings,
     provider_name_from_id,
@@ -12,7 +12,7 @@ from libs.core.kiln_ai.adapters.ml_model_list import (
 
 @pytest.fixture
 def mock_config():
-    with patch("libs.core.kiln_ai.adapters.ml_model_list.get_config_value") as mock:
+    with patch("kiln_ai.adapters.ml_model_list.get_config_value") as mock:
         yield mock
 
 

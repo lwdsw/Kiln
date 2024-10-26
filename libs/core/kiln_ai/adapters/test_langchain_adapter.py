@@ -1,6 +1,7 @@
+from langchain_groq import ChatGroq
+
 from kiln_ai.adapters.langchain_adapters import LangChainPromptAdapter
 from kiln_ai.adapters.test_prompt_adaptors import build_test_task
-from langchain_groq import ChatGroq
 
 
 def test_langchain_adapter_munge_response(tmp_path):

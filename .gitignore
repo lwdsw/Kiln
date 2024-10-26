@@ -7,4 +7,6 @@ __pycache__/
 *$py.class
 .coverage
 
+libs/core/docs
+
 dist/

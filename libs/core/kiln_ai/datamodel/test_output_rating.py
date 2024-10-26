@@ -1,6 +1,7 @@
 import pytest
-from kiln_ai.datamodel import TaskOutputRating, TaskOutputRatingType
 from pydantic import ValidationError
+
+from kiln_ai.datamodel import TaskOutputRating, TaskOutputRatingType
 
 
 def test_valid_task_output_rating():
