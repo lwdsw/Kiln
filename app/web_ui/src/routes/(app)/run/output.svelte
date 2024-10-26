@@ -37,11 +37,11 @@
   <div class="flex-none">
     <button
       on:click={copy_to_clipboard}
-      class="btn btn-sm btn-square h-10 w-10 shadow-none text-gray-500 hover:text-gray-900"
+      class="btn btn-sm btn-square h-8 w-8 shadow-none text-gray-400 hover:text-gray-900"
     >
       <!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
       <svg
-        class="w-6 h-6 p-0"
+        class="w-5 h-5 p-0"
         viewBox="0 0 64 64"
         xmlns="http://www.w3.org/2000/svg"
         stroke-width="3"
