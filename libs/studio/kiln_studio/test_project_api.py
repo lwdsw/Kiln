@@ -80,7 +80,7 @@ def test_create_project_existing_name(client):
 
     assert response.status_code == 400
     assert response.json() == {
-        "message": "Project with this name already exists. Please choose a different name."
+        "message": "Project with this folder name already exists. Please choose a different name or rename the prior project's folder.",
     }
 
 
