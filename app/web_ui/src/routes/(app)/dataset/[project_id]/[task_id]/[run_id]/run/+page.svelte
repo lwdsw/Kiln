@@ -1,6 +1,7 @@
 <script lang="ts">
   import AppPage from "../../../../../app_page.svelte"
   import Run from "../../../../../run/run.svelte"
+  import Output from "../../../../../run/output.svelte"
   import { current_task } from "$lib/stores"
   import { page } from "$app/stores"
   import { onMount } from "svelte"
@@ -16,6 +17,19 @@
   let run: TaskRun | null = null
   let loading = true
   let load_error: KilnError | null = null
+
+  let model_props: Record<string, string | number | undefined> = {}
+  $: {
+    model_props = Object.fromEntries(
+      Object.entries({
+        Model: run?.input_source?.properties?.model_name,
+        "Model Provider": run?.input_source?.properties?.model_provider,
+        "Prompt Builder": run?.input_source?.properties?.prompt_builder_name,
+        "Created By": run?.input_source?.properties?.created_by,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      }).filter(([_, value]) => value !== undefined),
+    )
+  }
 
   onMount(async () => {
     try {
@@ -58,6 +72,21 @@
     {:else if load_error}
       <div class="text-error">{load_error.getMessage()}</div>
     {:else if run && $current_task}
+      <div class="flex flex-col xl:flex-row gap-8 xl:gap-16 mb-10">
+        <div class="grow">
+          <div class="text-xl font-bold mb-4">Input</div>
+          <Output raw_output={run.input} />
+        </div>
+        <div class="w-72 2xl:w-96 flex-none flex flex-col gap-4">
+          <div class="text-xl font-bold">Options</div>
+          <div class="grid grid-cols-[auto,1fr] gap-4 text-sm 2xl:text-base">
+            {#each Object.entries(model_props) as [key, value]}
+              <div class="flex items-center">{key}</div>
+              <div class="flex items-center text-gray-500">{value}</div>
+            {/each}
+          </div>
+        </div>
+      </div>
       <Run initial_run={run} task={$current_task} {project_id} />
     {:else}
       <div class="text-gray-500 text-lg">Run not found</div>

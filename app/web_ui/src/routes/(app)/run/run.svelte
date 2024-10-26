@@ -394,15 +394,11 @@
           </div>
         {:else if repair_complete}
           <p class="text-sm text-gray-500 mb-4">
-            The model has fixed the output given your instructions.
+            The model has fixed the output given your instructions: &quot;{repair_instructions ||
+              run?.repair_instructions ||
+              "No instruction provided"}&quot;
           </p>
           <Output raw_output={run?.repaired_output?.output || ""} />
-          <div>
-            <div class="mt-2 text-sm text-gray-500">
-              Based on the repair instructions: &quot;{repair_instructions ||
-                "No instruction provided"}&quot;
-            </div>
-          </div>
         {/if}
       </div>
       <div class="w-72 2xl:w-96 flex-none">
