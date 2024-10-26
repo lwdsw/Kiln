@@ -13,13 +13,13 @@
 
 # Kiln AI
 
-> Iterative Data-based ML Product Platform
+> Iteratively Build High Quality ML Agents with Data
 
 Kiln includes:
 
 - A data platform for teams to collaborate on tasks, goals, evaluations, training data, and more. Designed for Git, providing familiar and rich tooling.
-- Easy-to-use desktop apps, enabling everyone to continuously contribute to quality (QA, PM, labelers, subject matter experts, etc.). No GPU or command line required.
-- No-code data-science tools to quickly try a variety of approaches in a few clicks. Currently, we support about a dozen models and a variety of prompting solutions (few-shot, multi-shot, chain of thought), with plans for more (fine-tuning, RAG).
+- Easy-to-use desktop apps, enabling everyone to continuously contribute to your dataset and improve quality (QA, PM, labelers, subject matter experts, etc.). One-click launch, no command line or GPU required.
+- No-code data-science tools to quickly evaluate a variety of foundation models and AI techniques. Currently, we support about a dozen models and a variety of prompting solutions (few-shot, multi-shot, chain of thought), with plans for more (fine-tuning, RAG).
 - An open-source Python library and REST API for data scientists and engineers to deeply integrate where needed.
 - Completely private: Kiln runs locally, and we never have access to your dataset. Bring your own keys, or run locally with Ollama.
 
@@ -48,7 +48,9 @@ You can download our latest desktop app build [here](https://github.com/Kiln-AI/
 
 ## What is this for?
 
-Classic data science doesn’t quite align with ML product development goals. You can have the best evaluations ever, but if the dataset doesn’t match the product goals, it doesn’t matter. Kiln aims to fix that:
+Kiln AI is for building high quality ML agents for products. What makes product development different than standard data science is that isn’t not static; no perfect dataset exists to learn from. Products are constantly evolving; bugs emerge from users, product goals change, new use-cases are added.
+
+To solve this, Kiln makes it easy for teams to iteratively collaborate on high quality datasets, and quickly evaluate a range of AI foundation models and techniques.
 
 #### Kiln helps your whole team continuously improve your dataset.
 
