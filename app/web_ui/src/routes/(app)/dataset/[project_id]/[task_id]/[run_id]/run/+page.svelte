@@ -22,9 +22,9 @@
   $: {
     model_props = Object.fromEntries(
       Object.entries({
-        Model: run?.input_source?.properties?.model_name,
-        "Model Provider": run?.input_source?.properties?.model_provider,
-        "Prompt Builder": run?.input_source?.properties?.prompt_builder_name,
+        Model: run?.output?.source?.properties?.model_name,
+        "Model Provider": run?.output?.source?.properties?.model_provider,
+        "Prompt Builder": run?.output?.source?.properties?.prompt_builder_name,
         "Created By": run?.input_source?.properties?.created_by,
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
       }).filter(([_, value]) => value !== undefined),
@@ -78,8 +78,10 @@
           <Output raw_output={run.input} />
         </div>
         <div class="w-72 2xl:w-96 flex-none flex flex-col gap-4">
-          <div class="text-xl font-bold">Options</div>
-          <div class="grid grid-cols-[auto,1fr] gap-4 text-sm 2xl:text-base">
+          <div class="text-xl font-bold">Parameters</div>
+          <div
+            class="grid grid-cols-[auto,1fr] gap-y-2 gap-x-4 text-sm 2xl:text-base"
+          >
             {#each Object.entries(model_props) as [key, value]}
               <div class="flex items-center">{key}</div>
               <div class="flex items-center text-gray-500">{value}</div>
