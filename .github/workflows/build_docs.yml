@@ -14,9 +14,6 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./libs/core
 
     steps:
       - uses: actions/checkout@v4
@@ -25,9 +22,10 @@ jobs:
           python-version: 3.12
           cache: "pip"
 
-      - run: pip install -r ../../dev-requirements.txt
+      - run: pip install -r dev-requirements.txt
 
       - name: Build Docs
+        working-directory: ./libs/core
         run: pdoc -o ./docs/kiln_core_docs kiln_ai
 
       - name: Setup Pages
@@ -37,7 +35,7 @@ jobs:
       - name: Upload to Pages
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./docs
+          path: ./libs/core/docs
 
   # Deployment job
   deploy:
