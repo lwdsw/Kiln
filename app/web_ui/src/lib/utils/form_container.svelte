@@ -154,11 +154,15 @@
       {:else if !submitting}
         {submit_label}
         <span
-          class="absolute right-4 text-sm font-mono font-light {keyboard_submit
+          class="absolute opacity-80 right-4 text-xs font-light {keyboard_submit
             ? ''
             : 'hidden'}"
         >
-          {isMacOS() ? "⌘ ↩" : "ctrl ↵"}
+          {#if isMacOS()}
+            <span class="tracking-widest">⌘↵</span>
+          {:else}
+            <span>ctrl ↵</span>
+          {/if}
         </span>
       {:else}
         <span class="loading loading-spinner loading-md"></span>
