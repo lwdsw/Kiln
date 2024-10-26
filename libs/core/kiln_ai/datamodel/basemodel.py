@@ -15,8 +15,6 @@ from typing import (
     TypeVar,
 )
 
-from kiln_ai.utils.config import Config
-from kiln_ai.utils.formatting import snake_case
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -26,6 +24,9 @@ from pydantic import (
     model_validator,
 )
 from pydantic_core import ErrorDetails
+
+from kiln_ai.utils.config import Config
+from kiln_ai.utils.formatting import snake_case
 
 # ID is a 12 digit random integer string.
 # Should be unique per item, at least inside the context of a parent/child relationship.

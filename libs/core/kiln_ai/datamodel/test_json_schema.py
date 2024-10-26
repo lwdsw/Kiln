@@ -1,10 +1,11 @@
 import pytest
+from pydantic import BaseModel
+
 from kiln_ai.datamodel.json_schema import (
     JsonObjectSchema,
     schema_from_json_str,
     validate_schema,
 )
-from pydantic import BaseModel
 
 
 class ExampleModel(BaseModel):

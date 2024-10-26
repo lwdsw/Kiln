@@ -25,6 +25,35 @@ class AdapterInfo:
 
 
 class BaseAdapter(metaclass=ABCMeta):
+    """Base class for AI model adapters that handle task execution.
+
+    This abstract class provides the foundation for implementing model-specific adapters
+    that can process tasks with structured or unstructured inputs/outputs. It handles
+    input/output validation, prompt building, and run tracking.
+
+    Attributes:
+        prompt_builder (BasePromptBuilder): Builder for constructing prompts for the model
+        kiln_task (Task): The task configuration and metadata
+        output_schema (dict | None): JSON schema for validating structured outputs
+        input_schema (dict | None): JSON schema for validating structured inputs
+
+    Example:
+        ```python
+        class CustomAdapter(BaseAdapter):
+            async def _run(self, input: Dict | str) -> Dict | str:
+                # Implementation for specific model
+                pass
+
+            def adapter_info(self) -> AdapterInfo:
+                return AdapterInfo(
+                    adapter_name="custom",
+                    model_name="model-1",
+                    model_provider="provider",
+                    prompt_builder_name="simple"
+                )
+        ```
+    """
+
     def __init__(
         self, kiln_task: Task, prompt_builder: BasePromptBuilder | None = None
     ):

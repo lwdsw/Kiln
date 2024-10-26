@@ -1,11 +1,12 @@
 import os
 from pathlib import Path
 
-import kiln_ai.datamodel as datamodel
 import pytest
+from langchain_core.language_models.fake_chat_models import FakeListChatModel
+
+import kiln_ai.datamodel as datamodel
 from kiln_ai.adapters.langchain_adapters import LangChainPromptAdapter
 from kiln_ai.adapters.ml_model_list import built_in_models, ollama_online
-from langchain_core.language_models.fake_chat_models import FakeListChatModel
 
 
 @pytest.mark.paid

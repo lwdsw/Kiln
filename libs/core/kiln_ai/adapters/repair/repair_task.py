@@ -1,9 +1,10 @@
 import json
 from typing import Type
 
+from pydantic import BaseModel, Field
+
 from kiln_ai.adapters.prompt_builders import BasePromptBuilder, prompt_builder_registry
 from kiln_ai.datamodel import Priority, Project, Task, TaskRequirement, TaskRun
-from pydantic import BaseModel, Field
 
 
 # TODO add evaluator rating

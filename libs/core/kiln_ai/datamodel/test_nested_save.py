@@ -1,6 +1,7 @@
 import pytest
-from kiln_ai.datamodel.basemodel import KilnParentedModel, KilnParentModel
 from pydantic import Field, ValidationError
+
+from kiln_ai.datamodel.basemodel import KilnParentedModel, KilnParentModel
 
 
 class ModelC(KilnParentedModel):

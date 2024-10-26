@@ -3,6 +3,8 @@ import os
 from unittest.mock import AsyncMock, patch
 
 import pytest
+from pydantic import ValidationError
+
 from kiln_ai.adapters.langchain_adapters import (
     LangChainPromptAdapter,
 )
@@ -19,7 +21,6 @@ from kiln_ai.datamodel import (
     TaskRequirement,
     TaskRun,
 )
-from pydantic import ValidationError
 
 json_joke_schema = """{
   "type": "object",

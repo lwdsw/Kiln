@@ -1,6 +1,7 @@
 import pytest
-from kiln_ai.datamodel import DataSource, DataSourceType
 from pydantic import ValidationError
+
+from kiln_ai.datamodel import DataSource, DataSourceType
 
 
 def test_valid_human_data_source():

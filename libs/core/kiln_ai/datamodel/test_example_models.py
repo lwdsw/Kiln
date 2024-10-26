@@ -1,6 +1,8 @@
 import json
 
 import pytest
+from pydantic import ValidationError
+
 from kiln_ai.datamodel import (
     DataSource,
     DataSourceType,
@@ -13,7 +15,6 @@ from kiln_ai.datamodel import (
     TaskRequirement,
     TaskRun,
 )
-from pydantic import ValidationError
 
 
 @pytest.fixture

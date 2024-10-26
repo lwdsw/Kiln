@@ -6,8 +6,9 @@ from typing import TYPE_CHECKING, Dict, List, Self, Type, Union
 
 import jsonschema
 import jsonschema.exceptions
-from kiln_ai.datamodel.json_schema import JsonObjectSchema, schema_from_json_str
 from pydantic import BaseModel, Field, model_validator
+
+from kiln_ai.datamodel.json_schema import JsonObjectSchema, schema_from_json_str
 
 from .basemodel import (
     ID_FIELD,
@@ -20,6 +21,25 @@ from .json_schema import validate_schema
 
 if TYPE_CHECKING:
     from . import Task
+
+
+__all__ = [
+    "basemodel",
+    "json_schema",
+    "Task",
+    "Project",
+    "TaskRun",
+    "TaskOutput",
+    "TaskOutputRating",
+    "Priority",
+    "DataSource",
+    "DataSourceType",
+    "DataSourceProperty",
+    "TaskOutputRatingType",
+    "TaskRequirement",
+    "TaskDeterminism",
+]
+
 
 # Conventions:
 # 1) Names are filename safe as they may be used as file names. They are informational and not to be used in prompts/training/validation.
