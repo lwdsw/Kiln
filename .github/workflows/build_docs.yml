@@ -27,7 +27,7 @@ jobs:
 
       - name: Build Docs
         working-directory: ./libs/core
-        run: pdoc -o ./docs/kiln_core_docs kiln_ai
+        run: pdoc -o ./docs/kiln_core_docs kiln_ai --logo https://github.com/user-attachments/assets/046f44ae-28cf-4c78-85c3-c3e5ad744fd7 --logo-link https://kiln-ai.com
 
       - name: Setup Pages
         id: pages
