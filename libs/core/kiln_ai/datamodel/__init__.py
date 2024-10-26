@@ -52,6 +52,8 @@ SHORT_NAME_FIELD = Field(min_length=1, max_length=20, pattern=NAME_REGEX)
 
 
 class Priority(IntEnum):
+    """Defines priority levels for tasks and requirements, where P0 is highest priority."""
+
     p0 = 0
     p1 = 1
     p2 = 2
@@ -60,6 +62,8 @@ class Priority(IntEnum):
 
 # Only one rating type for now, but this allows for extensibility if we want to add more in the future
 class TaskOutputRatingType(str, Enum):
+    """Defines the types of rating systems available for task outputs."""
+
     five_star = "five_star"
     custom = "custom"
 
@@ -126,6 +130,9 @@ class TaskOutputRating(KilnBaseModel):
 class TaskOutput(KilnBaseModel):
     """
     An output for a specific task run.
+
+    Contains the actual output content, its source (human or synthetic),
+    and optional rating information.
     """
 
     output: str = Field(
@@ -160,6 +167,13 @@ class DataSourceType(str, Enum):
 
 
 class DataSourceProperty(BaseModel):
+    """
+    Defines a property that can be associated with a data source.
+
+    Includes validation rules for when properties are required or not allowed
+    based on the data source type.
+    """
+
     name: str
     type: Type[Union[str, int, float]]
     required_for: List[DataSourceType] = []
@@ -167,6 +181,13 @@ class DataSourceProperty(BaseModel):
 
 
 class DataSource(BaseModel):
+    """
+    Represents the origin of data, either human or synthetic, with associated properties.
+
+    Properties vary based on the source type - for synthetic sources this includes
+    model information, for human sources this includes creator information.
+    """
+
     type: DataSourceType
     properties: Dict[str, str | int | float] = Field(
         default={},
@@ -245,7 +266,10 @@ class DataSource(BaseModel):
 
 class TaskRun(KilnParentedModel):
     """
-    An run of a specific Task, including the input and output.
+    Represents a single execution of a Task.
+
+    Contains the input used, its source, the output produced, and optional
+    repair information if the output needed correction.
     """
 
     input: str = Field(
@@ -328,6 +352,13 @@ class TaskRun(KilnParentedModel):
 
 
 class TaskRequirement(BaseModel):
+    """
+    Defines a specific requirement that should be met by task outputs.
+
+    Includes an identifier, name, description, instruction for meeting the requirement,
+    and priority level.
+    """
+
     id: ID_TYPE = ID_FIELD
     name: str = SHORT_NAME_FIELD
     description: str | None = Field(default=None)
@@ -336,6 +367,14 @@ class TaskRequirement(BaseModel):
 
 
 class TaskDeterminism(str, Enum):
+    """
+    Defines how strictly task outputs should match expected results.
+
+    - deterministic: Requires exact matches
+    - semantic_match: Allows different wording with same meaning
+    - flexible: Allows variation in both wording and meaning within requirements
+    """
+
     deterministic = "deterministic"  # Expect exact match
     semantic_match = "semantic_match"  # Expect same meaning, but flexible on expression of the meaning
     flexible = "flexible"  # Flexible on semantic output. Eval should be custom based on parsing requirements.
@@ -346,6 +385,13 @@ class Task(
     KilnParentModel,
     parent_of={"runs": TaskRun},
 ):
+    """
+    Represents a specific task to be performed, with associated requirements and validation rules.
+
+    Contains the task definition, requirements, input/output schemas, and maintains
+    a collection of task runs.
+    """
+
     name: str = NAME_FIELD
     description: str = Field(default="")
     priority: Priority = Field(default=Priority.p2)
@@ -372,6 +418,13 @@ class Task(
 
 
 class Project(KilnParentModel, parent_of={"tasks": Task}):
+    """
+    A collection of related tasks.
+
+    Projects organize tasks into logical groups and provide high-level descriptions
+    of the overall goals.
+    """
+
     name: str = NAME_FIELD
     description: str | None = Field(
         default=None,
