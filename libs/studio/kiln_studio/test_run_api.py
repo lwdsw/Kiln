@@ -660,3 +660,56 @@ async def test_delete_run_not_found(client, task_run_setup):
 
     assert response.status_code == 404
     assert response.json()["message"] == "Run not found. ID: non_existent_run_id"
+
+
+@pytest.mark.asyncio
+async def test_update_run_clear_repair_fields(client, task_run_setup):
+    project = task_run_setup["project"]
+    task = task_run_setup["task"]
+
+    run = TaskRun(
+        parent=task,
+        input="Test input",
+        input_source=DataSource(
+            type=DataSourceType.human, properties={"created_by": "Jane Doe"}
+        ),
+        output=TaskOutput(
+            output="Test output",
+            source=DataSource(
+                type=DataSourceType.human, properties={"created_by": "Jane Doe"}
+            ),
+        ),
+        repair_instructions="Fix this output",
+        repaired_output=TaskOutput(
+            output="Fixed output",
+            source=DataSource(
+                type=DataSourceType.human, properties={"created_by": "Jane Doe"}
+            ),
+        ),
+    )
+
+    run.save_to_file()
+    assert run.repair_instructions is not None
+    assert run.repaired_output is not None
+
+    # Patch to clear repair fields
+    patch_data = {"output": {"repair_instruction": None, "repaired_output": None}}
+
+    with patch(
+        "libs.studio.kiln_studio.run_api.project_from_id"
+    ) as mock_project_from_id:
+        mock_project_from_id.return_value = project
+
+        response = client.patch(
+            f"/api/projects/project1-id/tasks/{task.id}/runs/{run.id}",
+            json=patch_data,
+        )
+
+        assert response.status_code == 200
+        result = response.json()
+
+        # Verify repair fields are removed but other fields remain
+        assert "repair_instruction" not in result["output"]
+        assert "repaired_output" not in result["output"]
+        assert result["output"]["output"] == "Test output"
+        assert result["input"] == "Test input"
