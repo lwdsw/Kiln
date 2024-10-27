@@ -5,8 +5,8 @@ from kiln_ai.datamodel import Task
 from pydantic import BaseModel
 
 from libs.core.kiln_ai.adapters.prompt_builders import prompt_builder_from_ui_name
-from libs.studio.kiln_studio.project_api import project_from_id
-from libs.studio.kiln_studio.task_api import task_from_id
+from libs.server.kiln_server.project_api import project_from_id
+from libs.server.kiln_server.task_api import task_from_id
 
 
 class PromptApiResponse(BaseModel):

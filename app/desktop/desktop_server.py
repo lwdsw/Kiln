@@ -2,7 +2,7 @@ import contextlib
 import threading
 import time
 
-import kiln_studio.server as kiln_server
+import kiln_server.server as kiln_server
 import uvicorn
 
 
