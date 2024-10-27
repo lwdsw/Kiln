@@ -3,7 +3,7 @@ from typing import Any, Dict, List
 from fastapi import FastAPI, HTTPException
 from kiln_ai.datamodel import Task
 
-from libs.studio.kiln_studio.project_api import project_from_id
+from libs.server.kiln_server.project_api import project_from_id
 
 
 def task_from_id(project_id: str, task_id: str) -> Task:

@@ -50,7 +50,7 @@ app = make_app()
 if __name__ == "__main__":
     auto_reload = os.environ.get("AUTO_RELOAD", "").lower() in ("true", "1", "yes")
     uvicorn.run(
-        "libs.studio.kiln_studio.server:app",
+        "libs.server.kiln_server.server:app",
         host="127.0.0.1",
         port=8757,
         reload=auto_reload,

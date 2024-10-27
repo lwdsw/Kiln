@@ -7,8 +7,8 @@ from kiln_ai.datamodel import Task, TaskRun
 from pydantic import BaseModel, ConfigDict
 
 from libs.core.kiln_ai.adapters.prompt_builders import prompt_builder_from_ui_name
-from libs.studio.kiln_studio.project_api import project_from_id
-from libs.studio.kiln_studio.task_api import task_from_id
+from libs.server.kiln_server.project_api import project_from_id
+from libs.server.kiln_server.task_api import task_from_id
 
 # Lock to prevent overwriting via concurrent updates. We use a load/update/write pattern that is not atomic.
 update_run_lock = Lock()
