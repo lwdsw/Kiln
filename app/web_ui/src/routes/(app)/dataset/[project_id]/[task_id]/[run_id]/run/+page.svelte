@@ -2,7 +2,7 @@
   import AppPage from "../../../../../app_page.svelte"
   import Run from "../../../../../run/run.svelte"
   import Output from "../../../../../run/output.svelte"
-  import { current_task } from "$lib/stores"
+  import { current_task, model_name, model_info } from "$lib/stores"
   import { page } from "$app/stores"
   import { onMount } from "svelte"
   import { client } from "$lib/api_client"
@@ -22,7 +22,10 @@
   $: {
     model_props = Object.fromEntries(
       Object.entries({
-        Model: run?.output?.source?.properties?.model_name,
+        Model: model_name(
+          "" + run?.output?.source?.properties?.model_name,
+          $model_info,
+        ),
         "Model Provider": run?.output?.source?.properties?.model_provider,
         "Prompt Builder": run?.output?.source?.properties?.prompt_builder_name,
         "Created By": run?.input_source?.properties?.created_by,
