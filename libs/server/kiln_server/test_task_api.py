@@ -8,8 +8,8 @@ from kiln_ai.datamodel import (
     Task,
 )
 
-from libs.studio.kiln_studio.custom_errors import connect_custom_errors
-from libs.studio.kiln_studio.task_api import connect_task_api, task_from_id
+from libs.server.kiln_server.custom_errors import connect_custom_errors
+from libs.server.kiln_server.task_api import connect_task_api, task_from_id
 
 
 @pytest.fixture
@@ -54,7 +54,7 @@ def test_create_task_success(client, tmp_path):
     }
 
     with patch(
-        "libs.studio.kiln_studio.task_api.project_from_id"
+        "libs.server.kiln_server.task_api.project_from_id"
     ) as mock_project_from_id, patch(
         "libs.core.kiln_ai.datamodel.Task.save_to_file"
     ) as mock_save:
@@ -97,7 +97,7 @@ def test_create_task_project_load_error(client, tmp_path):
         "description": "This is a test task",
     }
 
-    with patch("libs.studio.kiln_studio.task_api.project_from_id") as mock_load:
+    with patch("libs.server.kiln_server.task_api.project_from_id") as mock_load:
         mock_load.side_effect = HTTPException(
             status_code=404, detail="Project not found"
         )
@@ -122,7 +122,7 @@ def test_create_task_real_project(client, tmp_path):
         "instruction": "Task instruction",
     }
     with patch(
-        "libs.studio.kiln_studio.task_api.project_from_id"
+        "libs.server.kiln_server.task_api.project_from_id"
     ) as mock_project_from_id:
         mock_project_from_id.return_value = project
 
@@ -174,7 +174,7 @@ def test_get_task_success(client, project_and_task):
     project, task = project_and_task
 
     with patch(
-        "libs.studio.kiln_studio.task_api.project_from_id"
+        "libs.server.kiln_server.task_api.project_from_id"
     ) as mock_project_from_id:
         mock_project_from_id.return_value = project
         response = client.get(f"/api/projects/project1-id/tasks/{task.id}")
@@ -191,7 +191,7 @@ def test_get_task_not_found(client, project_and_task):
     project, _ = project_and_task
 
     with patch(
-        "libs.studio.kiln_studio.task_api.project_from_id"
+        "libs.server.kiln_server.task_api.project_from_id"
     ) as mock_project_from_id:
         mock_project_from_id.return_value = project
         response = client.get("/api/projects/project1-id/tasks/non_existent_task_id")
@@ -202,7 +202,7 @@ def test_get_task_not_found(client, project_and_task):
 
 def test_get_task_project_not_found(client):
     with patch(
-        "libs.studio.kiln_studio.task_api.project_from_id"
+        "libs.server.kiln_server.task_api.project_from_id"
     ) as mock_project_from_id:
         mock_project_from_id.side_effect = HTTPException(
             status_code=404, detail="Project not found"
@@ -217,7 +217,7 @@ def test_task_from_id_success(project_and_task):
     project, task = project_and_task
 
     with patch(
-        "libs.studio.kiln_studio.task_api.project_from_id"
+        "libs.server.kiln_server.task_api.project_from_id"
     ) as mock_project_from_id:
         mock_project_from_id.return_value = project
         result = task_from_id("project1-id", task.id)
@@ -232,7 +232,7 @@ def test_task_from_id_not_found(project_and_task):
     project, _ = project_and_task
 
     with patch(
-        "libs.studio.kiln_studio.task_api.project_from_id"
+        "libs.server.kiln_server.task_api.project_from_id"
     ) as mock_project_from_id:
         mock_project_from_id.return_value = project
         with pytest.raises(HTTPException) as exc_info:
@@ -248,7 +248,7 @@ def test_update_task_input_schema_error(client, project_and_task):
     update_data = {"input_json_schema": {"type": "object"}}
 
     with patch(
-        "libs.studio.kiln_studio.task_api.project_from_id"
+        "libs.server.kiln_server.task_api.project_from_id"
     ) as mock_project_from_id:
         mock_project_from_id.return_value = project
         response = client.patch(
@@ -267,7 +267,7 @@ def test_update_task_output_schema_error(client, project_and_task):
     update_data = {"output_json_schema": {"type": "object"}}
 
     with patch(
-        "libs.studio.kiln_studio.task_api.project_from_id"
+        "libs.server.kiln_server.task_api.project_from_id"
     ) as mock_project_from_id:
         mock_project_from_id.return_value = project
         response = client.patch(
@@ -286,7 +286,7 @@ def test_update_task_id_mismatch_error(client, project_and_task):
     update_data = {"id": "different_id"}
 
     with patch(
-        "libs.studio.kiln_studio.task_api.project_from_id"
+        "libs.server.kiln_server.task_api.project_from_id"
     ) as mock_project_from_id:
         mock_project_from_id.return_value = project
         response = client.patch(
@@ -305,9 +305,9 @@ def test_update_task_validation_error(client, project_and_task):
     update_data = {"name": "Updated Task"}
 
     with patch(
-        "libs.studio.kiln_studio.task_api.project_from_id"
+        "libs.server.kiln_server.task_api.project_from_id"
     ) as mock_project_from_id, patch(
-        "libs.studio.kiln_studio.task_api.Task.validate_and_save_with_subrelations"
+        "libs.server.kiln_server.task_api.Task.validate_and_save_with_subrelations"
     ) as mock_validate:
         mock_project_from_id.return_value = project
         mock_validate.return_value = None
@@ -325,9 +325,9 @@ def test_update_task_unexpected_return_type(client, project_and_task):
     update_data = {"name": "Updated Task"}
 
     with patch(
-        "libs.studio.kiln_studio.task_api.project_from_id"
+        "libs.server.kiln_server.task_api.project_from_id"
     ) as mock_project_from_id, patch(
-        "libs.studio.kiln_studio.task_api.Task.validate_and_save_with_subrelations"
+        "libs.server.kiln_server.task_api.Task.validate_and_save_with_subrelations"
     ) as mock_validate:
         mock_project_from_id.return_value = project
         mock_validate.return_value = MagicMock()  # Return a non-Task object

@@ -4,7 +4,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from libs.core.kiln_ai.adapters.langchain_adapters import LangChainPromptAdapter
 from libs.core.kiln_ai.adapters.repair.repair_task import RepairTaskRun
-from libs.studio.kiln_studio.run_api import task_and_run_from_id
+from libs.server.kiln_server.run_api import task_and_run_from_id
 
 
 class RepairTaskApiInput(BaseModel):

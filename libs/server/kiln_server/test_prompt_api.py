@@ -8,7 +8,7 @@ from fastapi.testclient import TestClient
 from kiln_ai.datamodel import Task
 
 from libs.core.kiln_ai.adapters.prompt_builders import BasePromptBuilder
-from libs.studio.kiln_studio.prompt_api import connect_prompt_api
+from libs.server.kiln_server.prompt_api import connect_prompt_api
 
 app = FastAPI()
 connect_prompt_api(app)
@@ -35,7 +35,7 @@ def mock_task():
 @pytest.fixture
 def mock_prompt_builder_from_ui_name():
     with patch(
-        "libs.studio.kiln_studio.prompt_api.prompt_builder_from_ui_name"
+        "libs.server.kiln_server.prompt_api.prompt_builder_from_ui_name"
     ) as mock:
         mock.return_value = MockPromptBuilder
         yield mock
@@ -43,7 +43,7 @@ def mock_prompt_builder_from_ui_name():
 
 @pytest.fixture
 def mock_task_from_id():
-    with patch("libs.studio.kiln_studio.prompt_api.task_from_id") as mock:
+    with patch("libs.server.kiln_server.prompt_api.task_from_id") as mock:
         mock.return_value = MagicMock(spec=Task)
         yield mock
 
