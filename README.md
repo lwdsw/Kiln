@@ -81,12 +81,22 @@ We’re working out our license and will have it sorted soon. The plan is that t
 
 ## Development Commands
 
+Initial setup using python environment of your choice (venv, conda, etc.):
+
+```
+pip install -r dev-requirements.txt
+pip install -r requirements.txt
+cd app/web_ui
+npm install
+```
+
+Run the API server and Web UI with auto-reload for development:
+
+- Run the Python server: `AUTO_RELOAD=true python -m libs.server.kiln_server.server`
+- Run the Web UI from the `app/web_ui` directory: `npm run dev --`
+- Open the app: http://localhost:5173/run
+
 Running the desktop app without building an executable:
 
-- First, build the web UI: `npm run build`
+- First, build the web UI from the `app/web_ui` directory: `npm run build`
 - Then run the desktop app: `python -m app.desktop.desktop`
-
-Run the API server and web UI with auto-reload for development:
-
-- Python server: `AUTO_RELOAD=true python -m libs.server.kiln_server.server`
-- Web UI: `npm run dev --`
