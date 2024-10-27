@@ -58,17 +58,52 @@
       loading = false
     }
   })
+
+  let deleted = false
+  async function deleteRun() {
+    if (
+      !confirm(
+        "Are you sure you want to delete this run?\n\nThis action cannot be undone.",
+      )
+    ) {
+      return
+    }
+    try {
+      loading = true
+      await client.DELETE(
+        "/api/projects/{project_id}/tasks/{task_id}/runs/{run_id}",
+        {
+          params: {
+            path: {
+              project_id,
+              task_id,
+              run_id,
+            },
+          },
+        },
+      )
+      deleted = true
+    } catch (error) {
+      load_error = createKilnError(error)
+    } finally {
+      loading = false
+    }
+  }
 </script>
 
 <div class="max-w-[1400px]">
   <AppPage
     title="Dataset Run"
     subtitle={run?.id ? `Run ID: ${run.id}` : undefined}
+    action_button={deleted ? null : "Delete Run"}
+    action_button_action={deleteRun}
   >
     {#if loading}
       <div class="w-full min-h-[50vh] flex justify-center items-center">
         <div class="loading loading-spinner loading-lg"></div>
       </div>
+    {:else if deleted}
+      <div class="badge badge-error badge-lg p-4">Run Deleted</div>
     {:else if load_error}
       <div class="text-error">{load_error.getMessage()}</div>
     {:else if run && $current_task}

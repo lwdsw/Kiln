@@ -618,3 +618,45 @@ async def test_get_runs_task_not_found(client):
 
     assert response.status_code == 404
     assert response.json()["message"] == "Task not found"
+
+
+@pytest.mark.asyncio
+async def test_delete_run(client, task_run_setup):
+    project = task_run_setup["project"]
+    task = task_run_setup["task"]
+    task_run = task_run_setup["task_run"]
+
+    # Verify the run file exists before deletion
+    path = task_run.path
+    assert path.exists()
+    assert path.is_file()
+    assert path.parent.exists()
+
+    with patch("libs.studio.kiln_studio.run_api.run_from_id") as mock_run_from_id:
+        mock_run_from_id.return_value = task_run
+        response = client.delete(
+            f"/api/projects/{project.id}/tasks/{task.id}/runs/{task_run.id}"
+        )
+
+    assert response.status_code == 200
+    # Verify the file was actually deleted
+    assert not path.exists()
+    assert not path.parent.exists()
+    # Don't delete the task directory
+    assert path.parent.parent.exists()
+
+
+@pytest.mark.asyncio
+async def test_delete_run_not_found(client, task_run_setup):
+    project = task_run_setup["project"]
+    task = task_run_setup["task"]
+
+    with patch("libs.studio.kiln_studio.run_api.task_from_id") as mock_project_from_id:
+        mock_project_from_id.return_value = task
+
+        response = client.delete(
+            f"/api/projects/{project.id}/tasks/{task.id}/runs/non_existent_run_id"
+        )
+
+    assert response.status_code == 404
+    assert response.json()["message"] == "Run not found. ID: non_existent_run_id"
