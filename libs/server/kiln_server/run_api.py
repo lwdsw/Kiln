@@ -118,13 +118,13 @@ def connect_run_api(app: FastAPI):
         return await adapter.invoke(input)
 
     @app.patch("/api/projects/{project_id}/tasks/{task_id}/runs/{run_id}")
-    async def update_run_route(
+    async def update_run(
         project_id: str, task_id: str, run_id: str, run_data: Dict[str, Any]
     ) -> TaskRun:
-        return await update_run(project_id, task_id, run_id, run_data)
+        return await update_run_util(project_id, task_id, run_id, run_data)
 
 
-async def update_run(
+async def update_run_util(
     project_id: str, task_id: str, run_id: str, run_data: Dict[str, Any]
 ) -> TaskRun:
     # Lock to prevent overwriting concurrent updates

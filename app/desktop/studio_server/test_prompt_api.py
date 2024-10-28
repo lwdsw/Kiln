@@ -7,13 +7,15 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from kiln_ai.adapters.prompt_builders import BasePromptBuilder
 from kiln_ai.datamodel import Task
-from kiln_server.prompt_api import connect_prompt_api
 
-app = FastAPI()
-connect_prompt_api(app)
+from app.desktop.studio_server.prompt_api import connect_prompt_api
 
-# Create a test client
-client = TestClient(app)
+
+@pytest.fixture
+def client():
+    app = FastAPI()
+    connect_prompt_api(app)
+    return TestClient(app)
 
 
 # Mock prompt builder class
@@ -32,21 +34,23 @@ def mock_task():
 
 
 @pytest.fixture
-def mock_prompt_builder_from_ui_name():
-    with patch("kiln_server.prompt_api.prompt_builder_from_ui_name") as mock:
+def mock_prompt_builder_from_ui_name(client):
+    with patch(
+        "app.desktop.studio_server.prompt_api.prompt_builder_from_ui_name"
+    ) as mock:
         mock.return_value = MockPromptBuilder
         yield mock
 
 
 @pytest.fixture
-def mock_task_from_id():
-    with patch("kiln_server.prompt_api.task_from_id") as mock:
+def mock_task_from_id(client):
+    with patch("app.desktop.studio_server.prompt_api.task_from_id") as mock:
         mock.return_value = MagicMock(spec=Task)
         yield mock
 
 
-def test_gen_prompt_success(
-    mock_task, mock_prompt_builder_from_ui_name, mock_task_from_id
+def test_generate_prompt_success(
+    client, mock_task, mock_prompt_builder_from_ui_name, mock_task_from_id
 ):
     response = client.get(
         "/api/projects/project123/task/task456/gen_prompt/mock_generator"
@@ -64,8 +68,8 @@ def test_gen_prompt_success(
     mock_prompt_builder_from_ui_name.assert_called_once_with("mock_generator")
 
 
-def test_gen_prompt_exception(
-    mock_task, mock_prompt_builder_from_ui_name, mock_task_from_id
+def test_generate_prompt_exception(
+    client, mock_task, mock_prompt_builder_from_ui_name, mock_task_from_id
 ):
     mock_prompt_builder_from_ui_name.side_effect = ValueError(
         "Invalid prompt generator"

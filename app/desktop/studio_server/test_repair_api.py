@@ -12,7 +12,8 @@ from kiln_ai.datamodel import (
     TaskOutput,
     TaskRun,
 )
-from kiln_server.repair_api import (
+
+from app.desktop.studio_server.repair_api import (
     RepairRunPost,
     RepairTaskApiInput,
     connect_repair_api,
@@ -84,7 +85,7 @@ def mock_repair_task_run(improvement_task, data_source):
 
 @pytest.fixture
 def mock_langchain_adapter(mock_repair_task_run):
-    with patch("kiln_server.repair_api.LangChainPromptAdapter") as mock:
+    with patch("app.desktop.studio_server.repair_api.LangChainPromptAdapter") as mock:
         mock_adapter = AsyncMock()
         mock_adapter.invoke = AsyncMock()
         mock.return_value = mock_adapter
@@ -96,7 +97,7 @@ def mock_langchain_adapter(mock_repair_task_run):
 
 @pytest.fixture
 def mock_run_and_task(improvement_task, improvement_task_run):
-    with patch("kiln_server.repair_api.task_and_run_from_id") as mock:
+    with patch("app.desktop.studio_server.repair_api.task_and_run_from_id") as mock:
         mock.return_value = (improvement_task, improvement_task_run)
         yield mock
 
