@@ -69,7 +69,7 @@ Currently, we support about a dozen models and a variety of prompting solutions 
 
 If you have a data science team and want to go deeper, our Python library has everything you need. Ingest the Kiln data format into your pipeline. Create custom evaluations. Use Kiln data in notebooks. Build fine-tunes. Extend or replace any part of the pipeline.
 
-We also offer [a REST API package](https://pypi.org/project/kiln-server/0.0.1/) for integrating Kiln into your own tools and workflows.
+We also offer [a REST API package](https://pypi.org/project/kiln-server/) for integrating Kiln into your own tools and workflows.
 
 ## Status
 
