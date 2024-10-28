@@ -21,6 +21,10 @@ See our [website](https://kiln-ai.com) for more information.
 pip install kiln_server
 ```
 
+## Docs
+
+Our OpenApi docs: [https://kiln-ai.github.io/Kiln/kiln_server_openapi_docs/index.html](https://kiln-ai.github.io/Kiln/kiln_server_openapi_docs/index.html)
+
 ## Running the server
 
 ```console
