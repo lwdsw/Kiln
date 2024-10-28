@@ -20,3 +20,15 @@ See our [website](https://kiln-ai.com) for more information.
 ```console
 pip install kiln_server
 ```
+
+## Running the server
+
+```console
+python -m kiln_server.server
+```
+
+With auto-reload:
+
+```console
+AUTO_RELOAD=true python -m kiln_server.server
+```

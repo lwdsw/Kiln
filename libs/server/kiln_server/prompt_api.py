@@ -1,12 +1,7 @@
-from typing import Any, Dict, List
-
 from fastapi import FastAPI, HTTPException
-from kiln_ai.datamodel import Task
+from kiln_ai.adapters.prompt_builders import prompt_builder_from_ui_name
+from kiln_server.task_api import task_from_id
 from pydantic import BaseModel
-
-from libs.core.kiln_ai.adapters.prompt_builders import prompt_builder_from_ui_name
-from libs.server.kiln_server.project_api import project_from_id
-from libs.server.kiln_server.task_api import task_from_id
 
 
 class PromptApiResponse(BaseModel):
