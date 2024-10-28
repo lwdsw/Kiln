@@ -20,3 +20,19 @@ See our [website](https://kiln-ai.com) for more information.
 ```console
 pip install kiln_server
 ```
+
+## Docs
+
+Our OpenApi docs: [https://kiln-ai.github.io/Kiln/kiln_server_openapi_docs/index.html](https://kiln-ai.github.io/Kiln/kiln_server_openapi_docs/index.html)
+
+## Running the server
+
+```console
+python -m kiln_server.server
+```
+
+With auto-reload:
+
+```console
+AUTO_RELOAD=true python -m kiln_server.server
+```

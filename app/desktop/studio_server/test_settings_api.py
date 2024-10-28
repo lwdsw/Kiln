@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from kiln_ai.utils.config import Config
 
-from libs.server.kiln_server.settings import connect_settings
+from app.desktop.studio_server.settings_api import connect_settings
 
 
 @pytest.fixture
