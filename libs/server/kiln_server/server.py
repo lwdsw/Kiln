@@ -16,7 +16,11 @@ from .webhost import connect_webhost
 
 
 def make_app():
-    app = FastAPI()
+    app = FastAPI(
+        title="Kiln AI Server",
+        summary="A REST API for the Kiln AI datamodel.",
+        description="Learn more about Kiln AI at https://github.com/kiln-ai/kiln-ai",
+    )
 
     # Allow requests from localhost and 127.0.0.1
     app.add_middleware(
