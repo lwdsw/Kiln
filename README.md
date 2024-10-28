@@ -90,9 +90,9 @@ cd app/web_ui
 npm install
 ```
 
-Run the API server and Web UI with auto-reload for development:
+Run the API server, Studio server, and Studio Web UI with auto-reload for development:
 
-- Run the Python server: `AUTO_RELOAD=true python -m libs.server.kiln_server.server`
+- Run the Python server: `python -m app.desktop.dev_server`
 - Run the Web UI from the `app/web_ui` directory: `npm run dev --`
 - Open the app: http://localhost:5173/run
 
