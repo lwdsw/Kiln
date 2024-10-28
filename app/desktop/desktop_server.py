@@ -1,14 +1,26 @@
 import contextlib
+import os
 import threading
 import time
 
 import kiln_server.server as kiln_server
 import uvicorn
 
+from app.desktop.studio_server.provider_api import connect_provider_api
+from app.desktop.studio_server.webhost import connect_webhost
+
+
+def make_app():
+    app = kiln_server.make_app()
+    connect_provider_api(app)
+    # Important: webhost must be last, it handles all other URLs
+    connect_webhost(app)
+    return app
+
 
 def server_config(port=8757):
     return uvicorn.Config(
-        kiln_server.make_app(),
+        make_app(),
         host="127.0.0.1",
         port=port,
         log_level="warning",
