@@ -13,9 +13,8 @@ from kiln_ai.datamodel import (
     TaskOutputRatingType,
     TaskRun,
 )
-
-from libs.server.kiln_server.custom_errors import connect_custom_errors
-from libs.server.kiln_server.run_api import connect_run_api, deep_update, run_from_id
+from kiln_server.custom_errors import connect_custom_errors
+from kiln_server.run_api import connect_run_api, deep_update, run_from_id
 
 
 @pytest.fixture
@@ -98,7 +97,7 @@ async def test_run_task_success(client, task_run_setup):
     run_task_request = task_run_setup["run_task_request"]
 
     with patch(
-        "libs.server.kiln_server.run_api.project_from_id"
+        "kiln_server.run_api.project_from_id"
     ) as mock_project_from_id, patch.object(
         LangChainPromptAdapter, "invoke", new_callable=AsyncMock
     ) as mock_invoke, patch("kiln_ai.utils.config.Config.shared") as MockConfig:
@@ -127,7 +126,7 @@ async def test_run_task_structured_output(client, task_run_setup):
     run_task_request = task_run_setup["run_task_request"]
 
     with patch(
-        "libs.server.kiln_server.run_api.project_from_id"
+        "kiln_server.run_api.project_from_id"
     ) as mock_project_from_id, patch.object(
         LangChainPromptAdapter, "invoke", new_callable=AsyncMock
     ) as mock_invoke, patch("kiln_ai.utils.config.Config.shared") as MockConfig:
@@ -157,9 +156,7 @@ async def test_run_task_not_found(client, task_run_setup):
     project = task_run_setup["project"]
     run_task_request = task_run_setup["run_task_request"]
 
-    with patch(
-        "libs.server.kiln_server.run_api.project_from_id"
-    ) as mock_project_from_id:
+    with patch("kiln_server.run_api.project_from_id") as mock_project_from_id:
         mock_project_from_id.return_value = project
         response = client.post(
             "/api/projects/project1-id/tasks/non_existent_task_id/run",
@@ -178,9 +175,7 @@ async def test_run_task_no_input(client, task_run_setup, mock_config):
     # Misisng input
     run_task_request = {"model_name": "gpt_4o", "provider": "openai"}
 
-    with patch(
-        "libs.server.kiln_server.run_api.project_from_id"
-    ) as mock_project_from_id:
+    with patch("kiln_server.run_api.project_from_id") as mock_project_from_id:
         mock_project_from_id.return_value = project
         response = client.post(
             f"/api/projects/project1-id/tasks/{task.id}/run", json=run_task_request
@@ -210,7 +205,7 @@ async def test_run_task_structured_input(client, task_run_setup):
         }
 
         with patch(
-            "libs.server.kiln_server.run_api.project_from_id"
+            "kiln_server.run_api.project_from_id"
         ) as mock_project_from_id, patch.object(
             LangChainPromptAdapter, "invoke", new_callable=AsyncMock
         ) as mock_invoke, patch("kiln_ai.utils.config.Config.shared") as MockConfig:
@@ -418,9 +413,7 @@ async def test_update_run(client, tmp_path):
     ]
 
     for case in test_cases:
-        with patch(
-            "libs.server.kiln_server.run_api.project_from_id"
-        ) as mock_project_from_id:
+        with patch("kiln_server.run_api.project_from_id") as mock_project_from_id:
             mock_project_from_id.return_value = project
 
             response = client.patch(
@@ -471,9 +464,7 @@ async def test_update_run(client, tmp_path):
     ]
 
     for case in error_cases:
-        with patch(
-            "libs.server.kiln_server.run_api.project_from_id"
-        ) as mock_project_from_id:
+        with patch("kiln_server.run_api.project_from_id") as mock_project_from_id:
             mock_project_from_id.return_value = project
 
             response = client.patch(
@@ -520,7 +511,7 @@ def test_run(tmp_path) -> TaskRun:
 
 
 def test_run_from_id_success(test_run):
-    with patch("libs.server.kiln_server.run_api.task_from_id") as mock_task_from_id:
+    with patch("kiln_server.run_api.task_from_id") as mock_task_from_id:
         mock_task_from_id.return_value = test_run.parent
         result = run_from_id(test_run.parent.parent.id, test_run.parent.id, test_run.id)
         assert result.id == test_run.id
@@ -529,7 +520,7 @@ def test_run_from_id_success(test_run):
 
 
 def test_run_from_id_not_found(test_run):
-    with patch("libs.server.kiln_server.run_api.task_from_id") as mock_task_from_id:
+    with patch("kiln_server.run_api.task_from_id") as mock_task_from_id:
         mock_task_from_id.return_value = test_run.parent
         with pytest.raises(HTTPException) as exc_info:
             run_from_id(
@@ -540,7 +531,7 @@ def test_run_from_id_not_found(test_run):
 
 
 async def test_get_run_success(client, test_run):
-    with patch("libs.server.kiln_server.run_api.run_from_id") as mock_run_from_id:
+    with patch("kiln_server.run_api.run_from_id") as mock_run_from_id:
         mock_run_from_id.return_value = test_run
         response = client.get(
             f"/api/projects/{test_run.parent.parent.id}/tasks/{test_run.parent.id}/runs/{test_run.id}"
@@ -554,7 +545,7 @@ async def test_get_run_success(client, test_run):
 
 
 async def test_get_run_not_found(client):
-    with patch("libs.server.kiln_server.run_api.run_from_id") as mock_run_from_id:
+    with patch("kiln_server.run_api.run_from_id") as mock_run_from_id:
         mock_run_from_id.side_effect = HTTPException(
             status_code=404, detail="Run not found"
         )
@@ -572,7 +563,7 @@ async def test_get_runs_success(client, task_run_setup):
     task = task_run_setup["task"]
     task_run = task_run_setup["task_run"]
 
-    with patch("libs.server.kiln_server.run_api.task_from_id") as mock_task_from_id:
+    with patch("kiln_server.run_api.task_from_id") as mock_task_from_id:
         mock_task = MagicMock()
         mock_task.runs.return_value = [task_run]
         mock_task_from_id.return_value = mock_task
@@ -593,7 +584,7 @@ async def test_get_runs_empty(client, task_run_setup):
     project = task_run_setup["project"]
     task = task_run_setup["task"]
 
-    with patch("libs.server.kiln_server.run_api.task_from_id") as mock_task_from_id:
+    with patch("kiln_server.run_api.task_from_id") as mock_task_from_id:
         mock_task = MagicMock()
         mock_task.runs.return_value = []
         mock_task_from_id.return_value = mock_task
@@ -608,7 +599,7 @@ async def test_get_runs_empty(client, task_run_setup):
 
 @pytest.mark.asyncio
 async def test_get_runs_task_not_found(client):
-    with patch("libs.server.kiln_server.run_api.task_from_id") as mock_task_from_id:
+    with patch("kiln_server.run_api.task_from_id") as mock_task_from_id:
         mock_task_from_id.side_effect = HTTPException(
             status_code=404, detail="Task not found"
         )
@@ -632,7 +623,7 @@ async def test_delete_run(client, task_run_setup):
     assert path.is_file()
     assert path.parent.exists()
 
-    with patch("libs.server.kiln_server.run_api.run_from_id") as mock_run_from_id:
+    with patch("kiln_server.run_api.run_from_id") as mock_run_from_id:
         mock_run_from_id.return_value = task_run
         response = client.delete(
             f"/api/projects/{project.id}/tasks/{task.id}/runs/{task_run.id}"
@@ -651,7 +642,7 @@ async def test_delete_run_not_found(client, task_run_setup):
     project = task_run_setup["project"]
     task = task_run_setup["task"]
 
-    with patch("libs.server.kiln_server.run_api.task_from_id") as mock_project_from_id:
+    with patch("kiln_server.run_api.task_from_id") as mock_project_from_id:
         mock_project_from_id.return_value = task
 
         response = client.delete(
@@ -695,9 +686,7 @@ async def test_update_run_clear_repair_fields(client, task_run_setup):
     # Patch to clear repair fields
     patch_data = {"output": {"repair_instruction": None, "repaired_output": None}}
 
-    with patch(
-        "libs.server.kiln_server.run_api.project_from_id"
-    ) as mock_project_from_id:
+    with patch("kiln_server.run_api.project_from_id") as mock_project_from_id:
         mock_project_from_id.return_value = project
 
         response = client.patch(

@@ -4,8 +4,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-
-from libs.core.kiln_ai.datamodel import (
+from kiln_ai.datamodel import (
     DataSource,
     DataSourceType,
     Project,
@@ -13,7 +12,7 @@ from libs.core.kiln_ai.datamodel import (
     TaskOutput,
     TaskRun,
 )
-from libs.server.kiln_server.repair_api import (
+from kiln_server.repair_api import (
     RepairRunPost,
     RepairTaskApiInput,
     connect_repair_api,
@@ -85,7 +84,7 @@ def mock_repair_task_run(improvement_task, data_source):
 
 @pytest.fixture
 def mock_langchain_adapter(mock_repair_task_run):
-    with patch("libs.server.kiln_server.repair_api.LangChainPromptAdapter") as mock:
+    with patch("kiln_server.repair_api.LangChainPromptAdapter") as mock:
         mock_adapter = AsyncMock()
         mock_adapter.invoke = AsyncMock()
         mock.return_value = mock_adapter
@@ -97,7 +96,7 @@ def mock_langchain_adapter(mock_repair_task_run):
 
 @pytest.fixture
 def mock_run_and_task(improvement_task, improvement_task_run):
-    with patch("libs.server.kiln_server.repair_api.task_and_run_from_id") as mock:
+    with patch("kiln_server.repair_api.task_and_run_from_id") as mock:
         mock.return_value = (improvement_task, improvement_task_run)
         yield mock
 
