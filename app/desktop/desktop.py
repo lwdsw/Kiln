@@ -59,7 +59,6 @@ def on_quit():
 
 
 def run_taskbar():
-    # TODO: resolution
     image = Image.open(resource_path("taskbar.png"))
     # Use default on Windows to get "left click to open" behaviour. But it looks ugle on MacOS, so don't use it there
     make_open_studio_default = sys.platform == "Windows"
@@ -70,10 +69,27 @@ def run_taskbar():
         pystray.MenuItem("Quit", on_quit),
     )
     global tray
-    tray = pystray.Icon("kiln", image, "kiln", menu)
+    tray = pystray.Icon("kiln", image, "Kiln", menu)
     # running detached since we use tk mainloop to get events from dock icon
     tray.run_detached()
     return tray
+
+
+def setup_tray_for_mac(tray):
+    # Mac likes to have "template" images for the icon, so it can change based on dark/light mode
+    # I need to patch pystray to add this functionality
+    try:
+        if sys.platform != "darwin":
+            return
+        tray._assert_image()
+        icon_nsimage = tray._icon_image
+        # Convert to template image (will respect dark/light mode)
+        icon_nsimage.setTemplate_(True)
+        # Reset status bar icon to use template image
+        tray._status_item.button().setImage_(icon_nsimage)
+    except Exception as e:
+        # Continue, this shouldn't be fatal
+        print("Mac Tray Error", e)
 
 
 def close_splash():
@@ -104,4 +120,5 @@ if __name__ == "__main__":
         tray = run_taskbar()
         root.after(10, show_studio)
         root.after(10, close_splash)
+        root.after(10, setup_tray_for_mac, tray)
         root.mainloop()
