@@ -14,7 +14,7 @@ pip install kiln_ai
 
 ## About Kiln AI
 
-Learn more about Kiln AI at [kiln-ai.com](https://kiln-ai.com)
+Learn more about Kiln AI at [getkiln.ai](https://getkiln.ai)
 
 Github: [github.com/Kiln-AI/kiln](https://github.com/Kiln-AI/kiln)
 

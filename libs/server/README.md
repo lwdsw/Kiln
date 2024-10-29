@@ -9,7 +9,7 @@
 
 The Kiln AI Server is a Python library that provides a REST API server for the Kiln AI datamodel.
 
-See our [website](https://kiln-ai.com) for more information.
+See our [website](https://getkiln.ai) for more information.
 
 ## Installation
 

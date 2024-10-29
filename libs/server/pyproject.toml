@@ -11,7 +11,7 @@ authors = [
   "Steve Cosman, Chesterfield Laboratories Inc <scosman@users.noreply.github.com>",
 ]
 license = "Proprietary"
-homepage = "https://kiln-ai.com"
+homepage = "https://getkiln.ai"
 repository = "https://github.com/Kiln-AI/kiln"
 documentation = "https://github.com/Kiln-AI/kiln#readme"
 
