@@ -6,7 +6,7 @@ from kiln_ai.adapters.base_adapter import AdapterInfo, BaseAdapter
 from kiln_ai.adapters.prompt_builders import (
     FewShotPromptBuilder,
     MultiShotPromptBuilder,
-    RepairMultiShotPromptBuilder,
+    RepairsPromptBuilder,
     SimplePromptBuilder,
     prompt_builder_from_ui_name,
 )
@@ -305,16 +305,14 @@ def check_example_outputs(task: Task, count: int):
 def test_prompt_builder_name():
     assert SimplePromptBuilder.prompt_builder_name() == "simple_prompt_builder"
     assert MultiShotPromptBuilder.prompt_builder_name() == "multi_shot_prompt_builder"
-    assert (
-        RepairMultiShotPromptBuilder.prompt_builder_name() == "repairs_prompt_builder"
-    )
+    assert RepairsPromptBuilder.prompt_builder_name() == "repairs_prompt_builder"
 
 
 def test_prompt_builder_from_ui_name():
     assert prompt_builder_from_ui_name("basic") == SimplePromptBuilder
     assert prompt_builder_from_ui_name("few_shot") == FewShotPromptBuilder
     assert prompt_builder_from_ui_name("many_shot") == MultiShotPromptBuilder
-    assert prompt_builder_from_ui_name("repairs") == RepairMultiShotPromptBuilder
+    assert prompt_builder_from_ui_name("repairs") == RepairsPromptBuilder
 
     with pytest.raises(ValueError, match="Unknown prompt builder: invalid_name"):
         prompt_builder_from_ui_name("invalid_name")
@@ -327,7 +325,7 @@ def test_example_count():
 
 def test_repair_multi_shot_prompt_builder(task_with_examples):
     # Verify the order of examples
-    prompt_builder = RepairMultiShotPromptBuilder(task=task_with_examples)
+    prompt_builder = RepairsPromptBuilder(task=task_with_examples)
     prompt = prompt_builder.build_prompt()
     assert (
         'Repaired Output Which is Sufficient: {"joke": "Why did the cow cross the road? To get to the udder side!"}'

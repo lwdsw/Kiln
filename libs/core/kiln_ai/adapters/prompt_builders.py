@@ -1,6 +1,6 @@
 import json
 from abc import ABCMeta, abstractmethod
-from typing import Dict, Union
+from typing import Dict
 
 from kiln_ai.datamodel import Task, TaskRun
 from kiln_ai.utils.formatting import snake_case
@@ -165,7 +165,7 @@ class FewShotPromptBuilder(MultiShotPromptBuilder):
         return 4
 
 
-class RepairMultiShotPromptBuilder(MultiShotPromptBuilder):
+class RepairsPromptBuilder(MultiShotPromptBuilder):
     """A prompt builder that includes multiple examples in the prompt, including repaired instructions describing what was wrong, and how it was fixed."""
 
     def prompt_section_for_example(self, index: int, example: TaskRun) -> str:
@@ -191,7 +191,7 @@ prompt_builder_registry = {
     "simple_prompt_builder": SimplePromptBuilder,
     "multi_shot_prompt_builder": MultiShotPromptBuilder,
     "few_shot_prompt_builder": FewShotPromptBuilder,
-    "repairs_prompt_builder": RepairMultiShotPromptBuilder,
+    "repairs_prompt_builder": RepairsPromptBuilder,
 }
 
 
@@ -216,6 +216,6 @@ def prompt_builder_from_ui_name(ui_name: str) -> type[BasePromptBuilder]:
         case "many_shot":
             return MultiShotPromptBuilder
         case "repairs":
-            return RepairMultiShotPromptBuilder
+            return RepairsPromptBuilder
         case _:
             raise ValueError(f"Unknown prompt builder: {ui_name}")
