@@ -2,7 +2,7 @@
 name = "kiln-studio-desktop"
 version = "0.1.0"
 description = "The Kiln Desktop App. Download from https://getkiln.ai"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
     "kiln-server",
     "pillow>=11.0.0",

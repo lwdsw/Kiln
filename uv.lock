@@ -820,6 +820,7 @@ dependencies = [
     { name = "pydantic" },
     { name = "pytest-cov" },
     { name = "pyyaml" },
+    { name = "typing-extensions" },
 ]
 
 [package.dev-dependencies]
@@ -845,6 +846,7 @@ requires-dist = [
     { name = "pydantic", specifier = ">=2.9.2" },
     { name = "pytest-cov", specifier = ">=6.0.0" },
     { name = "pyyaml", specifier = ">=6.0.2" },
+    { name = "typing-extensions", specifier = ">=4.12.2" },
 ]
 
 [package.metadata.requires-dev]

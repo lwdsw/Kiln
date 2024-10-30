@@ -1,7 +1,7 @@
 [project]
 name = "kiln-ai"
 version = "0.5.1"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 readme = "README.md"
 description = 'Kiln AI'
 authors = [
@@ -21,6 +21,7 @@ dependencies = [
     "pydantic>=2.9.2",
     "pytest-cov>=6.0.0",
     "pyyaml>=6.0.2",
+    "typing-extensions>=4.12.2",
 ]
 
 [dependency-groups]
