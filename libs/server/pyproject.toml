@@ -8,6 +8,12 @@ license = {file = "LICENSE.txt"}
 authors = [
   {name = "Steve Cosman, Chesterfield Laboratories Inc", email = "scosman@users.noreply.github.com"}
 ]
+classifiers = [
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12"
+]
 
 dependencies = [
     "fastapi>=0.115.4",
