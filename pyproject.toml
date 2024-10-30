@@ -29,3 +29,12 @@ members = ["libs/core", "libs/server", "app/desktop"]
 kiln-ai = { workspace = true }
 kiln-server = { workspace = true }
 kiln-studio-desktop = { workspace = true }
+
+[tool.pyright]
+strictListInference = true
+reportMissingTypeArgument = true
+
+
+[tool.ruff]
+exclude = [
+]
