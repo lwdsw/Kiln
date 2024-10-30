@@ -1,0 +1,12 @@
+[project]
+name = "kiln"
+version = "0.1.0"
+description = "uv workspace project for Kiln AI. See kiln-ai package on pypi for our librabrary (libs/core)"
+readme = "README.md"
+requires-python = ">=3.9"
+
+
+
+[tool.uv.workspace]
+members = ["libs/core", "libs/server"]
+
