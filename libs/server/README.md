@@ -32,3 +32,14 @@ With auto-reload:
 ```console
 AUTO_RELOAD=true python -m kiln_server.server
 ```
+
+## Using the server in another FastAPI app
+
+See server.py for examples, but you can connect individual API endpoints to your app like this:
+
+```python
+from kiln_server.project_api import connect_project_api
+
+app = FastAPI()
+connect_project_api(app)
+```

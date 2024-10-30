@@ -4,13 +4,27 @@ version = "0.1.0"
 description = "uv workspace project for Kiln AI. See kiln-ai package on pypi for our librabrary (libs/core)"
 readme = "README.md"
 requires-python = ">=3.9"
+
 dependencies = [
     "kiln-ai",
+    "kiln-server",
 ]
 
+[dependency-groups]
+dev = [
+    "isort>=5.13.2",
+    "pyright==1.1.376",
+    "pytest-asyncio>=0.24.0",
+    "pytest>=8.3.3",
+    "python-dotenv>=1.0.1",
+    "ruff>=0.7.1",
+]
+
+
 [tool.uv.workspace]
-members = ["libs/core", "libs/server"]
+members = ["libs/core", "libs/server", "app/desktop"]
 
 [tool.uv.sources]
 kiln-ai = { workspace = true }
+kiln-server = { workspace = true }
 

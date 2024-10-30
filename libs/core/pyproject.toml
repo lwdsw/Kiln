@@ -8,6 +8,7 @@ authors = [
   {name = "Steve Cosman, Chesterfield Laboratories Inc", email = "scosman@users.noreply.github.com"}
 ]
 
+
 dependencies = [
     "coverage>=7.6.4",
     "jsonschema>=4.23.0",
@@ -25,12 +26,16 @@ dependencies = [
 [dependency-groups]
 dev = [
     "isort>=5.13.2",
-    "pyright>=1.1.387",
+    "pyright==1.1.376",
     "pytest-asyncio>=0.24.0",
     "pytest>=8.3.3",
     "python-dotenv>=1.0.1",
     "ruff>=0.7.1",
 ]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project.urls]
 Homepage = "https://getkiln.ai"

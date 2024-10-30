@@ -21,12 +21,13 @@ dependencies = [
 [dependency-groups]
 dev = [
     "isort>=5.13.2",
-    "pyright>=1.1.387",
+    "pyright==1.1.376",
     "pytest-asyncio>=0.24.0",
     "pytest>=8.3.3",
     "python-dotenv>=1.0.1",
     "ruff>=0.7.1",
 ]
+
 
 [tool.uv.sources]
 # This works fine, if we don't use UV workspace mode (top level pyproject.toml), but errors if we do.
@@ -34,6 +35,10 @@ dev = [
 
 # This returns "ModuleNotFoundError: No module named 'kiln_ai'" in workspace mode, if included here, or not included at all.
 kiln-ai = { workspace = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 
 [project.urls]
