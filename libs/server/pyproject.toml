@@ -28,7 +28,11 @@ dev = [
 ]
 
 [tool.uv.sources]
-kiln-ai = { path = "../core" }
+# This works fine, if we don't use UV workspace mode (top level pyproject.toml), but errors if we do.
+# kiln-ai = { path = "../core" }
+
+# This returns "ModuleNotFoundError: No module named 'kiln_ai'" in workspace mode, if included here, or not included at all.
+kiln-ai = { workspace = true }
 
 
 [project.urls]
