@@ -8,6 +8,7 @@ requires-python = ">=3.9"
 dependencies = [
     "kiln-ai",
     "kiln-server",
+    "kiln-studio-desktop",
 ]
 
 [dependency-groups]
@@ -27,4 +28,4 @@ members = ["libs/core", "libs/server", "app/desktop"]
 [tool.uv.sources]
 kiln-ai = { workspace = true }
 kiln-server = { workspace = true }
-
+kiln-studio-desktop = { workspace = true }

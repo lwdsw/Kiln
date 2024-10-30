@@ -5,6 +5,7 @@ description = "The Kiln Desktop App. Download from https://getkiln.ai"
 requires-python = ">=3.9"
 dependencies = [
     "kiln-server",
+    "pillow>=11.0.0",
     "pyinstaller>=6.11.0",
     "pystray>=0.19.5",
 ]
