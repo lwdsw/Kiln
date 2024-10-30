@@ -33,11 +33,12 @@ Kiln includes:
 <img width="185" alt="Prompts screen" src="https://github.com/user-attachments/assets/70544362-8420-4a49-9e9f-34a046c837dd">
 </kbd>
 
-## Download Now
+## Download Kiln Studio App
 
-#### MacOS and Windows
 
-You can download our latest desktop app build [here](https://github.com/Kiln-AI/Kiln/releases/latest). Download the appropriate build for your machine (Mac or Windows).
+[<img width="190" alt="Download button" src="https://github.com/user-attachments/assets/2fa7f887-8701-4945-be65-deced7a9b6b4">](https://github.com/Kiln-AI/Kiln/releases/latest)
+
+The Kiln Studio desktop app is a free download, available on [MacOS and Windows](https://github.com/Kiln-AI/Kiln/releases/latest).
 
 ## Install Python Library
 
