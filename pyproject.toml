@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.10"
 
 dependencies = [
-    "kiln-ai",
+    "kiln-ai==0.5.3",
     "kiln-server",
     "kiln-studio-desktop",
 ]
@@ -26,9 +26,9 @@ dev = [
 members = ["libs/core", "libs/server", "app/desktop"]
 
 [tool.uv.sources]
-kiln-ai = { workspace = true }
 kiln-server = { workspace = true }
 kiln-studio-desktop = { workspace = true }
+kiln-ai = { workspace = true }
 
 [tool.pyright]
 strictListInference = true
