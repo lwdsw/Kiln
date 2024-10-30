@@ -1,6 +1,6 @@
 [project]
 name = "kiln-server"
-version = "0.1.0"
+version = "0.5.1"
 requires-python = ">=3.10"
 description = 'Kiln AI Server'
 readme = "README.md"
@@ -40,9 +40,11 @@ kiln-ai = { workspace = true }
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[tool.hatch.metadata]
+requires-python = ">=3.10"
 
 [project.urls]
-homepage = "https://getkiln.ai"
-repository = "https://github.com/Kiln-AI/kiln"
-documentation = "https://github.com/Kiln-AI/kiln#readme"
-
+Homepage = "https://getkiln.ai"
+Repository = "https://github.com/Kiln-AI/kiln"
+Documentation = "https://github.com/Kiln-AI/kiln#readme"
+Issues = "https://github.com/Kiln-AI/kiln/issues"
