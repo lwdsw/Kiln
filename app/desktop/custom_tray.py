@@ -9,7 +9,7 @@ class KilnTray(pystray.Icon):
     # lots of type ignores because we're accessing private attributes of pystray
     def _assert_image(self):
         if sys.platform != "darwin":
-            super()._assert_image()
+            super()._assert_image()  # type: ignore
             return
 
         import AppKit
