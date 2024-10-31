@@ -81,22 +81,25 @@ We’re working out our license and will have it sorted soon. The plan is that t
 
 ## Development Commands
 
-Initial setup using python environment of your choice (venv, conda, etc.):
+These are only needed if you want to contribute to Kiln. If you just want to use Kiln, see the instructions above for downloading the desktop app or installing the Python library.
+
+We use [uv](https://github.com/astral-sh/uv) to manage the Python environment and dependencies, and npm to manage the web UI.
 
 ```
-pip install -r dev-requirements.txt
-pip install -r requirements.txt
+# First install uv: https://github.com/astral-sh/uv
+uv sync
 cd app/web_ui
+# install Node if you don't have it already
 npm install
 ```
 
 Run the API server, Studio server, and Studio Web UI with auto-reload for development:
 
-- Run the Python server: `python -m app.desktop.dev_server`
+- Run the Python server: `uv run python -m app.desktop.dev_server`
 - Run the Web UI from the `app/web_ui` directory: `npm run dev --`
 - Open the app: http://localhost:5173/run
 
 Running the desktop app without building an executable:
 
 - First, build the web UI from the `app/web_ui` directory: `npm run build`
-- Then run the desktop app: `python -m app.desktop.desktop`
+- Then run the desktop app: `uv run python -m app.desktop.desktop`
