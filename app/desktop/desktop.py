@@ -8,7 +8,7 @@ import pystray
 from PIL import Image
 
 # Unused, but needed for pyinstaller to not miss this import
-from pydantic.deprecated.decorator import deprecated  # noqa
+from pydantic.deprecated.decorator import deprecated  # noqa # type: ignore
 
 from app.desktop.custom_tray import KilnTray
 from app.desktop.desktop_server import ThreadedServer, server_config
