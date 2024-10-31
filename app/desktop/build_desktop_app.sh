@@ -39,7 +39,7 @@ fi
 # TODO: use a spec instead of long winded command line
 pyinstaller $(printf %s "$PLATFORM_OPTS") --icon="./icon.png" \
   --add-data "./taskbar.png:." --add-data "../../web_ui/build:./web_ui/build" \
-  --noconfirm --distpath=./desktop/build/dist --workpath=./desktop/build/work \
+  --noconfirm --hidden-import "tkinter" --distpath=./desktop/build/dist --workpath=./desktop/build/work \
   -n Kiln --specpath=./desktop/build \
   --paths=. ./desktop/desktop.py
 
