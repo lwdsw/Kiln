@@ -36,7 +36,7 @@ Kiln includes:
 ## Download Kiln Studio App
 
 
-[<img width="190" alt="Download button" src="https://github.com/user-attachments/assets/2fa7f887-8701-4945-be65-deced7a9b6b4">](https://github.com/Kiln-AI/Kiln/releases/latest)
+[<img width="190" alt="Download button" src="https://github.com/user-attachments/assets/09874d7a-4873-4bb7-81c8-c3939206dc81">](https://github.com/Kiln-AI/Kiln/releases/latest)
 
 The Kiln Studio desktop app is a free download, available on [MacOS and Windows](https://github.com/Kiln-AI/Kiln/releases/latest).
 
