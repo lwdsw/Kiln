@@ -32,7 +32,7 @@ async def test_structured_output(tmp_path, model_name, provider):
     await run_structured_output_test(tmp_path, model_name, provider)
 
 
-@pytest.mark.paid
+@pytest.mark.ollama
 async def test_structured_output_ollama_phi(tmp_path):
     # https://python.langchain.com/v0.2/docs/how_to/structured_output/#advanced-specifying-the-method-for-structuring-outputs
     pytest.skip(
@@ -46,11 +46,12 @@ async def test_structured_output_gpt_4o_mini(tmp_path):
     await run_structured_output_test(tmp_path, "gpt_4o_mini", "openai")
 
 
-@pytest.mark.paid
-async def test_structured_output_ollama_llama(tmp_path):
+@pytest.mark.parametrize("model_name", ["llama_3_1_8b"])
+@pytest.mark.ollama
+async def test_structured_output_ollama_llama(tmp_path, model_name):
     if not await ollama_online():
         pytest.skip("Ollama API not running. Expect it running on localhost:11434")
-    await run_structured_output_test(tmp_path, "llama_3_1_8b", "ollama")
+    await run_structured_output_test(tmp_path, model_name, "ollama")
 
 
 class MockAdapter(BaseAdapter):
