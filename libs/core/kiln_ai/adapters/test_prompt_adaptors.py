@@ -24,6 +24,10 @@ async def test_groq(tmp_path):
         "gemini_1_5_pro",
         "gemini_1_5_flash",
         "gemini_1_5_flash_8b",
+        "nemotron_70b",
+        "llama_3_2_3b",
+        "llama_3_2_11b",
+        "llama_3_2_90b",
     ],
 )
 @pytest.mark.paid

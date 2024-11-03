@@ -57,6 +57,9 @@ class ModelName(str, Enum):
     llama_3_1_8b = "llama_3_1_8b"
     llama_3_1_70b = "llama_3_1_70b"
     llama_3_1_405b = "llama_3_1_405b"
+    llama_3_2_3b = "llama_3_2_3b"
+    llama_3_2_11b = "llama_3_2_11b"
+    llama_3_2_90b = "llama_3_2_90b"
     gpt_4o_mini = "gpt_4o_mini"
     gpt_4o = "gpt_4o"
     phi_3_5 = "phi_3_5"
@@ -69,6 +72,7 @@ class ModelName(str, Enum):
     gemini_1_5_flash = "gemini_1_5_flash"
     gemini_1_5_flash_8b = "gemini_1_5_flash_8b"
     gemini_1_5_pro = "gemini_1_5_pro"
+    nemotron_70b = "nemotron_70b"
 
 
 class KilnModelProvider(BaseModel):
@@ -183,6 +187,19 @@ built_in_models: List[KilnModel] = [
             KilnModelProvider(
                 name=ModelProviderName.openrouter,
                 provider_options={"model": "google/gemini-flash-1.5-8b"},
+            ),
+        ],
+    ),
+    # Nemotron 70B
+    KilnModel(
+        family=ModelFamily.llama,
+        name=ModelName.nemotron_70b,
+        friendly_name="Nemotron 70B",
+        providers=[
+            KilnModelProvider(
+                name=ModelProviderName.openrouter,
+                supports_structured_output=False,
+                provider_options={"model": "nvidia/llama-3.1-nemotron-70b-instruct"},
             ),
         ],
     ),
@@ -306,6 +323,45 @@ built_in_models: List[KilnModel] = [
             #     provider=ModelProviders.ollama,
             #     provider_options={"model": "mistral-large"},
             # ),
+        ],
+    ),
+    # Llama 3.2 3B
+    KilnModel(
+        family=ModelFamily.llama,
+        name=ModelName.llama_3_2_3b,
+        friendly_name="Llama 3.2 3B",
+        providers=[
+            KilnModelProvider(
+                name=ModelProviderName.openrouter,
+                supports_structured_output=False,
+                provider_options={"model": "meta-llama/llama-3.2-3b-instruct"},
+            ),
+        ],
+    ),
+    # Llama 3.2 11B
+    KilnModel(
+        family=ModelFamily.llama,
+        name=ModelName.llama_3_2_11b,
+        friendly_name="Llama 3.2 11B",
+        providers=[
+            KilnModelProvider(
+                name=ModelProviderName.openrouter,
+                supports_structured_output=False,
+                provider_options={"model": "meta-llama/llama-3.2-11b-vision-instruct"},
+            ),
+        ],
+    ),
+    # Llama 3.2 90B
+    KilnModel(
+        family=ModelFamily.llama,
+        name=ModelName.llama_3_2_90b,
+        friendly_name="Llama 3.2 90B",
+        providers=[
+            KilnModelProvider(
+                name=ModelProviderName.openrouter,
+                supports_structured_output=False,
+                provider_options={"model": "meta-llama/llama-3.2-90b-vision-instruct"},
+            ),
         ],
     ),
     # Phi 3.5
