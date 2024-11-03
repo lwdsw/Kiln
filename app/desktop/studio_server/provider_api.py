@@ -5,11 +5,14 @@ import requests
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 from kiln_ai.adapters.ml_model_list import (
+    KilnModel,
+    KilnModelProvider,
     ModelName,
     ModelProviderName,
     OllamaConnection,
     built_in_models,
     ollama_base_url,
+    ollama_model_supported,
     parse_ollama_tags,
     provider_name_from_id,
     provider_warnings,
@@ -79,15 +82,6 @@ def connect_provider_api(app: FastAPI):
         # Providers with just keys can return all their models if keys are set
         key_providers: List[str] = []
 
-        # Try to connect to Ollama
-        try:
-            ollama_connection = await connect_ollama()
-            if len(ollama_connection.models) > 0:
-                key_providers.append(ModelProviderName.ollama)
-        except HTTPException:
-            # skip ollama if it's not available
-            pass
-
         for provider, provider_warning in provider_warnings.items():
             has_keys = True
             for required_key in provider_warning.required_config_keys:
@@ -119,6 +113,11 @@ def connect_provider_api(app: FastAPI):
                                 supports_structured_output=provider.supports_structured_output,
                             )
                         )
+
+        # Ollama is special: check which models are installed
+        ollama_models = await available_ollama_models()
+        if ollama_models:
+            models.insert(0, ollama_models)
 
         return models
 
@@ -309,3 +308,56 @@ async def connect_bedrock(access_key: str, secret_key: str):
         status_code=400,
         content={"message": "Unknown Bedrock Error"},
     )
+
+
+async def available_ollama_models() -> AvailableModels | None:
+    # Try to connect to Ollama, and get the list of installed models
+    try:
+        ollama_connection = await connect_ollama()
+        ollama_models = AvailableModels(
+            provider_name=provider_name_from_id(ModelProviderName.ollama),
+            provider_id=ModelProviderName.ollama,
+            models=[],
+        )
+
+        for ollama_model_tag in ollama_connection.models:
+            model, ollama_provider = model_from_ollama_tag(ollama_model_tag)
+            if model and ollama_provider:
+                ollama_models.models.append(
+                    ModelDetails(
+                        id=model.name,
+                        name=model.friendly_name,
+                        supports_structured_output=ollama_provider.supports_structured_output,
+                    )
+                )
+
+        if len(ollama_models.models) > 0:
+            return ollama_models
+
+        return None
+    except HTTPException:
+        # skip ollama if it's not available
+        return None
+
+
+def model_from_ollama_tag(
+    tag: str,
+) -> tuple[KilnModel | None, KilnModelProvider | None]:
+    for model in built_in_models:
+        ollama_provider = next(
+            (p for p in model.providers if p.name == ModelProviderName.ollama), None
+        )
+        if not ollama_provider:
+            continue
+
+        if "model" in ollama_provider.provider_options:
+            model_name = ollama_provider.provider_options["model"]
+            if tag in [model_name, f"{model_name}:latest"]:
+                return model, ollama_provider
+        if "model_aliases" in ollama_provider.provider_options:
+            # all aliases (and :latest)
+            for alias in ollama_provider.provider_options["model_aliases"]:
+                if tag in [alias, f"{alias}:latest"]:
+                    return model, ollama_provider
+
+    return None, None
