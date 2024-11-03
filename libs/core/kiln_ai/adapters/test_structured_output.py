@@ -15,22 +15,21 @@ from kiln_ai.adapters.ml_model_list import (
 from kiln_ai.datamodel.test_json_schema import json_joke_schema, json_triangle_schema
 
 
+@pytest.mark.parametrize(
+    "model_name,provider",
+    [
+        ("llama_3_1_8b", "groq"),
+        ("mistral_nemo", "openrouter"),
+        ("llama_3_1_70b", "amazon_bedrock"),
+        ("claude_3_5_sonnet", "openrouter"),
+    ],
+)
 @pytest.mark.paid
-async def test_structured_output_groq(tmp_path):
-    await run_structured_output_test(tmp_path, "llama_3_1_8b", "groq")
+async def test_structured_output(tmp_path, model_name, provider):
+    await run_structured_output_test(tmp_path, model_name, provider)
 
 
 @pytest.mark.paid
-async def test_structured_output_openrouter(tmp_path):
-    await run_structured_output_test(tmp_path, "mistral_nemo", "openrouter")
-
-
-@pytest.mark.paid
-async def test_structured_output_bedrock(tmp_path):
-    await run_structured_output_test(tmp_path, "llama_3_1_70b", "amazon_bedrock")
-
-
-@pytest.mark.ollama
 async def test_structured_output_ollama_phi(tmp_path):
     # https://python.langchain.com/v0.2/docs/how_to/structured_output/#advanced-specifying-the-method-for-structuring-outputs
     pytest.skip(
@@ -39,12 +38,12 @@ async def test_structured_output_ollama_phi(tmp_path):
     await run_structured_output_test(tmp_path, "phi_3_5", "ollama")
 
 
-@pytest.mark.ollama
+@pytest.mark.paid
 async def test_structured_output_gpt_4o_mini(tmp_path):
     await run_structured_output_test(tmp_path, "gpt_4o_mini", "openai")
 
 
-@pytest.mark.ollama
+@pytest.mark.paid
 async def test_structured_output_ollama_llama(tmp_path):
     if not await ollama_online():
         pytest.skip("Ollama API not running. Expect it running on localhost:11434")
