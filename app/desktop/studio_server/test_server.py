@@ -70,11 +70,13 @@ def test_connect_ollama_no_models(client):
     with patch("requests.get") as mock_get:
         mock_get.return_value.json.return_value = {"models": []}
         response = client.post("/api/provider/ollama/connect")
-        assert response.status_code == 417
+        assert response.status_code == 200
+        r = response.json()
         assert (
-            "Ollama is running, but no supported models are installed"
-            in response.json()["message"]
+            r["message"]
+            == "Ollama is running, but no supported models are installed. Install one or more supported model, like 'ollama pull phi3.5'."
         )
+        assert r["models"] == []
 
 
 @pytest.mark.parametrize(

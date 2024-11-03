@@ -7,7 +7,10 @@ from fastapi.responses import JSONResponse
 from kiln_ai.adapters.ml_model_list import (
     ModelName,
     ModelProviderName,
+    OllamaConnection,
     built_in_models,
+    ollama_base_url,
+    parse_ollama_tags,
     provider_name_from_id,
     provider_warnings,
 )
@@ -16,15 +19,10 @@ from langchain_aws import ChatBedrockConverse
 from pydantic import BaseModel
 
 
-class OllamaConnection(BaseModel):
-    message: str
-    models: List[str]
-
-
 async def connect_ollama() -> OllamaConnection:
     # Tags is a list of Ollama models. Proves Ollama is running, and models are available.
     try:
-        tags = requests.get("http://localhost:11434/api/tags", timeout=5).json()
+        tags = requests.get(ollama_base_url() + "/api/tags", timeout=5).json()
     except requests.exceptions.ConnectionError:
         raise HTTPException(
             status_code=417,
@@ -36,35 +34,14 @@ async def connect_ollama() -> OllamaConnection:
             detail=f"Failed to connect to Ollama: {e}",
         )
 
-    # Build a list of models we support for Ollama from the built-in model list
-    supported_ollama_models = [
-        provider.provider_options["model"]
-        for model in built_in_models
-        for provider in model.providers
-        if provider.name == ModelProviderName.ollama
-    ]
+    ollama_connection = parse_ollama_tags(tags)
+    if ollama_connection is None:
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to parse Ollama data - unsure which models are installed.",
+        )
 
-    if "models" in tags:
-        models = tags["models"]
-        if isinstance(models, list):
-            model_names = [model["model"] for model in models]
-            available_supported_models = [
-                model
-                for model in model_names
-                if model in supported_ollama_models
-                or model in [f"{m}:latest" for m in supported_ollama_models]
-            ]
-            if available_supported_models:
-                Config.shared().ollama_base_url = "http://localhost:11434"
-                return OllamaConnection(
-                    message="Ollama connected",
-                    models=available_supported_models,
-                )
-
-    raise HTTPException(
-        status_code=417,
-        detail="Ollama is running, but no supported models are installed. Install one or more supported model, like 'ollama pull phi3.5'.",
-    )
+    return ollama_connection
 
 
 class ModelDetails(BaseModel):

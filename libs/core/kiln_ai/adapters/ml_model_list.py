@@ -2,9 +2,10 @@ import os
 from dataclasses import dataclass
 from enum import Enum
 from os import getenv
-from typing import Dict, List, NoReturn
+from typing import Any, Dict, List, NoReturn
 
 import httpx
+import requests
 from langchain_aws import ChatBedrockConverse
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_groq import ChatGroq
@@ -223,7 +224,10 @@ built_in_models: List[KilnModel] = [
             ),
             KilnModelProvider(
                 name=ModelProviderName.ollama,
-                provider_options={"model": "llama3.1"},  # 8b is default
+                provider_options={
+                    "model": "llama3.1:8b",
+                    "model_aliases": ["llama3.1"],  # 8b is default
+                },
             ),
             KilnModelProvider(
                 name=ModelProviderName.openrouter,
@@ -244,7 +248,6 @@ built_in_models: List[KilnModel] = [
             ),
             KilnModelProvider(
                 name=ModelProviderName.amazon_bedrock,
-                # TODO: this should work but a bug in the bedrock response schema
                 supports_structured_output=False,
                 provider_options={
                     "model": "meta.llama3-1-70b-instruct-v1:0",
@@ -255,11 +258,10 @@ built_in_models: List[KilnModel] = [
                 name=ModelProviderName.openrouter,
                 provider_options={"model": "meta-llama/llama-3.1-70b-instruct"},
             ),
-            # TODO: enable once tests update to check if model is available
-            # KilnModelProvider(
-            #     provider=ModelProviders.ollama,
-            #     provider_options={"model": "llama3.1:70b"},
-            # ),
+            KilnModelProvider(
+                name=ModelProviderName.ollama,
+                provider_options={"model": "llama3.1:70b"},
+            ),
         ],
     ),
     # Llama 3.1 405b
@@ -268,11 +270,6 @@ built_in_models: List[KilnModel] = [
         name=ModelName.llama_3_1_405b,
         friendly_name="Llama 3.1 405B",
         providers=[
-            # TODO: bring back when groq does: https://console.groq.com/docs/models
-            # KilnModelProvider(
-            #     name=ModelProviderName.groq,
-            #     provider_options={"model": "llama-3.1-405b-instruct-v1:0"},
-            # ),
             KilnModelProvider(
                 name=ModelProviderName.amazon_bedrock,
                 provider_options={
@@ -280,11 +277,10 @@ built_in_models: List[KilnModel] = [
                     "region_name": "us-west-2",  # Llama 3.1 only in west-2
                 },
             ),
-            # TODO: enable once tests update to check if model is available
-            # KilnModelProvider(
-            #     name=ModelProviderName.ollama,
-            #     provider_options={"model": "llama3.1:405b"},
-            # ),
+            KilnModelProvider(
+                name=ModelProviderName.ollama,
+                provider_options={"model": "llama3.1:405b"},
+            ),
             KilnModelProvider(
                 name=ModelProviderName.openrouter,
                 provider_options={"model": "meta-llama/llama-3.1-405b-instruct"},
@@ -320,11 +316,10 @@ built_in_models: List[KilnModel] = [
                 name=ModelProviderName.openrouter,
                 provider_options={"model": "mistralai/mistral-large"},
             ),
-            # TODO: enable once tests update to check if model is available
-            # KilnModelProvider(
-            #     provider=ModelProviders.ollama,
-            #     provider_options={"model": "mistral-large"},
-            # ),
+            KilnModelProvider(
+                name=ModelProviderName.ollama,
+                provider_options={"model": "mistral-large"},
+            ),
         ],
     ),
     # Llama 3.2 3B
@@ -407,13 +402,12 @@ built_in_models: List[KilnModel] = [
         friendly_name="Gemma 2 9B",
         supports_structured_output=False,
         providers=[
-            # TODO: enable once tests update to check if model is available
-            # KilnModelProvider(
-            #     name=ModelProviderName.ollama,
-            #     provider_options={
-            #         "model": "gemma2:9b",
-            #     },
-            # ),
+            KilnModelProvider(
+                name=ModelProviderName.ollama,
+                provider_options={
+                    "model": "gemma2:9b",
+                },
+            ),
             KilnModelProvider(
                 name=ModelProviderName.openrouter,
                 provider_options={"model": "google/gemma-2-9b-it"},
@@ -427,13 +421,12 @@ built_in_models: List[KilnModel] = [
         friendly_name="Gemma 2 27B",
         supports_structured_output=False,
         providers=[
-            # TODO: enable once tests update to check if model is available
-            # KilnModelProvider(
-            #     name=ModelProviderName.ollama,
-            #     provider_options={
-            #         "model": "gemma2:27b",
-            #     },
-            # ),
+            KilnModelProvider(
+                name=ModelProviderName.ollama,
+                provider_options={
+                    "model": "gemma2:27b",
+                },
+            ),
             KilnModelProvider(
                 name=ModelProviderName.openrouter,
                 provider_options={"model": "google/gemma-2-27b-it"},
@@ -531,7 +524,9 @@ def check_provider_warnings(provider_name: ModelProviderName):
             raise ValueError(warning_check.message)
 
 
-def langchain_model_from(name: str, provider_name: str | None = None) -> BaseChatModel:
+async def langchain_model_from(
+    name: str, provider_name: str | None = None
+) -> BaseChatModel:
     """
     Creates a LangChain chat model instance for the specified model and provider.
 
@@ -590,7 +585,23 @@ def langchain_model_from(name: str, provider_name: str | None = None) -> BaseCha
             **provider.provider_options,
         )
     elif provider.name == ModelProviderName.ollama:
-        return ChatOllama(**provider.provider_options, base_url=ollama_base_url())
+        # Ollama model naming is pretty flexible. We try a few versions of the model name
+        potential_model_names = []
+        if "model" in provider.provider_options:
+            potential_model_names.append(provider.provider_options["model"])
+        if "model_aliases" in provider.provider_options:
+            potential_model_names.extend(provider.provider_options["model_aliases"])
+
+        # Get the list of models Ollama supports
+        ollama_connection = await get_ollama_connection()
+        if ollama_connection is None:
+            raise ValueError("Failed to connect to Ollama. Ensure Ollama is running.")
+
+        for model_name in potential_model_names:
+            if ollama_model_supported(ollama_connection, model_name):
+                return ChatOllama(model=model_name, base_url=ollama_base_url())
+
+        raise ValueError(f"Model {name} not installed on Ollama")
     elif provider.name == ModelProviderName.openrouter:
         api_key = Config.shared().open_router_api_key
         base_url = getenv("OPENROUTER_BASE_URL") or "https://openrouter.ai/api/v1"
@@ -633,3 +644,67 @@ async def ollama_online() -> bool:
     except httpx.RequestError:
         return False
     return True
+
+
+class OllamaConnection(BaseModel):
+    message: str
+    models: List[str]
+
+
+# Parse the Ollama /api/tags response
+def parse_ollama_tags(tags: Any) -> OllamaConnection | None:
+    # Build a list of models we support for Ollama from the built-in model list
+    supported_ollama_models = [
+        provider.provider_options["model"]
+        for model in built_in_models
+        for provider in model.providers
+        if provider.name == ModelProviderName.ollama
+    ]
+    # Append model_aliases to supported_ollama_models
+    supported_ollama_models.extend(
+        [
+            alias
+            for model in built_in_models
+            for provider in model.providers
+            for alias in provider.provider_options.get("model_aliases", [])
+        ]
+    )
+
+    if "models" in tags:
+        models = tags["models"]
+        if isinstance(models, list):
+            model_names = [model["model"] for model in models]
+            print(f"model_names: {model_names}")
+            available_supported_models = [
+                model
+                for model in model_names
+                if model in supported_ollama_models
+                or model in [f"{m}:latest" for m in supported_ollama_models]
+            ]
+            if available_supported_models:
+                return OllamaConnection(
+                    message="Ollama connected",
+                    models=available_supported_models,
+                )
+
+    return OllamaConnection(
+        message="Ollama is running, but no supported models are installed. Install one or more supported model, like 'ollama pull phi3.5'.",
+        models=[],
+    )
+
+
+async def get_ollama_connection() -> OllamaConnection | None:
+    """
+    Gets the connection status for Ollama.
+    """
+    try:
+        tags = requests.get(ollama_base_url() + "/api/tags", timeout=5).json()
+
+    except Exception:
+        return None
+
+    return parse_ollama_tags(tags)
+
+
+def ollama_model_supported(conn: OllamaConnection, model_name: str) -> bool:
+    return model_name in conn.models or f"{model_name}:latest" in conn.models
