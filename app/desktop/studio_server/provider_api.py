@@ -70,6 +70,7 @@ async def connect_ollama() -> OllamaConnection:
 class ModelDetails(BaseModel):
     id: str
     name: str
+    supports_structured_output: bool
 
 
 class AvailableModels(BaseModel):
@@ -135,7 +136,11 @@ def connect_provider_api(app: FastAPI):
                     )
                     if available_models:
                         available_models.models.append(
-                            ModelDetails(id=model.name, name=model.friendly_name)
+                            ModelDetails(
+                                id=model.name,
+                                name=model.friendly_name,
+                                supports_structured_output=provider.supports_structured_output,
+                            )
                         )
 
         return models
