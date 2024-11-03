@@ -108,6 +108,7 @@ async def test_mock_unstructred_response(tmp_path):
 @pytest.mark.paid
 @pytest.mark.ollama
 async def test_all_built_in_models_structured_output(tmp_path):
+    errors = []
     for model in built_in_models:
         if not model.supports_structured_output:
             print(
@@ -124,7 +125,10 @@ async def test_all_built_in_models_structured_output(tmp_path):
                 print(f"Running {model.name} {provider.name}")
                 await run_structured_output_test(tmp_path, model.name, provider.name)
             except Exception as e:
-                raise RuntimeError(f"Error running {model.name} {provider}") from e
+                print(f"Error running {model.name} {provider.name}")
+                errors.append(f"{model.name} {provider.name}: {e}")
+    if len(errors) > 0:
+        raise RuntimeError(f"Errors: {errors}")
 
 
 def build_structured_output_test_task(tmp_path: Path):
