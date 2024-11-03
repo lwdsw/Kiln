@@ -373,6 +373,7 @@ built_in_models: List[KilnModel] = [
         providers=[
             KilnModelProvider(
                 name=ModelProviderName.ollama,
+                supports_structured_output=False,
                 provider_options={"model": "phi3.5"},
             ),
             KilnModelProvider(

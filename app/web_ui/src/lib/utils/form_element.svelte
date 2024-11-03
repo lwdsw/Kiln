@@ -40,7 +40,6 @@
     }
     return null
   }
-
   // Shorter error message that appears in a badge over the input
   let inline_error: string | null = null
   let initial_run = true
@@ -109,7 +108,7 @@
         placeholder={error_message || label}
         {id}
         class="textarea text-base textarea-bordered w-full h-18 wrap-pre text-left align-top
-       {error_message ? 'textarea-error' : ''}"
+       {error_message || inline_error ? 'textarea-error' : ''}"
         bind:value
         on:input={run_validator}
         autocomplete="off"
@@ -120,7 +119,8 @@
         type="text"
         placeholder={error_message || label}
         {id}
-        class="input text-base input-bordered w-full font-base {error_message
+        class="input text-base input-bordered w-full font-base {error_message ||
+        inline_error
           ? 'input-error'
           : ''}"
         bind:value
@@ -129,7 +129,14 @@
         {disabled}
       />
     {:else if inputType === "select"}
-      <select {id} class="select select-bordered w-full" bind:value {disabled}>
+      <select
+        {id}
+        class="select select-bordered w-full {error_message || inline_error
+          ? 'select-error'
+          : ''}"
+        bind:value
+        {disabled}
+      >
         {#if select_options_grouped.length > 0}
           {#each select_options_grouped as group}
             <optgroup label={group[0]}>
@@ -149,11 +156,11 @@
         {/if}
       </select>
     {/if}
-    {#if inline_error}
+    {#if inline_error || (inputType === "select" && error_message)}
       <span
         class="absolute right-3 bottom-4 badge badge-error badge-sm badge-outline text-xs bg-base-100"
       >
-        {inline_error}
+        {inline_error || error_message}
       </span>
     {/if}
   </div>

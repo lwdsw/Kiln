@@ -10,6 +10,7 @@
 
   export let model: string = $ui_state.selected_model
   export let requires_structured_output: boolean = false
+  export let error_message: string | null = "sdf"
   $: $ui_state.selected_model = model
   $: model_options = format_model_options(
     $available_models || {},
@@ -40,6 +41,16 @@
     // @ts-expect-error this is the correct format, but TS isn't finding it
     return options
   }
+
+  // Extra check to make sure the model is available to use
+  export function get_selected_model(): string | null {
+    for (const provider of model_options) {
+      if (provider[1].find((m) => m[0] === model)) {
+        return model
+      }
+    }
+    return null
+  }
 </script>
 
 <FormElement
@@ -50,5 +61,6 @@
     : ""}
   id="model"
   inputType="select"
+  bind:error_message
   select_options_grouped={model_options}
 />
