@@ -31,6 +31,7 @@
 
   $: subtitle = $current_task ? "Task: " + $current_task.name : ""
   $: input_schema = $current_task?.input_json_schema
+  $: requires_structured_output = !!$current_task?.output_json_schema
 
   async function run_task() {
     try {
@@ -106,7 +107,7 @@
       <div class="w-72 2xl:w-96 flex-none flex flex-col gap-4">
         <div class="text-xl font-bold">Options</div>
         <PromptTypeSelector bind:prompt_method />
-        <AvailableModelsDropdown bind:model />
+        <AvailableModelsDropdown bind:model bind:requires_structured_output />
       </div>
     </div>
     {#if $current_task && !submitting && response != null && $current_project?.id}
