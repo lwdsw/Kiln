@@ -43,6 +43,7 @@ class ModelFamily(str, Enum):
     phi = "phi"
     mistral = "mistral"
     gemma = "gemma"
+    gemini = "gemini"
     claude = "claude"
 
 
@@ -65,6 +66,9 @@ class ModelName(str, Enum):
     gemma_2_9b = "gemma_2_9b"
     gemma_2_27b = "gemma_2_27b"
     claude_3_5_sonnet = "claude_3_5_sonnet"
+    gemini_1_5_flash = "gemini_1_5_flash"
+    gemini_1_5_flash_8b = "gemini_1_5_flash_8b"
+    gemini_1_5_pro = "gemini_1_5_pro"
 
 
 class KilnModelProvider(BaseModel):
@@ -143,6 +147,42 @@ built_in_models: List[KilnModel] = [
             KilnModelProvider(
                 name=ModelProviderName.openrouter,
                 provider_options={"model": "anthropic/claude-3.5-sonnet"},
+            ),
+        ],
+    ),
+    # Gemini 1.5 Pro
+    KilnModel(
+        family=ModelFamily.gemini,
+        name=ModelName.gemini_1_5_pro,
+        friendly_name="Gemini 1.5 Pro",
+        providers=[
+            KilnModelProvider(
+                name=ModelProviderName.openrouter,
+                provider_options={"model": "google/gemini-pro-1.5"},
+            ),
+        ],
+    ),
+    # Gemini 1.5 Flash
+    KilnModel(
+        family=ModelFamily.gemini,
+        name=ModelName.gemini_1_5_flash,
+        friendly_name="Gemini 1.5 Flash",
+        providers=[
+            KilnModelProvider(
+                name=ModelProviderName.openrouter,
+                provider_options={"model": "google/gemini-flash-1.5"},
+            ),
+        ],
+    ),
+    # Gemini 1.5 Flash 8B
+    KilnModel(
+        family=ModelFamily.gemini,
+        name=ModelName.gemini_1_5_flash_8b,
+        friendly_name="Gemini 1.5 Flash 8B",
+        providers=[
+            KilnModelProvider(
+                name=ModelProviderName.openrouter,
+                provider_options={"model": "google/gemini-flash-1.5-8b"},
             ),
         ],
     ),

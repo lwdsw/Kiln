@@ -22,6 +22,9 @@ from kiln_ai.datamodel.test_json_schema import json_joke_schema, json_triangle_s
         ("mistral_nemo", "openrouter"),
         ("llama_3_1_70b", "amazon_bedrock"),
         ("claude_3_5_sonnet", "openrouter"),
+        ("gemini_1_5_pro", "openrouter"),
+        ("gemini_1_5_flash", "openrouter"),
+        ("gemini_1_5_flash_8b", "openrouter"),
     ],
 )
 @pytest.mark.paid
