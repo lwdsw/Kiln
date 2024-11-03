@@ -43,6 +43,7 @@ class ModelFamily(str, Enum):
     phi = "phi"
     mistral = "mistral"
     gemma = "gemma"
+    claude = "claude"
 
 
 # Where models have instruct and raw versions, instruct is default and raw is specified
@@ -63,6 +64,7 @@ class ModelName(str, Enum):
     gemma_2_2b = "gemma_2_2b"
     gemma_2_9b = "gemma_2_9b"
     gemma_2_27b = "gemma_2_27b"
+    claude_3_5_sonnet = "claude_3_5_sonnet"
 
 
 class KilnModelProvider(BaseModel):
@@ -129,6 +131,18 @@ built_in_models: List[KilnModel] = [
             KilnModelProvider(
                 name=ModelProviderName.openrouter,
                 provider_options={"model": "openai/gpt-4o-2024-08-06"},
+            ),
+        ],
+    ),
+    # Claude 3.5 Sonnet
+    KilnModel(
+        family=ModelFamily.claude,
+        name=ModelName.claude_3_5_sonnet,
+        friendly_name="Claude 3.5 Sonnet",
+        providers=[
+            KilnModelProvider(
+                name=ModelProviderName.openrouter,
+                provider_options={"model": "anthropic/claude-3.5-sonnet"},
             ),
         ],
     ),
