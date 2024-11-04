@@ -82,12 +82,10 @@ def test_connect_ollama_no_models(client):
 @pytest.mark.parametrize(
     "origin",
     [
-        "http://localhost",
-        "http://localhost:8000",
-        "http://127.0.0.1",
-        "http://127.0.0.1:3000",
-        "https://localhost:8443",
-        "https://127.0.0.1:8443",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "https://localhost:5173",
+        "https://127.0.0.1:5173",
     ],
 )
 def test_cors_allowed_origins(client, origin):
