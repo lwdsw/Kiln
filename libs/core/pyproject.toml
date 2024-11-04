@@ -8,6 +8,7 @@ authors = [
   {name = "Steve Cosman, Chesterfield Laboratories Inc", email = "scosman@users.noreply.github.com"}
 ]
 classifiers = [
+  "License :: OSI Approved :: MIT License",
   "Intended Audience :: Developers",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
