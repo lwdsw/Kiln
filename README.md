@@ -20,7 +20,7 @@
 - 🔒 **Privacy-First**: Your data stays local - bring your own API keys or run locally with Ollama.
 - 🤝 **Team Collaboration**: Designed for collaboration, with git-based version control for your ML dataset.
 - 📊 **Rapid Evaluation**: Compare various models and data-science techniques with no-code tools.
-- 🔄 **Iterative Development**: Continuous dataset improvement with built-in QA tools
+- 🔄 **Iterative Improvement**: Continuous dataset improvement with built-in evaluation, RLHF and QA tooling.
 - 🧑‍💻 **Hackers Delight**: An open-source Python library and REST API for data scientists and engineers to deeply integrate where needed.
 
 <kbd>
