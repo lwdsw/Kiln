@@ -1,4 +1,8 @@
 
+This license applies to the software in the app/ directory and the desktop apps.
+
+ =======================================================
+
 Copyright 2024 - Chesterfield Laboratories Inc.
 
 All rights reserved.

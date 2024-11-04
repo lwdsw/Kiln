@@ -6,7 +6,7 @@ We use [GitHub issues](https://github.com/Kiln-AI/Kiln/issues) for tracking issu
 
 ## Contributing
 
-Contributors must agree to the [contributor license agreement](CLA.md).
+New contributors must agree to the [contributor license agreement](CLA.md).
 
 ## Development Environment Setup
 
@@ -55,4 +55,16 @@ Typically building desktop apps are done in a CI/CD pipeline, but if you need to
 ```bash
 cd app/desktop
 uv run ./build_desktop_app.sh
+```
+
+## Tests, Formatting, and Linting
+
+We have a large test suite, and use [ruff](https://github.com/astral-sh/ruff) for linting and formatting.
+
+Please ensure any new code has test coverage, and that all code is formatted and linted. CI will block merging if tests fail or your code is not formatted and linted correctly.
+
+To confirm everything works locally, run:
+
+```bash
+./checks.sh
 ```
