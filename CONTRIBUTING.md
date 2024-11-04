@@ -43,10 +43,7 @@ To run the API server, Studio server, and Studio Web UI with auto-reload for dev
 
 ### Running the Desktop App
 
-Running the desktop app without building an executable:
-
-- First, build the web UI from the `app/web_ui` directory: `npm run build`
-- Then run the desktop app: `uv run python -m app.desktop.desktop`
+See the [desktop README](app/desktop/README.md) instructions for running the desktop app locally.
 
 ### Building the Desktop App
 

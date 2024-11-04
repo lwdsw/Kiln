@@ -716,7 +716,7 @@ wheels = [
 
 [[package]]
 name = "kiln-ai"
-version = "0.5.3"
+version = "0.5.4"
 source = { editable = "libs/core" }
 dependencies = [
     { name = "coverage" },
@@ -808,7 +808,7 @@ dev = [
 
 [[package]]
 name = "kiln-server"
-version = "0.5.2"
+version = "0.5.4"
 source = { editable = "libs/server" }
 dependencies = [
     { name = "fastapi" },
