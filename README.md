@@ -23,6 +23,12 @@
 - 🔄 **Iterative Improvement**: Continuous dataset improvement with built-in evaluation, RLHF and QA tooling.
 - 🧑‍💻 **Hackers Delight**: An open-source Python library and REST API for data scientists and engineers to deeply integrate where needed.
 
+## Download Kiln Desktop Apps
+
+The Kiln desktop app is a free download, available on [MacOS and Windows](https://github.com/Kiln-AI/Kiln/releases/latest).
+
+[<img width="190" alt="Download button" src="https://github.com/user-attachments/assets/09874d7a-4873-4bb7-81c8-c3939206dc81">](https://github.com/Kiln-AI/Kiln/releases/latest)
+
 <kbd>
 <img width="185" alt="Run Screen" src="https://github.com/user-attachments/assets/158efb43-4991-4c19-9e3a-28f61c919892">
 </kbd>
@@ -34,17 +40,15 @@
 <img width="185" alt="Prompts screen" src="https://github.com/user-attachments/assets/70544362-8420-4a49-9e9f-34a046c837dd">
 </kbd>
 
-## Download Kiln Desktop Apps
-
-[<img width="190" alt="Download button" src="https://github.com/user-attachments/assets/09874d7a-4873-4bb7-81c8-c3939206dc81">](https://github.com/Kiln-AI/Kiln/releases/latest)
-
-The Kiln desktop app is a free download, available on [MacOS and Windows](https://github.com/Kiln-AI/Kiln/releases/latest).
-
 ## Install Python Library
 
 [![PyPI - Version](https://img.shields.io/pypi/v/kiln-ai.svg?logo=pypi&label=PyPI&logoColor=gold)](https://pypi.org/project/kiln-ai/) [![Docs](https://img.shields.io/badge/docs-pdoc-blue)](https://kiln-ai.github.io/Kiln/kiln_core_docs/index.html)
 
-`pip install kiln-ai`
+Our open-source [python library](https://pypi.org/project/kiln-ai/) allows for deep custom integrations. [Read the docs](https://kiln-ai.github.io/Kiln/kiln_core_docs/index.html).
+
+```bash
+pip install kiln-ai
+```
 
 ## What is this for?
 
