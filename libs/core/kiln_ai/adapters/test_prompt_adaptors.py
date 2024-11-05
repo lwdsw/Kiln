@@ -28,6 +28,8 @@ async def test_groq(tmp_path):
         "llama_3_2_3b",
         "llama_3_2_11b",
         "llama_3_2_90b",
+        "claude_3_5_haiku",
+        "claude_3_5_sonnet",
     ],
 )
 @pytest.mark.paid

@@ -69,6 +69,7 @@ class ModelName(str, Enum):
     gemma_2_2b = "gemma_2_2b"
     gemma_2_9b = "gemma_2_9b"
     gemma_2_27b = "gemma_2_27b"
+    claude_3_5_haiku = "claude_3_5_haiku"
     claude_3_5_sonnet = "claude_3_5_sonnet"
     gemini_1_5_flash = "gemini_1_5_flash"
     gemini_1_5_flash_8b = "gemini_1_5_flash_8b"
@@ -140,6 +141,18 @@ built_in_models: List[KilnModel] = [
             KilnModelProvider(
                 name=ModelProviderName.openrouter,
                 provider_options={"model": "openai/gpt-4o-2024-08-06"},
+            ),
+        ],
+    ),
+    # Claude 3.5 Haiku
+    KilnModel(
+        family=ModelFamily.claude,
+        name=ModelName.claude_3_5_haiku,
+        friendly_name="Claude 3.5 Haiku",
+        providers=[
+            KilnModelProvider(
+                name=ModelProviderName.openrouter,
+                provider_options={"model": "anthropic/claude-3-5-haiku"},
             ),
         ],
     ),
