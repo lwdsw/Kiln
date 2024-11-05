@@ -4,6 +4,12 @@
   import SelectTasksMenu from "./select_tasks_menu.svelte"
   import { page } from "$app/stores"
   import { ui_state } from "$lib/stores"
+  import { update_update_store, update_info } from "$lib/utils/update"
+  import { onMount } from "svelte"
+
+  onMount(async () => {
+    update_update_store()
+  })
 
   enum Section {
     Dataset,
@@ -12,6 +18,7 @@
     SettingsManageProjects,
     SettingsEditProject,
     SettingsEditTask,
+    SettingsAppUpdate,
     Prompts,
     Run,
     None,
@@ -23,6 +30,7 @@
     Section.SettingsManageProjects,
     Section.SettingsEditProject,
     Section.SettingsEditTask,
+    Section.SettingsAppUpdate,
   ]
 
   function path_start(root: string, pathname: string): boolean {
@@ -46,6 +54,8 @@
       section = Section.SettingsEditProject
     } else if (path_start("/settings/edit_task", $page.url.pathname)) {
       section = Section.SettingsEditTask
+    } else if (path_start("/settings/check_for_update", $page.url.pathname)) {
+      section = Section.SettingsAppUpdate
     } else if (path_start("/settings", $page.url.pathname)) {
       section = Section.SettingsMain
     } else if (path_start("/run", $page.url.pathname)) {
@@ -256,7 +266,7 @@
                   : ''}"
                 href="/settings/providers"
               >
-                Providers
+                AI Providers
               </a>
             </li>
             <li class="menu-nested-sm">
@@ -285,9 +295,25 @@
                 Edit Task
               </a>
             </li>
+            <li class="menu-nested-sm">
+              <a
+                class={section == Section.SettingsAppUpdate ? "active" : ""}
+                href="/settings/check_for_update"
+              >
+                App Update
+              </a>
+            </li>
           </ul>
         {/if}
       </li>
+      {#if $update_info.update_result && $update_info.update_result.has_update}
+        <li class="menu-md mt-4">
+          <a href="/settings/check_for_update" class="px-6">
+            <span class="bg-primary rounded-full w-2 h-2 mr-1"></span>App Update
+            Available</a
+          >
+        </li>
+      {/if}
     </ul>
   </div>
 </div>

@@ -28,6 +28,12 @@
       href: `/settings/edit_task/${$ui_state?.current_project_id}/${$ui_state?.current_task_id}`,
     },
     {
+      name: "Check for Update",
+      description: "Check if there is a new version of the app available.",
+      href: "/settings/check_for_update",
+      button_text: "Update",
+    },
+    {
       name: "Replay Introduction",
       description: "Watch the introduction again.",
       href: "/settings/intro",
