@@ -2,7 +2,7 @@
 
 **Last updated November 05, 2024**
 
-Kiln AI is licensed to You (End-User) by Chesterfield Laboratories Incorporated, located and registered at 453 Gladstone Ave, Toronto, Ontario M6H3J1, Canada ('Licensor'), for use only under the terms of this Licence Agreement.
+Kiln AI Desktop is licensed to You (End-User) by Chesterfield Laboratories Incorporated, located and registered at 453 Gladstone Ave, Toronto, Ontario M6H3J1, Canada ('Licensor'), for use only under the terms of this Licence Agreement.
 
 By downloading the Licensed Application, and any update thereto (as permitted by this Licence Agreement), You indicate that You agree to be bound by all of the terms and conditions of this Licence Agreement, and that You accept this Licence Agreement.
 
@@ -68,27 +68,31 @@ UNDER NO CIRCUMSTANCES SHALL WE BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL,
 
 THE WEBSITE AND THE SERVICES ARE PROVIDED "AS IS." WE DISCLAIM ALL REPRESENTATIONS, WARRANTIES AND CONDITIONS, EITHER EXPRESS, IMPLIED, STATUTORY, INCLUDING ANY IMPLIED WARRANTIES OR CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY, NON-INFRINGEMENT, TITLE, SATISFACTORY QUALITY OR FITNESS FOR A PARTICULAR PURPOSE. WE WILL NOT BE LIABLE FOR ANY USER CONTENT.
 
-## 8. LEGAL COMPLIANCE
+## 8. TRADEMARKS
+
+Nothing in the Licence Agreement gives you a right to use the Chesterfield Laboratories or Kiln names, trademarks, logos, domain names, and other distinctive brand features without our prior written consent.
+
+## 9. LEGAL COMPLIANCE
 
 You represent and warrant that You are not located in a country that is subject to a US Government embargo, or that has been designated by the US Government as a 'terrorist supporting' country; and that You are not listed on any US Government list of prohibited or restricted parties.
 
-## 9. CONTACT INFORMATION
+## 10. CONTACT INFORMATION
 
 For general inquiries, complaints, questions or claims concerning the Licensed Application, please contact:
 
 Kiln Support
 support@getkiln.ai
 
-## 10. TERMINATION
+## 11. TERMINATION
 
 The licence is valid until terminated by Chesterfield Laboratories Incorporated or by You. Your rights under this licence will terminate automatically and without notice from Chesterfield Laboratories Incorporated if You fail to adhere to any term(s) of this licence. Upon Licence termination, You shall stop all use of the Licensed Application, and destroy all copies, full or partial, of the Licensed Application.
 
-## 11. APPLICABLE LAW
+## 12. APPLICABLE LAW
 
 This Licence Agreement is governed by the laws of Canada excluding its conflicts of law rules.
 
-## 12. MISCELLANEOUS
+## 13. MISCELLANEOUS
 
-12.1 If any of the terms of this agreement should be or become invalid, the validity of the remaining provisions shall not be affected. Invalid terms will be replaced by valid ones formulated in a way that will achieve the primary purpose.
+13.1 If any of the terms of this agreement should be or become invalid, the validity of the remaining provisions shall not be affected. Invalid terms will be replaced by valid ones formulated in a way that will achieve the primary purpose.
 
-12.2 Collateral agreements, changes and amendments are only valid if laid down in writing. The preceding clause can only be waived in writing.
+13.2 Collateral agreements, changes and amendments are only valid if laid down in writing. The preceding clause can only be waived in writing.
