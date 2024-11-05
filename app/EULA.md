@@ -16,7 +16,7 @@ The Licensed Application is not tailored to comply with industry-specific regula
 
 ## 2. SCOPE OF LICENCE
 
-2.1 You are given a non-transferable, non-exclusive, non-sublicensable licence to install and use the Licensed Application on any Devices that You (End-User) own or control.
+2.1 You are given a non-transferable, non-exclusive, revocable, non-sublicensable licence to install and use the Licensed Application on any Devices that You (End-User) own or control.
 
 2.2 This licence will also govern any updates of the Licensed Application provided by Licensor that replace, repair, and/or supplement the first Licensed Application, unless a separate licence is provided for such update, in which case the terms of that new licence will govern.
 
@@ -58,7 +58,7 @@ By submitting suggestions or other feedback regarding the Licensed Application, 
 
 We are not liable for any statements or representations in your Contributions provided by you in any area in the Licensed Application. You are solely responsible for your Contributions to the Licensed Application and you expressly agree to exonerate us from any and all responsibility and to refrain from any legal action against us regarding your Contributions.
 
-This Contribution Licence applies to End-Users. A separate Contribution Licence Agreement is provided for entities wishing to contribute to the source-code or repository.
+This Contribution License shall apply exclusively to End-Users as defined herein. For entities seeking to contribute to the source code or repository of the Licensed Application, a separate Contribution License Agreement shall govern such contributions and must be executed prior to any such contribution.
 
 ## 6. LIMITATION OF LIABILITY.
 
@@ -66,7 +66,7 @@ UNDER NO CIRCUMSTANCES SHALL WE BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL,
 
 ## 7. NO WARRANTY
 
-THE WEBSITE AND THE SERVICES ARE PROVIDED "AS IS." WE DISCLAIM ALL REPRESENTATIONS, WARRANTIES AND CONDITIONS, EITHER EXPRESS, IMPLIED, STATUTORY, INCLUDING ANY IMPLIED WARRANTIES OR CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY, NON-INFRINGEMENT, TITLE, SATISFACTORY QUALITY OR FITNESS FOR A PARTICULAR PURPOSE. WE WILL NOT BE LIABLE FOR ANY USER CONTENT.
+THE APP, WEBSITE AND THE SERVICES ARE PROVIDED "AS IS." WE DISCLAIM ALL REPRESENTATIONS, WARRANTIES AND CONDITIONS, EITHER EXPRESS, IMPLIED, STATUTORY, INCLUDING ANY IMPLIED WARRANTIES OR CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY, NON-INFRINGEMENT, TITLE, SATISFACTORY QUALITY OR FITNESS FOR A PARTICULAR PURPOSE. WE WILL NOT BE LIABLE FOR ANY USER CONTENT.
 
 ## 8. TRADEMARKS
 
