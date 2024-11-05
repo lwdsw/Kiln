@@ -88,7 +88,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for information on how to setup a develop
 
 - Python Library: [MIT License](libs/core/LICENSE.txt)
 - Python REST Server/API: [MIT License](libs/server/LICENSE.txt)
-- Desktop App: Available as a free download under our EULA. The source code is source-available, and under a [proprietary license](app/LICENSE.txt).
+- Desktop App: Available as a free download under our [EULA](app/EULA.md). The source code is source-available, and under a [proprietary license](app/LICENSE.txt).
 - The Kiln names and logos are trademarks of Chesterfield Laboratories Inc.
 
 Copyright 2024 - Chesterfield Laboratories Inc.
