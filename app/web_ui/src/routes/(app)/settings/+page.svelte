@@ -39,6 +39,13 @@
       href: "/settings/intro",
       button_text: "Introduction",
     },
+    {
+      name: "License",
+      description: "View the Kiln AI desktop app License Agreement.",
+      href: "https://github.com/Kiln-AI/Kiln/blob/main/app/EULA.md",
+      button_text: "View EULA",
+      is_external: true,
+    },
   ]
 </script>
 
@@ -50,7 +57,12 @@
           <h3 class="font-medium">{section.name}</h3>
           <p class="text-sm text-gray-500">{section.description}</p>
         </div>
-        <a href={section.href} class="btn" style="min-width: 14rem">
+        <a
+          href={section.href}
+          class="btn"
+          style="min-width: 14rem"
+          target={section.is_external ? "_blank" : "_self"}
+        >
           {section.button_text}
         </a>
       </div>
