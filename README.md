@@ -16,12 +16,14 @@
 
 ## Key Features
 
-- 🚀 **One-Click Desktop Apps**: Apps for Windows and MacOS. Anyone on your team can contribute to your datasets and improve quality.
-- 🔒 **Privacy-First**: Your data stays local - bring your own API keys or run locally with Ollama.
+- 🚀 **Intuitive Desktop Apps**: Apps for Windows and MacOS. Anyone on your team can contribute to your datasets & feedback to improve quality, without code.
 - 🤝 **Team Collaboration**: Designed for collaboration, with git-based version control for your ML dataset.
 - 📊 **Rapid Evaluation**: Compare various models and data-science techniques with no-code tools.
 - 🔄 **Iterative Improvement**: Continuous dataset improvement with built-in evaluation, RLHF and QA tooling.
-- 🧑‍💻 **Hackers Delight**: An open-source Python library and REST API for data scientists and engineers to deeply integrate where needed.
+- 🧑‍💻 **Hackers Delight**: An open-source Python library and REST API for data scientists and engineers to deeply integrate if needed.
+- 🔒 **Privacy-First**: We can't see your data. Bring your own API keys or run locally with Ollama.
+- 🗃️ **Structured Data**: Build AI tasks which speak JSON. Build training datasets with validated formats, human feedback, issue tracking, and more.
+- 💰 **Free**: Our apps are free to use, and our library is open-source.
 
 ## Download Kiln Desktop Apps
 
