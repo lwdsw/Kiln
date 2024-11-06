@@ -78,10 +78,6 @@ If you have a data science team and want to go deeper, our Python library has ev
 
 We also offer [a REST API package](https://pypi.org/project/kiln-server/) for integrating Kiln into your own tools and workflows.
 
-## Status
-
-Kiln is currently in alpha with plans to enter beta soon.
-
 ## Contributing & Development
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for information on how to setup a development environment and contribute to Kiln.
