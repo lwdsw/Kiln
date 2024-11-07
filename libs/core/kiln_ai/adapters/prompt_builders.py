@@ -54,6 +54,14 @@ class BasePromptBuilder(metaclass=ABCMeta):
 
         return f"The input is:\n{input}"
 
+    def chain_of_thought_prompt(self) -> str | None:
+        """Build and return the chain of thought prompt string.
+
+        Returns:
+            str: The constructed chain of thought prompt.
+        """
+        return None
+
 
 class SimplePromptBuilder(BasePromptBuilder):
     """A basic prompt builder that combines task instruction with requirements."""
@@ -187,11 +195,28 @@ class RepairsPromptBuilder(MultiShotPromptBuilder):
         return prompt_section
 
 
+def chain_of_thought_prompt(task: Task) -> str | None:
+    """Standard implementation to build and return the chain of thought prompt string.
+
+    Returns:
+        str: The constructed chain of thought prompt.
+    """
+    return "Think step by step."
+
+
+class SimpleChainOfThoughtPromptBuilder(SimplePromptBuilder):
+    """A prompt builder that includes a chain of thought prompt on top of the simple prompt."""
+
+    def chain_of_thought_prompt(self) -> str | None:
+        return chain_of_thought_prompt(self.task)
+
+
 prompt_builder_registry = {
     "simple_prompt_builder": SimplePromptBuilder,
     "multi_shot_prompt_builder": MultiShotPromptBuilder,
     "few_shot_prompt_builder": FewShotPromptBuilder,
     "repairs_prompt_builder": RepairsPromptBuilder,
+    "simple_chain_of_thought_prompt_builder": SimpleChainOfThoughtPromptBuilder,
 }
 
 
@@ -217,5 +242,7 @@ def prompt_builder_from_ui_name(ui_name: str) -> type[BasePromptBuilder]:
             return MultiShotPromptBuilder
         case "repairs":
             return RepairsPromptBuilder
+        case "simple_chain_of_thought":
+            return SimpleChainOfThoughtPromptBuilder
         case _:
             raise ValueError(f"Unknown prompt builder: {ui_name}")

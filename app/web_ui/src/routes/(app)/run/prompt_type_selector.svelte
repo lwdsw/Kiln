@@ -14,5 +14,6 @@
     ["few_shot", "Few Shot"],
     ["many_shot", "Many Shot"],
     ["repairs", "Repair Multi Shot"],
+    ["simple_chain_of_thought", "Basic Chain of Thought"],
   ]}
 />

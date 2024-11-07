@@ -2,7 +2,7 @@ from typing import Dict
 
 from langchain_core.language_models import LanguageModelInput
 from langchain_core.language_models.chat_models import BaseChatModel
-from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langchain_core.messages.base import BaseMessage
 from langchain_core.runnables import Runnable
 from pydantic import BaseModel
@@ -85,14 +85,36 @@ class LangChainPromptAdapter(BaseAdapter):
         return self._model
 
     async def _run(self, input: Dict | str) -> Dict | str:
+        model = await self.model()
+        chain = model
+
         prompt = self.build_prompt()
         user_msg = self.prompt_builder.build_user_message(input)
         messages = [
             SystemMessage(content=prompt),
             HumanMessage(content=user_msg),
         ]
-        model = await self.model()
+
+        cot_prompt = self.prompt_builder.chain_of_thought_prompt()
+        if cot_prompt:
+            base_model = await langchain_model_from(
+                self.model_name, self.model_provider
+            )
+            messages.append(
+                SystemMessage(
+                    content="In your first reply, think step by step and explain logic."
+                ),
+            )
+            # print(f"chain: {messages}")
+            # chain = base_model | model
+            cot_response = base_model.invoke(messages)
+            print(f"cot_response: {cot_response}")
+            cot_message = cot_response.content
+            # TODO: this is wrong
+            messages.append(HumanMessage(content=cot_message))
+
         response = model.invoke(messages)
+        print(f"response: {response}")
 
         if self.has_structured_output():
             if (
