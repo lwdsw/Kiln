@@ -442,7 +442,7 @@ export interface components {
          *     Where models have instruct and raw versions, instruct is default and raw is specified.
          * @enum {string}
          */
-        ModelName: "llama_3_1_8b" | "llama_3_1_70b" | "llama_3_1_405b" | "llama_3_2_3b" | "llama_3_2_11b" | "llama_3_2_90b" | "gpt_4o_mini" | "gpt_4o" | "phi_3_5" | "mistral_large" | "mistral_nemo" | "gemma_2_2b" | "gemma_2_9b" | "gemma_2_27b" | "claude_3_5_sonnet" | "gemini_1_5_flash" | "gemini_1_5_flash_8b" | "gemini_1_5_pro" | "nemotron_70b";
+        ModelName: "llama_3_1_8b" | "llama_3_1_70b" | "llama_3_1_405b" | "llama_3_2_3b" | "llama_3_2_11b" | "llama_3_2_90b" | "gpt_4o_mini" | "gpt_4o" | "phi_3_5" | "mistral_large" | "mistral_nemo" | "gemma_2_2b" | "gemma_2_9b" | "gemma_2_27b" | "claude_3_5_haiku" | "claude_3_5_sonnet" | "gemini_1_5_flash" | "gemini_1_5_flash_8b" | "gemini_1_5_pro" | "nemotron_70b";
         /** OllamaConnection */
         OllamaConnection: {
             /** Message */
@@ -480,7 +480,10 @@ export interface components {
             created_at?: string;
             /** Created By */
             created_by?: string;
-            /** Name */
+            /**
+             * Name
+             * @description A name for this entity.
+             */
             name: string;
             /**
              * Description
@@ -512,7 +515,10 @@ export interface components {
             created_at?: string;
             /** Created By */
             created_by?: string;
-            /** Name */
+            /**
+             * Name
+             * @description A name for this entity.
+             */
             name: string;
             /**
              * Description
@@ -606,7 +612,10 @@ export interface components {
             created_at?: string;
             /** Created By */
             created_by?: string;
-            /** Name */
+            /**
+             * Name
+             * @description A name for this entity.
+             */
             name: string;
             /**
              * Description
@@ -628,6 +637,11 @@ export interface components {
             output_json_schema?: string | null;
             /** Input Json Schema */
             input_json_schema?: string | null;
+            /**
+             * Thinking Instruction
+             * @description Instructions for the model 'thinking' about the requirement prior to answering. Used for chain of thought style prompting.
+             */
+            thinking_instruction?: string | null;
             /** Model Type */
             readonly model_type: string;
         };
@@ -807,7 +821,10 @@ export interface components {
         TaskRequirement: {
             /** Id */
             id?: string | null;
-            /** Name */
+            /**
+             * Name
+             * @description A name for this entity
+             */
             name: string;
             /** Description */
             description?: string | null;
@@ -856,6 +873,13 @@ export interface components {
             repair_instructions?: string | null;
             /** @description An version of the output with issues fixed. This must be a 'fixed' version of the existing output, and not an entirely new output. If you wish to generate an ideal curatorial output for this task unrelated to this output, generate a new TaskOutput with type 'human' instead of using this field. */
             repaired_output?: components["schemas"]["TaskOutput-Input"] | null;
+            /**
+             * Intermediate Outputs
+             * @description Intermediate outputs from the task run. Keys are the names of the intermediate output steps (cot=chain of thought, etc), values are the output data.
+             */
+            intermediate_outputs?: {
+                [key: string]: string;
+            } | null;
         };
         /**
          * TaskRun
@@ -897,6 +921,13 @@ export interface components {
             repair_instructions?: string | null;
             /** @description An version of the output with issues fixed. This must be a 'fixed' version of the existing output, and not an entirely new output. If you wish to generate an ideal curatorial output for this task unrelated to this output, generate a new TaskOutput with type 'human' instead of using this field. */
             repaired_output?: components["schemas"]["TaskOutput-Output"] | null;
+            /**
+             * Intermediate Outputs
+             * @description Intermediate outputs from the task run. Keys are the names of the intermediate output steps (cot=chain of thought, etc), values are the output data.
+             */
+            intermediate_outputs?: {
+                [key: string]: string;
+            } | null;
             /** Model Type */
             readonly model_type: string;
         };
