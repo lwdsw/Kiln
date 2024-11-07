@@ -311,7 +311,7 @@
               id="requirement_name_{item_index}"
               light_label={true}
               bind:value={task.requirements[item_index].name}
-              max_length={20}
+              max_length={32}
             />
           </div>
           <div class="flex flex-col gap-1">

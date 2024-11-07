@@ -56,7 +56,7 @@ NAME_FIELD = Field(
 )
 SHORT_NAME_FIELD = Field(
     min_length=1,
-    max_length=20,
+    max_length=32,
     pattern=NAME_REGEX,
     description="A name for this entity",
 )

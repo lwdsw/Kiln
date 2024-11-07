@@ -86,9 +86,6 @@ async def test_langchain_adapter_with_cot(tmp_path):
     ):
         response = await lca._run("test input")
 
-    # Verify the model was created with correct parameters
-    # mock_model_from.assert_awaited_once_with("llama_3_1_8b", "ollama")
-
     # First 3 messages are the same for both calls
     for invoke_args in [
         mock_base_model.invoke.call_args[0][0],
