@@ -3,7 +3,16 @@ import json
 import pytest
 from pydantic import ValidationError
 
-from kiln_ai.datamodel import Priority, Project, Task, TaskDeterminism
+from kiln_ai.datamodel import (
+    DataSource,
+    DataSourceType,
+    Priority,
+    Project,
+    Task,
+    TaskDeterminism,
+    TaskOutput,
+    TaskRun,
+)
 from kiln_ai.datamodel.test_json_schema import json_joke_schema
 
 
@@ -189,3 +198,36 @@ def test_task_output_schema(tmp_path):
         task = Task(name="Test Task", output_json_schema="{'asdf':{}}", path=path)
     with pytest.raises(ValidationError):
         task = Task(name="Test Task", input_json_schema="{asdf", path=path)
+
+
+def test_task_run_intermediate_outputs():
+    # Create a basic task output
+    output = TaskOutput(
+        output="test output",
+        source=DataSource(
+            type=DataSourceType.synthetic,
+            properties={
+                "model_name": "test-model",
+                "model_provider": "test-provider",
+                "adapter_name": "test-adapter",
+            },
+        ),
+    )
+
+    # Test valid intermediate outputs
+    task_run = TaskRun(
+        input="test input",
+        input_source=DataSource(
+            type=DataSourceType.human,
+            properties={"created_by": "test-user"},
+        ),
+        output=output,
+        intermediate_outputs={
+            "cot": "chain of thought output",
+            "draft": "draft output",
+        },
+    )
+    assert task_run.intermediate_outputs == {
+        "cot": "chain of thought output",
+        "draft": "draft output",
+    }

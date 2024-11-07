@@ -2,15 +2,14 @@ from typing import Dict
 
 from langchain_core.language_models import LanguageModelInput
 from langchain_core.language_models.chat_models import BaseChatModel
-from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langchain_core.messages.base import BaseMessage
-from langchain_core.output_parsers import StrOutputParser
-from langchain_core.runnables import Runnable, RunnablePassthrough
+from langchain_core.runnables import Runnable
 from pydantic import BaseModel
 
 import kiln_ai.datamodel as datamodel
 
-from .base_adapter import AdapterInfo, BaseAdapter, BasePromptBuilder
+from .base_adapter import AdapterInfo, BaseAdapter, BasePromptBuilder, RunOutput
 from .ml_model_list import langchain_model_from
 
 LangChainModelType = BaseChatModel | Runnable[LanguageModelInput, Dict | BaseModel]
@@ -110,41 +109,15 @@ class LangChainPromptAdapter(BaseAdapter):
                 self.model_name, self.model_provider
             )
             messages.append(
-                # TODO: it's adding "tool call" for this, but should be after
                 SystemMessage(content=cot_prompt),
             )
 
             cot_response = base_model.invoke(messages)
-            print(f"\n\ncot_response: {cot_response.content}\n\n")
-            intermediate_outputs["cot"] = cot_response.content
-            messages.append(HumanMessage(content=cot_response.content))
+            intermediate_outputs["chain_of_thought"] = cot_response.content
+            messages.append(AIMessage(content=cot_response.content))
             messages.append(tool_call_message)
-            print(f"\n\nmessages: {messages}\n\n")
-
-            # chain = (
-            #     base_model
-            #     | StrOutputParser()
-            #     # Capture intermediate output from COT
-            #     | (
-            #         lambda x: (
-            #             intermediate_outputs.update({"cot": x}),
-            #             x,
-            #         )[1]
-            #     )
-            #     # Combine prior outputs/messages with tool_call_message
-            #     | (lambda x: f"{x}\n{tool_call_message.content}")
-            #     | model
-            # )
-            # print(f"chain: {messages}")
-            # chain = base_model | model
-            # cot_response = base_model.invoke(messages)
-            # print(f"cot_response: {cot_response}")
-            # cot_message = cot_response.content
-            # TODO: this is wrong
-            # messages.append(HumanMessage(content=cot_message))
 
         response = chain.invoke(messages)
-        print(f"\n\nintermediate_outputs: {intermediate_outputs}\n\n")
 
         if self.has_structured_output():
             if (
@@ -154,14 +127,20 @@ class LangChainPromptAdapter(BaseAdapter):
             ):
                 raise RuntimeError(f"structured response not returned: {response}")
             structured_response = response["parsed"]
-            return self._munge_response(structured_response)
+            return RunOutput(
+                output=self._munge_response(structured_response),
+                intermediate_outputs=intermediate_outputs,
+            )
         else:
             if not isinstance(response, BaseMessage):
                 raise RuntimeError(f"response is not a BaseMessage: {response}")
             text_content = response.content
             if not isinstance(text_content, str):
                 raise RuntimeError(f"response is not a string: {text_content}")
-            return text_content
+            return RunOutput(
+                output=text_content,
+                intermediate_outputs=intermediate_outputs,
+            )
 
     def adapter_info(self) -> AdapterInfo:
         return AdapterInfo(

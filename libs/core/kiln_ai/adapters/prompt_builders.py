@@ -201,7 +201,7 @@ def chain_of_thought_prompt(task: Task) -> str | None:
     Returns:
         str: The constructed chain of thought prompt.
     """
-    return "Think step by step."
+    return "Think step by step, explaining your reasoning, before responding with an answer."
 
 
 class SimpleChainOfThoughtPromptBuilder(SimplePromptBuilder):
@@ -211,12 +211,28 @@ class SimpleChainOfThoughtPromptBuilder(SimplePromptBuilder):
         return chain_of_thought_prompt(self.task)
 
 
+class FewShotChainOfThoughtPromptBuilder(FewShotPromptBuilder):
+    """A prompt builder that includes a chain of thought prompt on top of the few shot prompt."""
+
+    def chain_of_thought_prompt(self) -> str | None:
+        return chain_of_thought_prompt(self.task)
+
+
+class MultiShotChainOfThoughtPromptBuilder(MultiShotPromptBuilder):
+    """A prompt builder that includes a chain of thought prompt on top of the multi shot prompt."""
+
+    def chain_of_thought_prompt(self) -> str | None:
+        return chain_of_thought_prompt(self.task)
+
+
 prompt_builder_registry = {
-    "simple_prompt_builder": SimplePromptBuilder,
-    "multi_shot_prompt_builder": MultiShotPromptBuilder,
+    "simple": SimplePromptBuilder,
+    "multi_shot": MultiShotPromptBuilder,
     "few_shot_prompt_builder": FewShotPromptBuilder,
     "repairs_prompt_builder": RepairsPromptBuilder,
     "simple_chain_of_thought_prompt_builder": SimpleChainOfThoughtPromptBuilder,
+    "few_shot_chain_of_thought_prompt_builder": FewShotChainOfThoughtPromptBuilder,
+    "multi_shot_chain_of_thought_prompt_builder": MultiShotChainOfThoughtPromptBuilder,
 }
 
 
@@ -244,5 +260,9 @@ def prompt_builder_from_ui_name(ui_name: str) -> type[BasePromptBuilder]:
             return RepairsPromptBuilder
         case "simple_chain_of_thought":
             return SimpleChainOfThoughtPromptBuilder
+        case "few_shot_chain_of_thought":
+            return FewShotChainOfThoughtPromptBuilder
+        case "multi_shot_chain_of_thought":
+            return MultiShotChainOfThoughtPromptBuilder
         case _:
             raise ValueError(f"Unknown prompt builder: {ui_name}")

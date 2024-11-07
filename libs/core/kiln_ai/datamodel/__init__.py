@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from enum import Enum, IntEnum
-from typing import TYPE_CHECKING, Dict, List, Type, Union
+from typing import TYPE_CHECKING, Dict, List, Optional, Type, Union
 
 import jsonschema
 import jsonschema.exceptions
@@ -279,6 +279,10 @@ class TaskRun(KilnParentedModel):
     repaired_output: TaskOutput | None = Field(
         default=None,
         description="An version of the output with issues fixed. This must be a 'fixed' version of the existing output, and not an entirely new output. If you wish to generate an ideal curatorial output for this task unrelated to this output, generate a new TaskOutput with type 'human' instead of using this field.",
+    )
+    intermediate_outputs: Optional[Dict[str, str]] = Field(
+        default=None,
+        description="Intermediate outputs from the task run. Keys are the names of the intermediate output steps (cot=chain of thought, etc), values are the output data.",
     )
 
     def parent_task(self) -> Task | None:

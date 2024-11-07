@@ -43,9 +43,6 @@ def test_simple_prompt_builder(tmp_path):
 
 
 class MockAdapter(BaseAdapter):
-    def adapter_specific_instructions(self) -> str | None:
-        return "You are a mock, send me the response!"
-
     def _run(self, input: str) -> str:
         return "mock response"
 
@@ -63,10 +60,6 @@ def test_simple_prompt_builder_structured_output(tmp_path):
     input = "Cows"
     prompt = builder.build_prompt()
     assert "You are an assistant which tells a joke, given a subject." in prompt
-
-    # check adapter instructions are included
-    run_adapter = MockAdapter(task, prompt_builder=builder)
-    assert "You are a mock, send me the response!" in run_adapter.build_prompt()
 
     user_msg = builder.build_user_message(input)
     assert input in user_msg
