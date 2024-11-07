@@ -96,14 +96,8 @@ class LangChainPromptAdapter(BaseAdapter):
             HumanMessage(content=user_msg),
         ]
 
-        tool_call_message = SystemMessage(
-            content="Always respond with a tool call. Never respond with a human readable message."
-        )
-
         cot_prompt = self.prompt_builder.chain_of_thought_prompt()
-        if not cot_prompt:
-            messages.append(tool_call_message)
-        else:
+        if cot_prompt:
             # Base model (without structured output) used for COT
             base_model = await langchain_model_from(
                 self.model_name, self.model_provider
@@ -116,7 +110,9 @@ class LangChainPromptAdapter(BaseAdapter):
             cot_response = base_model.invoke(cot_messages)
             intermediate_outputs["chain_of_thought"] = cot_response.content
             messages.append(AIMessage(content=cot_response.content))
-            messages.append(tool_call_message)
+            messages.append(
+                SystemMessage(content="Considering the above, return a final result.")
+            )
 
         response = chain.invoke(messages)
 

@@ -115,7 +115,7 @@ async def test_langchain_adapter_with_cot(tmp_path):
     assert isinstance(invoke_args[3], AIMessage)
     assert "Chain of thought reasoning..." in invoke_args[3].content
     assert isinstance(invoke_args[4], SystemMessage)
-    assert "Always respond with a tool call" in invoke_args[4].content
+    assert "Considering the above, return a final result." in invoke_args[4].content
 
     assert (
         response.intermediate_outputs["chain_of_thought"]
