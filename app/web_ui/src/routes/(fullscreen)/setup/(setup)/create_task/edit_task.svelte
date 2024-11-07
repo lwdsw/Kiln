@@ -68,6 +68,7 @@
         description: task.description,
         instruction: task.instruction,
         requirements: task.requirements,
+        thinking_instruction: task.thinking_instruction,
       }
       // Can only set schemas when creating a new task
       if (creating) {
@@ -145,6 +146,7 @@
       !!task.name ||
       !!task.description ||
       !!task.instruction ||
+      !!task.thinking_instruction ||
       has_edited_requirements ||
       !!inputSchemaSection.get_schema_string() ||
       !!outputSchemaSection.get_schema_string()
@@ -266,6 +268,16 @@
       id="task_instructions"
       description="This will form the basis of the model's prompt. Keep this high level, and define any details in the 'Requirements' section below."
       bind:value={task.instruction}
+    />
+
+    <FormElement
+      label="'Thinking' Instructions"
+      inputType="textarea"
+      id="thinking_instructions"
+      optional={true}
+      description="Instructions for how the model should 'think' about the task prior to answering. Used for chain of thought style prompting."
+      info_description="Used when running a 'Chain of Thought' prompt. If left blank, a default 'think step by step' prompt will be used. Optionally customize this with your own instructions to better fit this task."
+      bind:value={task.thinking_instruction}
     />
 
     <div class="text-sm font-medium text-left pt-6 flex flex-col gap-1">

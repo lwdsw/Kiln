@@ -201,6 +201,10 @@ def chain_of_thought_prompt(task: Task) -> str | None:
     Returns:
         str: The constructed chain of thought prompt.
     """
+
+    if task.thinking_instruction:
+        return task.thinking_instruction
+
     return "Think step by step, explaining your reasoning, before responding with an answer."
 
 
@@ -226,8 +230,8 @@ class MultiShotChainOfThoughtPromptBuilder(MultiShotPromptBuilder):
 
 
 prompt_builder_registry = {
-    "simple": SimplePromptBuilder,
-    "multi_shot": MultiShotPromptBuilder,
+    "simple_prompt_builder": SimplePromptBuilder,
+    "multi_shot_prompt_builder": MultiShotPromptBuilder,
     "few_shot_prompt_builder": FewShotPromptBuilder,
     "repairs_prompt_builder": RepairsPromptBuilder,
     "simple_chain_of_thought_prompt_builder": SimpleChainOfThoughtPromptBuilder,

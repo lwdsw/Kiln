@@ -84,7 +84,7 @@ class LangChainPromptAdapter(BaseAdapter):
             )
         return self._model
 
-    async def _run(self, input: Dict | str) -> Dict | str:
+    async def _run(self, input: Dict | str) -> RunOutput:
         model = await self.model()
         chain = model
         intermediate_outputs = {}

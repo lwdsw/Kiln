@@ -4,10 +4,14 @@ import pytest
 
 from kiln_ai.adapters.base_adapter import AdapterInfo, BaseAdapter
 from kiln_ai.adapters.prompt_builders import (
+    FewShotChainOfThoughtPromptBuilder,
     FewShotPromptBuilder,
+    MultiShotChainOfThoughtPromptBuilder,
     MultiShotPromptBuilder,
     RepairsPromptBuilder,
+    SimpleChainOfThoughtPromptBuilder,
     SimplePromptBuilder,
+    chain_of_thought_prompt,
     prompt_builder_from_ui_name,
 )
 from kiln_ai.adapters.test_prompt_adaptors import build_test_task
@@ -306,6 +310,18 @@ def test_prompt_builder_from_ui_name():
     assert prompt_builder_from_ui_name("few_shot") == FewShotPromptBuilder
     assert prompt_builder_from_ui_name("many_shot") == MultiShotPromptBuilder
     assert prompt_builder_from_ui_name("repairs") == RepairsPromptBuilder
+    assert (
+        prompt_builder_from_ui_name("simple_chain_of_thought")
+        == SimpleChainOfThoughtPromptBuilder
+    )
+    assert (
+        prompt_builder_from_ui_name("few_shot_chain_of_thought")
+        == FewShotChainOfThoughtPromptBuilder
+    )
+    assert (
+        prompt_builder_from_ui_name("multi_shot_chain_of_thought")
+        == MultiShotChainOfThoughtPromptBuilder
+    )
 
     with pytest.raises(ValueError, match="Unknown prompt builder: invalid_name"):
         prompt_builder_from_ui_name("invalid_name")
@@ -329,3 +345,52 @@ def test_repair_multi_shot_prompt_builder(task_with_examples):
         'Initial Output Which Was Insufficient: {"joke": "Moo I am a cow joke."}'
         in prompt
     )
+
+
+def test_chain_of_thought_prompt(tmp_path):
+    # Test with default thinking instruction
+    task = Task(
+        name="Test Task",
+        instruction="Test instruction",
+        parent=None,
+        thinking_instruction=None,
+    )
+    assert (
+        chain_of_thought_prompt(task)
+        == "Think step by step, explaining your reasoning, before responding with an answer."
+    )
+
+    # Test with custom thinking instruction
+    custom_instruction = "First analyze the problem, then break it down into steps."
+    task = Task(
+        name="Test Task",
+        instruction="Test instruction",
+        parent=None,
+        thinking_instruction=custom_instruction,
+    )
+    assert chain_of_thought_prompt(task) == custom_instruction
+
+
+@pytest.mark.parametrize(
+    "builder_class",
+    [
+        SimpleChainOfThoughtPromptBuilder,
+        FewShotChainOfThoughtPromptBuilder,
+        MultiShotChainOfThoughtPromptBuilder,
+    ],
+)
+def test_chain_of_thought_prompt_builders(builder_class, task_with_examples):
+    # Test with default thinking instruction
+    builder = builder_class(task=task_with_examples)
+    assert (
+        builder.chain_of_thought_prompt()
+        == "Think step by step, explaining your reasoning, before responding with an answer."
+    )
+
+    # Test with custom thinking instruction
+    custom_instruction = "First analyze the problem, then break it down into steps."
+    task_with_custom = task_with_examples.model_copy(
+        update={"thinking_instruction": custom_instruction}
+    )
+    builder = builder_class(task=task_with_custom)
+    assert builder.chain_of_thought_prompt() == custom_instruction

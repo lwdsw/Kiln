@@ -85,6 +85,7 @@ def test_task_serialization(test_project_file):
         determinism=TaskDeterminism.semantic_match,
         priority=Priority.p0,
         instruction="Test Base Task Instruction",
+        thinking_instruction="Test Thinking Instruction",
     )
 
     task.save_to_file()
@@ -93,6 +94,7 @@ def test_task_serialization(test_project_file):
     assert parsed_task.name == "Test Task"
     assert parsed_task.description == "Test Description"
     assert parsed_task.instruction == "Test Base Task Instruction"
+    assert parsed_task.thinking_instruction == "Test Thinking Instruction"
     assert parsed_task.determinism == TaskDeterminism.semantic_match
     assert parsed_task.priority == Priority.p0
 
