@@ -63,7 +63,9 @@ class BasePromptBuilder(metaclass=ABCMeta):
         return None
 
     def build_prompt_for_ui(self) -> str:
-        """Build a prompt for the UI.
+        """Build a prompt for the UI. It includes additional instructions (like chain of thought), even if they are passed to the model in stages.
+
+        Designed for end-user consumption, not for model consumption.
 
         Returns:
             str: The constructed prompt string.
@@ -71,7 +73,7 @@ class BasePromptBuilder(metaclass=ABCMeta):
         base_prompt = self.build_prompt()
         cot_prompt = self.chain_of_thought_prompt()
         if cot_prompt:
-            base_prompt += "\n\n# Thinking Instructions\n\n" + cot_prompt
+            base_prompt += "\n# Thinking Instructions\n\n" + cot_prompt
         return base_prompt
 
 
