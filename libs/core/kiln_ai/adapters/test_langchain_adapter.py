@@ -57,6 +57,9 @@ def test_langchain_adapter_info(tmp_path):
 
 async def test_langchain_adapter_with_cot(tmp_path):
     task = build_test_task(tmp_path)
+    task.output_json_schema = (
+        '{"type": "object", "properties": {"count": {"type": "integer"}}}'
+    )
     lca = LangChainPromptAdapter(
         kiln_task=task,
         model_name="llama_3_1_8b",
@@ -72,7 +75,7 @@ async def test_langchain_adapter_with_cot(tmp_path):
 
     # Create a separate mock for self.model()
     mock_model_instance = MagicMock()
-    mock_model_instance.invoke.return_value = AIMessage(content="Final response...")
+    mock_model_instance.invoke.return_value = {"parsed": {"count": 1}}
 
     # Mock the langchain_model_from function to return the base model
     mock_model_from = AsyncMock(return_value=mock_base_model)
@@ -118,4 +121,4 @@ async def test_langchain_adapter_with_cot(tmp_path):
         response.intermediate_outputs["chain_of_thought"]
         == "Chain of thought reasoning..."
     )
-    assert response.output == "Final response..."
+    assert response.output == {"count": 1}

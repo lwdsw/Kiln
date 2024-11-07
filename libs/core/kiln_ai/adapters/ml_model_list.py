@@ -687,7 +687,6 @@ def parse_ollama_tags(tags: Any) -> OllamaConnection | None:
         models = tags["models"]
         if isinstance(models, list):
             model_names = [model["model"] for model in models]
-            print(f"model_names: {model_names}")
             available_supported_models = [
                 model
                 for model in model_names

@@ -216,10 +216,11 @@ def chain_of_thought_prompt(task: Task) -> str | None:
         str: The constructed chain of thought prompt.
     """
 
-    if task.thinking_instruction:
-        return task.thinking_instruction
+    cot_instruction = task.thinking_instruction
+    if not cot_instruction:
+        cot_instruction = "Think step by step, explaining your reasoning."
 
-    return "Think step by step, explaining your reasoning, before responding with an answer."
+    return cot_instruction
 
 
 class SimpleChainOfThoughtPromptBuilder(SimplePromptBuilder):

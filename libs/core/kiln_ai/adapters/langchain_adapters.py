@@ -96,9 +96,10 @@ class LangChainPromptAdapter(BaseAdapter):
             HumanMessage(content=user_msg),
         ]
 
+        # COT with structured output
         cot_prompt = self.prompt_builder.chain_of_thought_prompt()
-        if cot_prompt:
-            # Base model (without structured output) used for COT
+        if cot_prompt and self.has_structured_output():
+            # Base model (without structured output) used for COT message
             base_model = await langchain_model_from(
                 self.model_name, self.model_provider
             )
@@ -113,6 +114,9 @@ class LangChainPromptAdapter(BaseAdapter):
             messages.append(
                 SystemMessage(content="Considering the above, return a final result.")
             )
+        elif cot_prompt:
+            # for plaintext output, we just add COT instructions. We still only make one call.
+            messages.append(SystemMessage(content=cot_prompt))
 
         response = chain.invoke(messages)
 

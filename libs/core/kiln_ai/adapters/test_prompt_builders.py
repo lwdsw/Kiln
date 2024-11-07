@@ -357,7 +357,7 @@ def test_chain_of_thought_prompt(tmp_path):
     )
     assert (
         chain_of_thought_prompt(task)
-        == "Think step by step, explaining your reasoning, before responding with an answer."
+        == "Think step by step, explaining your reasoning."
     )
 
     # Test with custom thinking instruction
@@ -384,7 +384,7 @@ def test_chain_of_thought_prompt_builders(builder_class, task_with_examples):
     builder = builder_class(task=task_with_examples)
     assert (
         builder.chain_of_thought_prompt()
-        == "Think step by step, explaining your reasoning, before responding with an answer."
+        == "Think step by step, explaining your reasoning."
     )
 
     # Test with custom thinking instruction
