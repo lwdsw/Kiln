@@ -42,7 +42,10 @@ def test_save_run_isolation(test_task):
     adapter = MockAdapter(test_task)
     input_data = "Test input"
     output_data = "Test output"
-    run_output = RunOutput(output=output_data, intermediate_outputs=None)
+    run_output = RunOutput(
+        output=output_data,
+        intermediate_outputs={"chain_of_thought": "Test chain of thought"},
+    )
 
     task_run = adapter.generate_run(
         input=input_data, input_source=None, run_output=run_output
@@ -53,6 +56,9 @@ def test_save_run_isolation(test_task):
     assert task_run.parent == test_task
     assert task_run.input == input_data
     assert task_run.input_source.type == DataSourceType.human
+    assert task_run.intermediate_outputs == {
+        "chain_of_thought": "Test chain of thought"
+    }
     created_by = Config.shared().user_id
     if created_by and created_by != "":
         assert task_run.input_source.properties["created_by"] == created_by

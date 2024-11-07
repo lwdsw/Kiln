@@ -112,7 +112,8 @@ class LangChainPromptAdapter(BaseAdapter):
                 SystemMessage(content=cot_prompt),
             )
 
-            cot_response = base_model.invoke(messages)
+            cot_messages = [*messages]
+            cot_response = base_model.invoke(cot_messages)
             intermediate_outputs["chain_of_thought"] = cot_response.content
             messages.append(AIMessage(content=cot_response.content))
             messages.append(tool_call_message)
