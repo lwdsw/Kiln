@@ -122,15 +122,7 @@ class BaseAdapter(metaclass=ABCMeta):
         pass
 
     def build_prompt(self) -> str:
-        prompt = self.prompt_builder.build_prompt()
-        adapter_instructions = self.adapter_specific_instructions()
-        if adapter_instructions is not None:
-            prompt += f"# Format Instructions\n\n{adapter_instructions}\n\n"
-        return prompt
-
-    # override for adapter specific instructions (e.g. tool calling, json format, etc)
-    def adapter_specific_instructions(self) -> str | None:
-        return None
+        return self.prompt_builder.build_prompt()
 
     # create a run and task output
     def generate_run(

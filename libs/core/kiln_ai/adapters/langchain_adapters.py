@@ -2,9 +2,10 @@ from typing import Dict
 
 from langchain_core.language_models import LanguageModelInput
 from langchain_core.language_models.chat_models import BaseChatModel
-from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.messages.base import BaseMessage
-from langchain_core.runnables import Runnable
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import Runnable, RunnablePassthrough
 from pydantic import BaseModel
 
 import kiln_ai.datamodel as datamodel
@@ -87,6 +88,7 @@ class LangChainPromptAdapter(BaseAdapter):
     async def _run(self, input: Dict | str) -> Dict | str:
         model = await self.model()
         chain = model
+        intermediate_outputs = {}
 
         prompt = self.build_prompt()
         user_msg = self.prompt_builder.build_user_message(input)
@@ -95,26 +97,49 @@ class LangChainPromptAdapter(BaseAdapter):
             HumanMessage(content=user_msg),
         ]
 
+        tool_call_message = SystemMessage(
+            content="Always respond with a tool call. Never respond with a human readable message."
+        )
+
         cot_prompt = self.prompt_builder.chain_of_thought_prompt()
-        if cot_prompt:
+        if not cot_prompt:
+            messages.append(tool_call_message)
+        else:
+            # Base model (without structured output) used for COT
             base_model = await langchain_model_from(
                 self.model_name, self.model_provider
             )
             messages.append(
+                # TODO: it's adding "tool call" for this, but should be after
                 SystemMessage(
                     content="In your first reply, think step by step and explain logic."
                 ),
             )
+
+            chain = (
+                base_model
+                | StrOutputParser()
+                # Capture intermediate output from COT
+                | (
+                    lambda x: (
+                        intermediate_outputs.update({"cot": x}),
+                        x,
+                    )[1]
+                )
+                # Combine prior outputs/messages with tool_call_message
+                | (lambda x: f"{x}\n{tool_call_message.content}")
+                | model
+            )
             # print(f"chain: {messages}")
             # chain = base_model | model
-            cot_response = base_model.invoke(messages)
-            print(f"cot_response: {cot_response}")
-            cot_message = cot_response.content
+            # cot_response = base_model.invoke(messages)
+            # print(f"cot_response: {cot_response}")
+            # cot_message = cot_response.content
             # TODO: this is wrong
-            messages.append(HumanMessage(content=cot_message))
+            # messages.append(HumanMessage(content=cot_message))
 
-        response = model.invoke(messages)
-        print(f"response: {response}")
+        response = chain.invoke(messages)
+        print(f"\n\nintermediate_outputs: {intermediate_outputs}\n\n")
 
         if self.has_structured_output():
             if (
