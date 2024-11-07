@@ -111,25 +111,30 @@ class LangChainPromptAdapter(BaseAdapter):
             )
             messages.append(
                 # TODO: it's adding "tool call" for this, but should be after
-                SystemMessage(
-                    content="In your first reply, think step by step and explain logic."
-                ),
+                SystemMessage(content=cot_prompt),
             )
 
-            chain = (
-                base_model
-                | StrOutputParser()
-                # Capture intermediate output from COT
-                | (
-                    lambda x: (
-                        intermediate_outputs.update({"cot": x}),
-                        x,
-                    )[1]
-                )
-                # Combine prior outputs/messages with tool_call_message
-                | (lambda x: f"{x}\n{tool_call_message.content}")
-                | model
-            )
+            cot_response = base_model.invoke(messages)
+            print(f"\n\ncot_response: {cot_response.content}\n\n")
+            intermediate_outputs["cot"] = cot_response.content
+            messages.append(HumanMessage(content=cot_response.content))
+            messages.append(tool_call_message)
+            print(f"\n\nmessages: {messages}\n\n")
+
+            # chain = (
+            #     base_model
+            #     | StrOutputParser()
+            #     # Capture intermediate output from COT
+            #     | (
+            #         lambda x: (
+            #             intermediate_outputs.update({"cot": x}),
+            #             x,
+            #         )[1]
+            #     )
+            #     # Combine prior outputs/messages with tool_call_message
+            #     | (lambda x: f"{x}\n{tool_call_message.content}")
+            #     | model
+            # )
             # print(f"chain: {messages}")
             # chain = base_model | model
             # cot_response = base_model.invoke(messages)
