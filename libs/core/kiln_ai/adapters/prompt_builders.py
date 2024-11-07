@@ -62,6 +62,18 @@ class BasePromptBuilder(metaclass=ABCMeta):
         """
         return None
 
+    def build_prompt_for_ui(self) -> str:
+        """Build a prompt for the UI.
+
+        Returns:
+            str: The constructed prompt string.
+        """
+        base_prompt = self.build_prompt()
+        cot_prompt = self.chain_of_thought_prompt()
+        if cot_prompt:
+            base_prompt += "\n\n# Thinking Instructions\n\n" + cot_prompt
+        return base_prompt
+
 
 class SimplePromptBuilder(BasePromptBuilder):
     """A basic prompt builder that combines task instruction with requirements."""

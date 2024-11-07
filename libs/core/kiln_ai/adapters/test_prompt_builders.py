@@ -394,3 +394,35 @@ def test_chain_of_thought_prompt_builders(builder_class, task_with_examples):
     )
     builder = builder_class(task=task_with_custom)
     assert builder.chain_of_thought_prompt() == custom_instruction
+
+
+def test_build_prompt_for_ui(tmp_path):
+    # Test regular prompt builder
+    task = build_test_task(tmp_path)
+    simple_builder = SimplePromptBuilder(task=task)
+    ui_prompt = simple_builder.build_prompt_for_ui()
+
+    # Should match regular prompt since no chain of thought
+    assert ui_prompt == simple_builder.build_prompt()
+    assert "# Thinking Instructions" not in ui_prompt
+
+    # Test chain of thought prompt builder
+    cot_builder = SimpleChainOfThoughtPromptBuilder(task=task)
+    ui_prompt_cot = cot_builder.build_prompt_for_ui()
+
+    # Should include both base prompt and thinking instructions
+    assert cot_builder.build_prompt() in ui_prompt_cot
+    assert "# Thinking Instructions" in ui_prompt_cot
+    assert "Think step by step" in ui_prompt_cot
+
+    # Test with custom thinking instruction
+    custom_instruction = "First analyze the problem, then solve it."
+    task_with_custom = task.model_copy(
+        update={"thinking_instruction": custom_instruction}
+    )
+    custom_cot_builder = SimpleChainOfThoughtPromptBuilder(task=task_with_custom)
+    ui_prompt_custom = custom_cot_builder.build_prompt_for_ui()
+
+    assert custom_cot_builder.build_prompt() in ui_prompt_custom
+    assert "# Thinking Instructions" in ui_prompt_custom
+    assert custom_instruction in ui_prompt_custom
