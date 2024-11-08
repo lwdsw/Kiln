@@ -16,7 +16,9 @@
     | "rating"
     | "inputPreview"
     | "outputPreview"
-    | "repairState" = "created_at"
+    | "model"
+    | "repairState"
+    | "created_at"
   let sortDirection: "asc" | "desc" = "asc"
 
   $: project_id = $page.params.project_id
@@ -147,6 +149,16 @@
         aValue = formatRepairState(a)
         bValue = formatRepairState(b)
         break
+      case "model":
+        aValue = model_name(
+          a.output?.source?.properties["model_name"],
+          $model_info,
+        )
+        bValue = model_name(
+          b.output?.source?.properties["model_name"],
+          $model_info,
+        )
+        break
       default:
         return 0
     }
@@ -223,7 +235,7 @@
               <td>{formatRepairState(run)}</td>
               <td>
                 {model_name(
-                  "" + run.output?.source?.properties["model_name"],
+                  run.output?.source?.properties["model_name"],
                   $model_info,
                 )}
               </td>
