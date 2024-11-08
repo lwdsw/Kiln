@@ -1,6 +1,6 @@
 # Make a MacOS DMG
 
-Weird node 20 workaround for this: https://github.com/sindresorhus/create-dmg/issues/243
+Weird node 20 workaround for this: https://github.com/sindresorhus/create-dmg
 
 Each time it should just be:
 

@@ -87,6 +87,7 @@
     // Keep the input, but clear the response
     response = null
     run_complete = false
+    clear_all()
   }
 </script>
 
