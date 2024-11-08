@@ -11,9 +11,8 @@ create-dmg Kiln.app
 
 Env Setup while node 20 is required:
 
-- `brew unlink node@23`
-- `brew link node@20`
+- `nvm use 20`
 - `npm install -g create-dmg`
 - `create-dmg Kiln.app`
 - rename the output dmg to Kiln.MacOS.Intel.dmg or Kiln.MacOS.AppleSilicon.M-Processor.dmg
-- `brew link node@23`
+- `nvm use 23`
