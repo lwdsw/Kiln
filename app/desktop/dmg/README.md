@@ -1,8 +1,19 @@
 # Make a MacOS DMG
 
-TODO: switch to this. Seems even better: https://github.com/sindresorhus/create-dmg
-It's still blocked on that one bug though: https://github.com/sindresorhus/create-dmg/issues/243
+Weird node 20 workaround for this: https://github.com/sindresorhus/create-dmg/issues/243
 
-- One time: `npm install -g appdmg`
-- Copy appdmg.json and the two PNGs to the folder with the Kiln.app
-- `appdmg appdmg.json Kiln.dmg`
+Each time it should just be:
+
+```
+create-dmg Kiln.app
+# then rename the output dmg to Kiln.MacOS.Intel.dmg or Kiln.MacOS.AppleSilicon.M-Processor.dmg
+```
+
+Env Setup while node 20 is required:
+
+- `brew unlink node@23`
+- `brew link node@20`
+- `npm install -g create-dmg`
+- `create-dmg Kiln.app`
+- rename the output dmg to Kiln.MacOS.Intel.dmg or Kiln.MacOS.AppleSilicon.M-Processor.dmg
+- `brew link node@23`
