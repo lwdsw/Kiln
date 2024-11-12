@@ -13,7 +13,7 @@
 </h1>
 
 <div
-  class="flex-none min-h-[50vh] py-8 px-4 h-full flex flex-col py-18 w-full mx-auto"
+  class="flex-none min-h-[50vh] mt-8 lg:mt-16 px-4 h-full flex flex-col py-18 w-full mx-auto"
 >
   <Tutorial bind:completed />
 </div>
