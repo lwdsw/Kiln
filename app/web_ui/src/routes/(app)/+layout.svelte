@@ -258,12 +258,10 @@
           Settings</a
         >
         {#if settingsSections.includes(section)}
-          <ul>
+          <ul class="py-2 ml-6">
             <li class="menu-nested-sm">
               <a
-                class=" menu-nested-sm {section == Section.SettingsProviders
-                  ? 'active'
-                  : ''}"
+                class={section == Section.SettingsProviders ? "active" : ""}
                 href="/settings/providers"
               >
                 AI Providers
@@ -324,7 +322,7 @@
     padding: 0.1rem 0.25rem;
   }
   :global(ul > li.menu-nested-sm > a) {
-    padding: 0.5rem 1rem;
+    padding: 0.2rem 1rem;
     font-size: 0.875rem; /* Equivalent to text-sm in Tailwind */
   }
 </style>
