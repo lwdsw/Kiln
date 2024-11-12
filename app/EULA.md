@@ -2,7 +2,7 @@
 
 **Last updated November 05, 2024**
 
-Kiln AI Desktop is licensed to You (End-User) by Chesterfield Laboratories Incorporated, located and registered at 453 Gladstone Ave, Toronto, Ontario M6H3J1, Canada ('Licensor'), for use only under the terms of this Licence Agreement.
+Kiln AI Desktop is licensed to You (End-User) by Chesterfield Laboratories Incorporated ('Licensor'), for use only under the terms of this Licence Agreement.
 
 By downloading the Licensed Application, and any update thereto (as permitted by this Licence Agreement), You indicate that You agree to be bound by all of the terms and conditions of this Licence Agreement, and that You accept this Licence Agreement.
 
