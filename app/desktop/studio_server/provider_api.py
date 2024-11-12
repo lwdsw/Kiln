@@ -12,7 +12,6 @@ from kiln_ai.adapters.ml_model_list import (
     OllamaConnection,
     built_in_models,
     ollama_base_url,
-    ollama_model_supported,
     parse_ollama_tags,
     provider_name_from_id,
     provider_warnings,

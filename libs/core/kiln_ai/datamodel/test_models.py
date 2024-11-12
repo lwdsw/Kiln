@@ -6,10 +6,8 @@ from pydantic import ValidationError
 from kiln_ai.datamodel import (
     DataSource,
     DataSourceType,
-    Priority,
     Project,
     Task,
-    TaskDeterminism,
     TaskOutput,
     TaskRun,
 )
