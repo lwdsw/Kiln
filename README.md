@@ -24,7 +24,7 @@
 - 🧑‍💻 **Hackers Delight**: An open-source Python library and REST API for data scientists and engineers to deeply integrate if needed.
 - 🔒 **Privacy-First**: We can't see your data. Bring your own API keys or run locally with Ollama.
 - 🗃️ **Structured Data**: Build AI tasks which speak JSON. Build training datasets with validated formats, human feedback, issue tracking, and more.
-- 💰 **Free**: Our apps are free to use, and our library is open-source.
+- 💰 **Free**: Our apps are free, and our library is open-source.
 
 ## Download Kiln Desktop Apps
 
