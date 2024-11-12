@@ -71,9 +71,7 @@ def test_save_to_file(test_project_file):
 
 def test_task_defaults():
     task = Task(name="Test Task", instruction="Test Instruction")
-    assert task.description == ""
-    assert task.priority == Priority.p2
-    assert task.determinism == TaskDeterminism.flexible
+    assert task.description is None
 
 
 def test_task_serialization(test_project_file):
@@ -82,8 +80,6 @@ def test_task_serialization(test_project_file):
         parent=project,
         name="Test Task",
         description="Test Description",
-        determinism=TaskDeterminism.semantic_match,
-        priority=Priority.p0,
         instruction="Test Base Task Instruction",
         thinking_instruction="Test Thinking Instruction",
     )
@@ -95,8 +91,6 @@ def test_task_serialization(test_project_file):
     assert parsed_task.description == "Test Description"
     assert parsed_task.instruction == "Test Base Task Instruction"
     assert parsed_task.thinking_instruction == "Test Thinking Instruction"
-    assert parsed_task.determinism == TaskDeterminism.semantic_match
-    assert parsed_task.priority == Priority.p0
 
 
 def test_save_to_file_without_path():

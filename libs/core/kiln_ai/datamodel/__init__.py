@@ -386,12 +386,15 @@ class Task(
     """
 
     name: str = NAME_FIELD
-    description: str = Field(default="")
-    priority: Priority = Field(default=Priority.p2)
-    determinism: TaskDeterminism = Field(default=TaskDeterminism.flexible)
-    instruction: str = Field(min_length=1)
+    description: str | None = Field(
+        default=None,
+        description="A description of the task for you and your team. Will not be used in prompts/training/validation.",
+    )
+    instruction: str = Field(
+        min_length=1,
+        description="The instructions for the task. Will be used in prompts/training/validation.",
+    )
     requirements: List[TaskRequirement] = Field(default=[])
-    # TODO: make this required, or formalize the default message output schema
     output_json_schema: JsonObjectSchema | None = None
     input_json_schema: JsonObjectSchema | None = None
     thinking_instruction: str | None = Field(
