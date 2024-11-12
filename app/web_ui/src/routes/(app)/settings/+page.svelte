@@ -4,10 +4,11 @@
 
   let sections = [
     {
-      name: "Providers",
-      description: "Connect to AI providers like OpenAI, Google, or Ollama.",
+      name: "AI Providers",
+      description:
+        "Connect to AI providers like OpenAI, OpenRouter, or Ollama.",
       href: "/settings/providers",
-      button_text: "Providers",
+      button_text: "Manage Providers",
     },
     {
       name: "Projects",
@@ -16,28 +17,28 @@
       button_text: "All Projects",
     },
     {
-      name: "Current Project",
+      name: "Edit Project",
       description: "Edit the currently selected project.",
-      button_text: "Edit Project",
+      button_text: "Edit Current Project",
       href: "/settings/edit_project/" + $ui_state.current_project_id,
     },
     {
-      name: "Current Task",
+      name: "Edit Task",
       description: "Edit the currently selected task.",
-      button_text: "Edit Task",
+      button_text: "Edit Current Task",
       href: `/settings/edit_task/${$ui_state?.current_project_id}/${$ui_state?.current_task_id}`,
     },
     {
-      name: "Check for Update",
+      name: "App Updates",
       description: "Check if there is a new version of the app available.",
       href: "/settings/check_for_update",
-      button_text: "Update",
+      button_text: "Check for Update",
     },
     {
       name: "Replay Introduction",
-      description: "Watch the introduction again.",
+      description: "Watch the introduction slide-show.",
       href: "/settings/intro",
-      button_text: "Introduction",
+      button_text: "Play Intro",
     },
     {
       name: "License",
