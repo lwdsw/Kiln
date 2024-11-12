@@ -12,7 +12,7 @@
   <h2 class="text-lg lg:text-xl font-light mt-2 flex-none">
     Your AI Product Launchpad
   </h2>
-  <a href="/setup/intro" class="btn btn-primary btn-wide mt-12 flex-none"
+  <a href="/setup/subscribe" class="btn btn-primary btn-wide mt-12 flex-none"
     >Get Started</a
   >
   <div class="text-sm font-light mt-4">
