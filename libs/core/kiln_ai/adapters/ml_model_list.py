@@ -176,6 +176,7 @@ built_in_models: List[KilnModel] = [
         providers=[
             KilnModelProvider(
                 name=ModelProviderName.openrouter,
+                supports_structured_output=False,  # it should, but doesn't work on openrouter
                 provider_options={"model": "google/gemini-pro-1.5"},
             ),
         ],
@@ -200,6 +201,7 @@ built_in_models: List[KilnModel] = [
         providers=[
             KilnModelProvider(
                 name=ModelProviderName.openrouter,
+                supports_structured_output=False,
                 provider_options={"model": "google/gemini-flash-1.5-8b"},
             ),
         ],
