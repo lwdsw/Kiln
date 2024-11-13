@@ -92,7 +92,7 @@
 </div>
 
 <div class="flex-none flex flex-col place-content-center md:flex-row gap-4">
-  <a href="/setup/intro">
+  <a href="/setup/connect_providers">
     <button class="btn {subscribed ? 'btn-primary' : ''} w-full min-w-[130px]">
       Continue {subscribed ? "" : " Without Subscribing"}
     </button></a
