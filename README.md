@@ -21,10 +21,10 @@
 - 🤝 **Team Collaboration**: Designed for collaboration, with git-based version control for your AI dataset.
 - 📊 **Rapid Evaluation**: Compare various models and data-science techniques with no-code tools.
 - 🔄 **Iterative Improvement**: Continuous dataset improvement with built-in evaluation, RLHF and QA tooling.
-- 🧑‍💻 **Hackers Delight**: An open-source Python library and REST API for data-scientists and engineers to deeply integrate if needed.
+- 🧑‍💻 **Open-Source Library and API**: Our python library and OpenAPI REST API are MIT open source.
 - 🔒 **Privacy-First**: We can't see your data. Bring your own API keys or run locally with Ollama.
 - 🗃️ **Structured Data**: Build AI tasks which speak JSON. Build training datasets with validated formats, human feedback, issue tracking, and more.
-- 💰 **Free**: Our apps are free, and our library is open-source.
+- 💰 **Free**: Our apps are free and our library is open-source.
 
 ## Download Kiln Desktop Apps
 
