@@ -13,7 +13,7 @@
 
 # Kiln AI
 
-> Iteratively Build High Quality AI Products
+> Build High Quality AI Products with Datasets
 
 ## Key Features
 
