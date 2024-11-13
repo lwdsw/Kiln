@@ -18,7 +18,7 @@
 ## Key Features
 
 - 🚀 **Intuitive Desktop Apps**: Apps for Windows and MacOS. Anyone on your team can contribute to your datasets & feedback to improve quality, without code.
-- 🤝 **Team Collaboration**: Designed for collaboration, with git-based version control for your ML dataset.
+- 🤝 **Team Collaboration**: Designed for collaboration, with git-based version control for your AI dataset.
 - 📊 **Rapid Evaluation**: Compare various models and data-science techniques with no-code tools.
 - 🔄 **Iterative Improvement**: Continuous dataset improvement with built-in evaluation, RLHF and QA tooling.
 - 🧑‍💻 **Hackers Delight**: An open-source Python library and REST API for data-scientists and engineers to deeply integrate if needed.
@@ -55,7 +55,7 @@ pip install kiln-ai
 
 ## Learn More
 
-### Build High Quality ML Products with Datasets
+### Build High Quality AI Products with Datasets
 
 Products don’t naturally have “datasets”, but Kiln helps you create one.
 
@@ -67,7 +67,7 @@ If your product goals shift or new bugs are found (as is almost always the case)
 
 ### Collaborate Across Technical and Non-Technical Teams
 
-When building ML products, there’s usually a subject matter expert who knows the problem you are trying to solve, and a different technical team assigned to build the model. Kiln bridges that gap as a collaboration tool.
+When building AI products, there’s usually a subject matter expert who knows the problem you are trying to solve, and a different technical team assigned to build the model. Kiln bridges that gap as a collaboration tool.
 
 Subject matter experts can use our easy to use desktop apps to generate structured datasets and ratings, without coding or using technical tools. No command line or GPU required.
 
@@ -91,15 +91,13 @@ In the future, we plan to add more powerful no-code options like fine tuning, lo
 
 ### Structured Data
 
-We prioritize data correctness, which makes integrating into AI products easier.
+We prioritize data correctness, which makes integrating into AI products easier. No data gets into the dataset without first passing validation, which keeps the dataset clean.
 
-Our easy to use schema UI lets you create and use structured schemas, without knowing JSON-schema formating. For technical users, we support any valid JSON schema for inputs and outputs.
+Our easy to use schema UI lets you create and use structured schemas, without knowing JSON-schema formating. For technical users, we support any valid JSON-schema for inputs and outputs.
 
-No data gets into the dataset without first passing validation, which keeps the dataset clean.
+### Powerful Open-source Library and REST API
 
-### Powerful open-source Library and REST API
-
-We have an open-source [python library](https://pypi.org/project/kiln-ai/), and an open-source [REST API](https://pypi.org/project/kiln-server/). You can easily integrate Kiln datasets into your own workflows, build fine tunes, use Kiln in Notebooks, build custom tools, and more!
+We have an open-source [python library](https://pypi.org/project/kiln-ai/), and an open-source [REST API](https://pypi.org/project/kiln-server/). You can easily integrate Kiln datasets into your own workflows, build fine tunes, use Kiln in Notebooks, build custom tools, and much more!
 
 The REST API supports OpenAPI, so you can generate client libraries for almost [any](https://github.com/swagger-api/swagger-codegen) [language](https://openapi-generator.tech/docs/generators).
 
@@ -123,7 +121,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for information on how to setup a develop
 
 - Python Library: [MIT License](libs/core/LICENSE.txt)
 - Python REST Server/API: [MIT License](libs/server/LICENSE.txt)
-- Desktop App: free download under our [EULA](app/EULA.md), and [source-available](/app). [License](app/LICENSE.txt)
+- Desktop App: free to download and use under our [EULA](app/EULA.md), and [source-available](/app). [License](app/LICENSE.txt)
 - The Kiln names and logos are trademarks of Chesterfield Laboratories Inc.
 
 Copyright 2024 - Chesterfield Laboratories Inc.
