@@ -5,3 +5,7 @@
 a {
   @apply cursor-pointer;
 }
+
+.loading-spinner {
+  mask-image: url("/images/spinner.svg");
+}
