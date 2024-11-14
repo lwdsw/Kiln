@@ -37,6 +37,9 @@ jobs:
       - name: Build Desktop App
         run: uv run sh ./app/desktop/build_desktop_app.sh --compress-mac-app
 
+      - name: List Build
+        run: ls ./app/desktop/build/dist
+
       - name: Build Windows Installer
         if: matrix.os == 'windows-latest'
         uses: Minionguyjpro/Inno-Setup-Action@v1.2.5
