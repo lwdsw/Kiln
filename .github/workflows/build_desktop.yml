@@ -37,14 +37,15 @@ jobs:
       - name: Build Desktop App
         run: uv run sh ./app/desktop/build_desktop_app.sh --compress-mac-app
 
-      - name: List Build
-        run: ls ./app/desktop/build/dist
-
       - name: Build Windows Installer
         if: matrix.os == 'windows-latest'
         uses: Minionguyjpro/Inno-Setup-Action@v1.2.5
         with:
           path: ./app/desktop/WinInnoSetup.iss
+
+      - name: Copy Windows Installer
+        if: matrix.os == 'windows-latest'
+        run: cp ./app/desktop/Output/kilnsetup.exe ./app/desktop/build/dist/Kiln.Windows.Installer.exe
 
       - name: Upload Build
         uses: actions/upload-artifact@v4
