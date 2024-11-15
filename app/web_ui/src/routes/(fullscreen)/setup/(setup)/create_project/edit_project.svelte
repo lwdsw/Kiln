@@ -1,11 +1,18 @@
 <script lang="ts">
   import { goto } from "$app/navigation"
+  import { page } from "$app/stores"
   import { load_projects } from "$lib/stores"
   import FormContainer from "$lib/utils/form_container.svelte"
   import FormElement from "$lib/utils/form_element.svelte"
   import { KilnError, createKilnError } from "$lib/utils/error_handlers"
   import { client } from "$lib/api_client"
   import type { Project } from "$lib/types"
+  import { onMount } from "svelte"
+
+  let importing = false
+  onMount(() => {
+    importing = $page.url.searchParams.get("import") === "true"
+  })
 
   export let created = false
   // Prevents flash of complete UI if we're going to redirect
@@ -95,7 +102,6 @@
     }
   }
 
-  let importing = false
   let import_project_path = ""
 
   const import_project = async () => {

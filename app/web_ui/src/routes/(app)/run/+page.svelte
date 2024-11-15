@@ -95,8 +95,7 @@
   <AppPage
     title="Run"
     bind:subtitle
-    action_button="Clear All"
-    action_button_action={clear_all}
+    action_buttons={[{ label: "Clear All", handler: clear_all }]}
   >
     <div class="flex flex-col xl:flex-row gap-8 xl:gap-16">
       <div class="grow">

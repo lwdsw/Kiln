@@ -190,8 +190,7 @@
 <AppPage
   title="Dataset"
   subtitle="Explore your runs, sample data, and ratings for this task."
-  action_button="Add Data"
-  action_button_href="/run"
+  action_buttons={[{ label: "Add Data", href: "/run" }]}
 >
   {#if loading}
     <div class="w-full min-h-[50vh] flex justify-center items-center">

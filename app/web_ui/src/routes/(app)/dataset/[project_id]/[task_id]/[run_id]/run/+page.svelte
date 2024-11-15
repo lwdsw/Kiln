@@ -98,8 +98,9 @@
   <AppPage
     title="Dataset Run"
     subtitle={run?.id ? `Run ID: ${run.id}` : undefined}
-    action_button={deleted ? null : "Delete Run"}
-    action_button_action={deleteRun}
+    action_buttons={deleted
+      ? []
+      : [{ label: "Delete Run", handler: deleteRun }]}
   >
     {#if loading}
       <div class="w-full min-h-[50vh] flex justify-center items-center">
