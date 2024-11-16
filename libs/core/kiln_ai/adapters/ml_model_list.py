@@ -271,7 +271,6 @@ built_in_models: List[KilnModel] = [
             KilnModelProvider(
                 name=ModelProviderName.amazon_bedrock,
                 supports_structured_output=False,
-                supports_data_gen=False,
                 provider_options={
                     "model": "meta.llama3-1-70b-instruct-v1:0",
                     "region_name": "us-west-2",  # Llama 3.1 only in west-2
@@ -279,12 +278,10 @@ built_in_models: List[KilnModel] = [
             ),
             KilnModelProvider(
                 name=ModelProviderName.openrouter,
-                supports_data_gen=False,
                 provider_options={"model": "meta-llama/llama-3.1-70b-instruct"},
             ),
             KilnModelProvider(
                 name=ModelProviderName.ollama,
-                supports_data_gen=False,
                 provider_options={"model": "llama3.1:70b"},
             ),
         ],
@@ -305,12 +302,10 @@ built_in_models: List[KilnModel] = [
             ),
             KilnModelProvider(
                 name=ModelProviderName.ollama,
-                supports_data_gen=False,
                 provider_options={"model": "llama3.1:405b"},
             ),
             KilnModelProvider(
                 name=ModelProviderName.openrouter,
-                supports_data_gen=False,
                 provider_options={"model": "meta-llama/llama-3.1-405b-instruct"},
             ),
         ],

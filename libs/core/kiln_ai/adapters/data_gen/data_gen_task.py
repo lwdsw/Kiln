@@ -31,7 +31,7 @@ class DataGenCategoriesTaskInput(BaseModel):
 
 
 class DataGenCategoriesTaskOutput(BaseModel):
-    categories: list[str]
+    subtopics: list[str]
 
 
 class DataGenCategoriesTask(Task, parent_of={}):

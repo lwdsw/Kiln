@@ -10,7 +10,6 @@ from kiln_ai.adapters.langchain_adapters import LangChainPromptAdapter
 from kiln_ai.adapters.ml_model_list import get_model_and_provider
 from kiln_ai.adapters.test_prompt_adaptors import get_all_models_and_providers
 from kiln_ai.datamodel import Project, Task
-from pydantic import BaseModel
 
 
 @pytest.fixture
@@ -57,15 +56,6 @@ def test_data_gen_categories_task_input_default_values(base_task):
     assert input_model.node_path == []
 
 
-def test_data_gen_categories_task_output_validation():
-    # Arrange & Act
-    output = DataGenCategoriesTaskOutput(categories=["cat1", "cat2", "cat3"])
-
-    # Assert
-    assert len(output.categories) == 3
-    assert all(isinstance(cat, str) for cat in output.categories)
-
-
 def test_data_gen_categories_task_initialization():
     # Act
     task = DataGenCategoriesTask()
@@ -84,16 +74,13 @@ def test_data_gen_categories_task_schemas():
     task = DataGenCategoriesTask()
 
     # Assert
-    # Verify that the schemas are valid JSON
-    import json
-
     input_schema = json.loads(task.input_json_schema)
     output_schema = json.loads(task.output_json_schema)
 
     assert isinstance(input_schema, dict)
     assert isinstance(output_schema, dict)
     assert output_schema["type"] == "object"
-    assert output_schema["properties"]["categories"]["type"] == "array"
+    assert output_schema["properties"]["subtopics"]["type"] == "array"
     assert input_schema["properties"]["node_path"]["type"] == "array"
     assert input_schema["properties"]["num_subtopics"]["type"] == "integer"
     assert set(input_schema["required"]) == {
@@ -126,6 +113,6 @@ async def test_data_gen_all_models_providers(
     input_dict = data_gen_input.model_dump()
     run = await adapter.invoke(input_dict)
     parsed_output = DataGenCategoriesTaskOutput.model_validate_json(run.output.output)
-    assert len(parsed_output.categories) == 6
-    for category in parsed_output.categories:
-        assert isinstance(category, str)
+    assert len(parsed_output.subtopics) == 6
+    for subtopic in parsed_output.subtopics:
+        assert isinstance(subtopic, str)
