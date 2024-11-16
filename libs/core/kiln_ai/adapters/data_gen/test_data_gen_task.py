@@ -1,20 +1,26 @@
+import json
+
 import pytest
 from kiln_ai.adapters.data_gen.data_gen_task import (
     DataGenCategoriesTask,
     DataGenCategoriesTaskInput,
     DataGenCategoriesTaskOutput,
 )
+from kiln_ai.adapters.langchain_adapters import LangChainPromptAdapter
+from kiln_ai.adapters.ml_model_list import get_model_and_provider
+from kiln_ai.adapters.test_prompt_adaptors import get_all_models_and_providers
 from kiln_ai.datamodel import Project, Task
+from pydantic import BaseModel
 
 
 @pytest.fixture
 def base_task():
     project = Project(name="TestProject")
     return Task(
-        name="TestTask",
+        name="Cowboy Speaker",
         parent=project,
-        description="Test description",
-        instruction="Test instruction",
+        description="Reply like a cowboy",
+        instruction="Reply like a cowboy",
         requirements=[],
     )
 
@@ -38,7 +44,7 @@ def test_data_gen_categories_task_input_initialization(base_task):
     assert input_model.num_subtopics == num_subtopics
     assert input_model.human_guidance == human_guidance
     assert isinstance(input_model.system_prompt, str)
-    assert "Test instruction" in input_model.system_prompt
+    assert "Reply like a cowboy" in input_model.system_prompt
 
 
 def test_data_gen_categories_task_input_default_values(base_task):
@@ -95,3 +101,31 @@ def test_data_gen_categories_task_schemas():
         "num_subtopics",
         "system_prompt",
     }
+
+
+@pytest.mark.paid
+@pytest.mark.ollama
+@pytest.mark.parametrize("model_name,provider_name", get_all_models_and_providers())
+async def test_data_gen_all_models_providers(
+    tmp_path, model_name, provider_name, base_task
+):
+    _, provider = get_model_and_provider(model_name, provider_name)
+    if not provider.supports_data_gen:
+        # pass if the model doesn't support data gen
+        return
+
+    data_gen_task = DataGenCategoriesTask()
+    data_gen_input = DataGenCategoriesTaskInput.from_task(base_task, num_subtopics=6)
+
+    adapter = LangChainPromptAdapter(
+        data_gen_task,
+        model_name=model_name,
+        provider=provider_name,
+    )
+
+    input_dict = data_gen_input.model_dump()
+    run = await adapter.invoke(input_dict)
+    parsed_output = DataGenCategoriesTaskOutput.model_validate_json(run.output.output)
+    assert len(parsed_output.categories) == 6
+    for category in parsed_output.categories:
+        assert isinstance(category, str)
