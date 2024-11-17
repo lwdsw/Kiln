@@ -360,6 +360,12 @@ built_in_models: List[KilnModel] = [
                 supports_data_gen=False,
                 provider_options={"model": "meta-llama/llama-3.2-3b-instruct"},
             ),
+            KilnModelProvider(
+                name=ModelProviderName.ollama,
+                supports_structured_output=False,
+                supports_data_gen=False,
+                provider_options={"model": "llama3.2"},
+            ),
         ],
     ),
     # Llama 3.2 11B
@@ -374,6 +380,12 @@ built_in_models: List[KilnModel] = [
                 supports_data_gen=False,
                 provider_options={"model": "meta-llama/llama-3.2-11b-vision-instruct"},
             ),
+            KilnModelProvider(
+                name=ModelProviderName.ollama,
+                supports_structured_output=False,
+                supports_data_gen=False,
+                provider_options={"model": "llama3.2-vision"},
+            ),
         ],
     ),
     # Llama 3.2 90B
@@ -387,6 +399,12 @@ built_in_models: List[KilnModel] = [
                 supports_structured_output=False,
                 supports_data_gen=False,
                 provider_options={"model": "meta-llama/llama-3.2-90b-vision-instruct"},
+            ),
+            KilnModelProvider(
+                name=ModelProviderName.ollama,
+                supports_structured_output=False,
+                supports_data_gen=False,
+                provider_options={"model": "llama3.2-vision:90b"},
             ),
         ],
     ),
