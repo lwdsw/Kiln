@@ -5,6 +5,9 @@ from kiln_ai.adapters.data_gen.data_gen_task import (
     DataGenCategoriesTask,
     DataGenCategoriesTaskInput,
     DataGenCategoriesTaskOutput,
+    DataGenSampleTask,
+    DataGenSampleTaskInput,
+    list_json_schema_for_task,
 )
 from kiln_ai.adapters.langchain_adapters import LangChainPromptAdapter
 from kiln_ai.adapters.ml_model_list import get_model_and_provider
@@ -98,7 +101,7 @@ async def test_data_gen_all_models_providers(
 ):
     _, provider = get_model_and_provider(model_name, provider_name)
     if not provider.supports_data_gen:
-        # pass if the model doesn't support data gen
+        # pass if the model doesn't support data gen (testing the support flag is part of this)
         return
 
     data_gen_task = DataGenCategoriesTask()
@@ -116,3 +119,174 @@ async def test_data_gen_all_models_providers(
     assert len(parsed_output.subtopics) == 6
     for subtopic in parsed_output.subtopics:
         assert isinstance(subtopic, str)
+
+
+def test_data_gen_sample_task_input_initialization(base_task):
+    # Arrange
+    topic = ["cowboys", "hats"]
+    num_samples = 4
+    human_guidance = "Test guidance"
+
+    # Act
+    input_model = DataGenSampleTaskInput.from_task(
+        task=base_task,
+        topic=topic,
+        num_samples=num_samples,
+        human_guidance=human_guidance,
+    )
+
+    # Assert
+    assert input_model.topic == topic
+    assert input_model.num_samples == num_samples
+    assert input_model.human_guidance == human_guidance
+    assert isinstance(input_model.system_prompt, str)
+    assert "Reply like a cowboy" in input_model.system_prompt
+
+
+def test_data_gen_sample_task_input_default_values(base_task):
+    # Act
+    input_model = DataGenSampleTaskInput.from_task(task=base_task)
+
+    # Assert
+    assert input_model.num_samples == 8
+    assert input_model.human_guidance is None
+    assert input_model.topic == []
+
+
+def test_data_gen_sample_task_initialization(base_task):
+    # Act
+    task = DataGenSampleTask(target_task=base_task)
+
+    # Assert
+    assert task.name == "DataGenSample"
+    assert isinstance(task.parent, Project)
+    assert task.description is not None
+    assert task.instruction is not None
+
+    input_schema = json.loads(task.input_json_schema)
+    output_schema = json.loads(task.output_json_schema)
+
+    assert isinstance(input_schema, dict)
+    assert isinstance(output_schema, dict)
+    assert output_schema["type"] == "object"
+    assert output_schema["properties"]["generated_samples"]["type"] == "array"
+    assert input_schema["properties"]["topic"]["type"] == "array"
+    assert input_schema["properties"]["num_samples"]["type"] == "integer"
+    assert set(input_schema["required"]) == {
+        "topic",
+        "num_samples",
+        "system_prompt",
+    }
+
+
+def test_list_json_schema_for_task_with_output_schema(base_task):
+    # Arrange
+    base_task.output_json_schema = json.dumps(
+        {
+            "type": "object",
+            "properties": {"name": {"type": "string"}, "age": {"type": "integer"}},
+        }
+    )
+
+    # Act
+    schema = list_json_schema_for_task(base_task)
+    parsed_schema = json.loads(schema)
+
+    # Assert
+    assert parsed_schema["type"] == "object"
+    generated_samples_schema = parsed_schema["properties"]["generated_samples"]
+    assert generated_samples_schema["type"] == "array"
+    assert generated_samples_schema["items"]["type"] == "object"
+    assert generated_samples_schema["items"]["properties"]["name"]["type"] == "string"
+    assert generated_samples_schema["items"]["properties"]["age"]["type"] == "integer"
+
+
+def test_list_json_schema_for_task_without_output_schema(base_task):
+    # Arrange
+    base_task.output_json_schema = None
+
+    # Act
+    schema = list_json_schema_for_task(base_task)
+    parsed_schema = json.loads(schema)
+
+    # Assert
+    assert parsed_schema["type"] == "object"
+    assert parsed_schema["properties"]["generated_samples"]["type"] == "array"
+    assert parsed_schema["properties"]["generated_samples"]["items"]["type"] == "string"
+
+
+@pytest.mark.paid
+@pytest.mark.ollama
+@pytest.mark.parametrize("model_name,provider_name", get_all_models_and_providers())
+async def test_data_gen_sample_all_models_providers(
+    tmp_path, model_name, provider_name, base_task
+):
+    _, provider = get_model_and_provider(model_name, provider_name)
+    if not provider.supports_data_gen:
+        # pass if the model doesn't support data gen (testing the support flag is part of this)
+        return
+
+    data_gen_task = DataGenSampleTask(target_task=base_task)
+    data_gen_input = DataGenSampleTaskInput.from_task(
+        base_task, topic=["riding horses"], num_samples=4
+    )
+
+    adapter = LangChainPromptAdapter(
+        data_gen_task,
+        model_name=model_name,
+        provider=provider_name,
+    )
+
+    input_dict = data_gen_input.model_dump()
+    run = await adapter.invoke(input_dict)
+    parsed_output = json.loads(run.output.output)
+    samples = parsed_output["generated_samples"]
+    assert len(samples) == 4
+    for sample in samples:
+        assert isinstance(sample, str)
+
+
+@pytest.mark.paid
+@pytest.mark.ollama
+@pytest.mark.parametrize("model_name,provider_name", get_all_models_and_providers())
+async def test_data_gen_sample_all_models_providers_with_structured_output(
+    tmp_path, model_name, provider_name, base_task
+):
+    base_task.output_json_schema = json.dumps(
+        {
+            "type": "object",
+            "properties": {
+                "opening": {"type": "string"},
+                "closing": {"type": "string"},
+            },
+            "required": ["opening", "closing"],
+        }
+    )
+
+    _, provider = get_model_and_provider(model_name, provider_name)
+    if not provider.supports_data_gen:
+        # pass if the model doesn't support data gen (testing the support flag is part of this)
+        return
+
+    data_gen_task = DataGenSampleTask(target_task=base_task)
+    data_gen_input = DataGenSampleTaskInput.from_task(
+        base_task, topic=["riding horses"], num_samples=4
+    )
+
+    adapter = LangChainPromptAdapter(
+        data_gen_task,
+        model_name=model_name,
+        provider=provider_name,
+    )
+
+    input_dict = data_gen_input.model_dump()
+    run = await adapter.invoke(input_dict)
+    parsed_output = json.loads(run.output.output)
+    samples = parsed_output["generated_samples"]
+    assert len(samples) == 4
+    for sample in samples:
+        assert isinstance(sample, dict)
+        assert "opening" in sample
+        assert "closing" in sample
+        assert isinstance(sample["opening"], str)
+        assert isinstance(sample["closing"], str)

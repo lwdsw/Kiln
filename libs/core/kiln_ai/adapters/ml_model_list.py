@@ -191,6 +191,7 @@ built_in_models: List[KilnModel] = [
         providers=[
             KilnModelProvider(
                 name=ModelProviderName.openrouter,
+                supports_data_gen=False,
                 provider_options={"model": "google/gemini-flash-1.5"},
             ),
         ],
@@ -270,7 +271,9 @@ built_in_models: List[KilnModel] = [
             ),
             KilnModelProvider(
                 name=ModelProviderName.amazon_bedrock,
+                # not sure how AWS manages to break this, but it's not working
                 supports_structured_output=False,
+                supports_data_gen=False,
                 provider_options={
                     "model": "meta.llama3-1-70b-instruct-v1:0",
                     "region_name": "us-west-2",  # Llama 3.1 only in west-2
