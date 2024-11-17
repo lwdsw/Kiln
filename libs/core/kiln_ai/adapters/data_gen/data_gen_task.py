@@ -1,5 +1,4 @@
 import json
-from typing import Any
 
 from kiln_ai.adapters.prompt_builders import SimplePromptBuilder
 from kiln_ai.datamodel import Project, Task
