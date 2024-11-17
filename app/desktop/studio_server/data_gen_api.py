@@ -8,7 +8,7 @@ from kiln_ai.adapters.data_gen.data_gen_task import (
 from kiln_ai.adapters.langchain_adapters import LangChainPromptAdapter
 from kiln_ai.datamodel import TaskRun
 from kiln_server.task_api import task_from_id
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class DataGenCategoriesApiInput(BaseModel):
@@ -23,6 +23,9 @@ class DataGenCategoriesApiInput(BaseModel):
     model_name: str = Field(description="The name of the model to use")
     provider: str = Field(description="The provider of the model to use")
 
+    # Allows use of the model_name field (usually pydantic will reserve model_*)
+    model_config = ConfigDict(protected_namespaces=())
+
 
 class DataGenSampleApiInput(BaseModel):
     topic: list[str] = Field(description="Topic path for sample generation", default=[])
@@ -33,6 +36,9 @@ class DataGenSampleApiInput(BaseModel):
     )
     model_name: str = Field(description="The name of the model to use")
     provider: str = Field(description="The provider of the model to use")
+
+    # Allows use of the model_name field (usually pydantic will reserve model_*)
+    model_config = ConfigDict(protected_namespaces=())
 
 
 def connect_data_gen_api(app: FastAPI):
