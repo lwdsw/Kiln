@@ -619,14 +619,13 @@ export interface components {
             name: string;
             /**
              * Description
-             * @default
+             * @description A description of the task for you and your team. Will not be used in prompts/training/validation.
              */
-            description: string;
-            /** @default 2 */
-            priority: components["schemas"]["Priority"];
-            /** @default flexible */
-            determinism: components["schemas"]["TaskDeterminism"];
-            /** Instruction */
+            description?: string | null;
+            /**
+             * Instruction
+             * @description The instructions for the task. Will be used in prompts/training/validation.
+             */
             instruction: string;
             /**
              * Requirements
@@ -645,16 +644,6 @@ export interface components {
             /** Model Type */
             readonly model_type: string;
         };
-        /**
-         * TaskDeterminism
-         * @description Defines how strictly task outputs should match expected results.
-         *
-         *     - deterministic: Requires exact matches
-         *     - semantic_match: Allows different wording with same meaning
-         *     - flexible: Allows variation in both wording and meaning within requirements
-         * @enum {string}
-         */
-        TaskDeterminism: "deterministic" | "semantic_match" | "flexible";
         /**
          * TaskOutput
          * @description An output for a specific task run.
