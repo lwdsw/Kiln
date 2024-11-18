@@ -175,16 +175,29 @@
     modal?.showModal()
   }
 
-  function add_samples(samples: unknown[]) {
+  function add_synthetic_samples(
+    samples: unknown[],
+    model_name: string,
+    model_provider: string,
+  ) {
     // Add ignoring dupes and empty strings
     for (const sample of samples) {
       if (!sample) {
         continue
       }
+      let input: string | null = null
       if (typeof sample == "string") {
-        data.samples.push({ input: sample })
+        input = sample
       } else if (typeof sample == "object" || Array.isArray(sample)) {
-        data.samples.push({ input: JSON.stringify(sample) })
+        input = JSON.stringify(sample)
+      }
+      if (input) {
+        data.samples.push({
+          input: input,
+          saved: false,
+          model_name,
+          model_provider,
+        })
       }
     }
 
@@ -248,7 +261,11 @@
         throw new KilnError("No options returned.", null)
       }
       // Add new samples
-      add_samples(response.generated_samples)
+      add_synthetic_samples(
+        response.generated_samples,
+        model_name,
+        model_provider,
+      )
     } catch (e) {
       if (e instanceof Error && e.message.includes("Load failed")) {
         sample_generation_error = new KilnError(
