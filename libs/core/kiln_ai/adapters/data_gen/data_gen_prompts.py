@@ -26,7 +26,7 @@ desired number of subtopics: 7
 subtopics: ["Weather", "Weekend Plans", "Hobbies", "Family", "Books", "Food", "Music"]
 
 Example 2:
-node path: y
+node path: "Small Talk Topics" -> "Family"
 desired number of subtopics: 5
 subtopics: ["Parents", "Grandparents", "Siblings", "Family Traditions", "Family Vacations"]
 
@@ -34,7 +34,6 @@ Example 3:
 node path: "Small Talk Topics" -> "Hobbies" -> "Cooking"
 desired number of subtopics: 6
 subtopics: ["Recipes", "Asian Food", "Favourite Dishes", "Cookbooks", "Kitchen Gadgets", "Vegan Cooking"]
-
 
 The system prompt for the model we want to train will be provided to you in a user message as system_prompt.
 
