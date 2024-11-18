@@ -5,6 +5,7 @@
   import { client } from "$lib/api_client"
   import { createKilnError, KilnError } from "$lib/utils/error_handlers"
   import { ui_state } from "$lib/stores"
+  import { createEventDispatcher } from "svelte"
 
   export let data: SampleDataNode
   export let path: string[]
@@ -127,6 +128,26 @@
     }
   }
 
+  const dispatch = createEventDispatcher<{
+    delete_topic: { node_to_delete: SampleDataNode }
+  }>()
+
+  function delete_topic() {
+    dispatch("delete_topic", { node_to_delete: data })
+  }
+
+  function handleChildDeleteTopic(
+    event: CustomEvent<{ node_to_delete: SampleDataNode }>,
+  ) {
+    // Remove the topic from sub_topics array
+    data.sub_topics = data.sub_topics.filter(
+      (t) => t !== event.detail.node_to_delete,
+    )
+
+    // Trigger reactivity
+    data = data
+  }
+
   $: is_empty = data.sub_topics.length == 0 && data.samples.length == 0
 </script>
 
@@ -161,7 +182,7 @@
     <div
       class="hover-action flex flex-row gap-4 text-gray-500 font-light text-sm items-center"
     >
-      <button class="link">Delete</button>
+      <button class="link" on:click={delete_topic}>Delete</button>
       <button class="link" on:click={() => open_generate_subtopics_modal()}>
         Add subtopics
       </button>
@@ -206,6 +227,7 @@
       path={[...path, sub_node.topic]}
       {project_id}
       {task_id}
+      on:delete_topic={handleChildDeleteTopic}
     />
   {/each}
 {/if}
