@@ -4,7 +4,7 @@
 </script>
 
 <div
-  class="flex flex-col md:flex-row gap-16 justify-center items-center mt-[10vh]"
+  class="flex flex-col md:flex-row gap-32 justify-center items-center mt-[10vh]"
 >
   <div class="max-w-[300px] font-light text-sm flex flex-col gap-4">
     <div class="font-medium">Your dataset for this task is empty.</div>

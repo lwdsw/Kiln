@@ -191,7 +191,15 @@
 <AppPage
   title="Dataset"
   subtitle="Explore sample and ratings for this task."
-  action_buttons={[{ label: "Add Data", href: "/run" }]}
+  action_buttons={[
+    {
+      label: "Add Data",
+      handler() {
+        // @ts-expect-error showModal is not a method on HTMLElement
+        document.getElementById("add_data_modal")?.showModal()
+      },
+    },
+  ]}
 >
   {#if loading}
     <div class="w-full min-h-[50vh] flex justify-center items-center">
@@ -264,3 +272,24 @@
     </div>
   {/if}
 </AppPage>
+
+<dialog id="add_data_modal" class="modal">
+  <div class="modal-box">
+    <form method="dialog">
+      <button
+        class="btn btn-sm text-xl btn-circle btn-ghost absolute right-2 top-2 focus:outline-none"
+        >✕</button
+      >
+    </form>
+    <h3 class="text-lg font-bold mb-8">Add Data</h3>
+    <div class="flex flex-row gap-6 justify-center flex-col">
+      <a href={`/generate/${project_id}/${task_id}`} class="btn btn-primary">
+        Generate Synthetic Data
+      </a>
+      <a href="/run" class="btn btn-primary"> Manually Add Data </a>
+    </div>
+  </div>
+  <form method="dialog" class="modal-backdrop">
+    <button>close</button>
+  </form>
+</dialog>
