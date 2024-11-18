@@ -79,8 +79,8 @@ class DataGenSampleTaskInput(BaseModel):
 
 
 def list_json_schema_for_task(task: Task) -> str:
-    if task.output_json_schema:
-        items_schema = json.loads(task.output_json_schema)
+    if task.input_json_schema:
+        items_schema = json.loads(task.input_json_schema)
     else:
         items_schema = {"type": "string"}
 

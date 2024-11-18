@@ -181,7 +181,7 @@ def test_data_gen_sample_task_initialization(base_task):
 
 def test_list_json_schema_for_task_with_output_schema(base_task):
     # Arrange
-    base_task.output_json_schema = json.dumps(
+    base_task.input_json_schema = json.dumps(
         {
             "type": "object",
             "properties": {"name": {"type": "string"}, "age": {"type": "integer"}},
