@@ -2,6 +2,7 @@
   import { onMount } from "svelte"
   import { createEventDispatcher } from "svelte"
   import { KilnError } from "./error_handlers"
+  import { beforeNavigate } from "$app/navigation"
 
   const id = "form_container_" + Math.random().toString(36)
 
@@ -92,12 +93,26 @@
       window.removeEventListener("beforeunload", handleBeforeUnload)
     }
   })
+  // Handle browser reload/close: warn if there are unsaved changes
   function handleBeforeUnload(event: BeforeUnloadEvent) {
     // the wrapper should bind something to warn_before_unload
     if (warn_before_unload) {
       event.preventDefault()
     }
   }
+  // Handle Svelte navigation: warn if there are unsaved changes
+  beforeNavigate((navigation) => {
+    if (warn_before_unload) {
+      if (
+        !confirm(
+          "You have unsaved changes which will be lost if you leave.\n\n" +
+            "Press Cancel to stay, OK to leave.",
+        )
+      ) {
+        navigation.cancel()
+      }
+    }
+  })
 
   function handleKeydown(event: KeyboardEvent) {
     if (!keyboard_submit) {

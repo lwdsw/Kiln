@@ -8,6 +8,7 @@
   import { page } from "$app/stores"
   import type { SampleDataNode } from "./gen_model"
   import GeneratedDataNode from "./generated_data_node.svelte"
+  import { beforeNavigate } from "$app/navigation"
 
   let guidance_enabled = false
   let human_guidance = ""
@@ -41,8 +42,14 @@
     sub_topics: [],
   }
 
-  onMount(async () => {
+  onMount(() => {
     get_task()
+
+    // Handle browser reload/close: warn if there are unsaved changes
+    window.addEventListener("beforeunload", handleBeforeUnload)
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload)
+    }
   })
 
   async function get_task() {
@@ -83,6 +90,31 @@
       task_loading = false
     }
   }
+
+  function has_unsaved_changes(): boolean {
+    return root_node.samples.length != 0 || root_node.sub_topics.length != 0
+  }
+
+  // Handle browser reload/close: warn if there are unsaved changes
+  function handleBeforeUnload(event: BeforeUnloadEvent) {
+    if (has_unsaved_changes()) {
+      event.preventDefault()
+    }
+  }
+
+  // Handle Svelte navigation: warn if there are unsaved changes
+  beforeNavigate((navigation) => {
+    if (has_unsaved_changes()) {
+      if (
+        !confirm(
+          "You have unsaved changes which will be lost if you leave.\n\n" +
+            "Press Cancel to stay, OK to leave.",
+        )
+      ) {
+        navigation.cancel()
+      }
+    }
+  })
 </script>
 
 <div class="max-w-[1400px]">
