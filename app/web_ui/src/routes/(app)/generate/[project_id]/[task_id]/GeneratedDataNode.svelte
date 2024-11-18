@@ -15,6 +15,9 @@
 
   let model: string = $ui_state.selected_model
 
+  // Unique ID for this node
+  const id = crypto.randomUUID()
+
   let expandedSamples: boolean[] = new Array(data.samples.length).fill(false)
 
   function toggleExpand(index: number) {
@@ -33,7 +36,6 @@
     return sample.input
   }
 
-  const modal_id = crypto.randomUUID()
   let generate_subtopics: boolean = false
   let num_subtopics_to_generate: number = 6
   let custom_topics_string: string = ""
@@ -41,14 +43,55 @@
     // Avoid having a trillion of these hidden in the DOM
     generate_subtopics = true
     await tick()
-    const modal = document.getElementById(modal_id)
+    const modal = document.getElementById(`${id}-generate-subtopics`)
     // @ts-expect-error dialog is not a standard element
     modal?.showModal()
   }
 
+  function add_subtopics(subtopics: string[]) {
+    // Add ignoring dupes and empty strings
+    for (const topic of subtopics) {
+      if (!topic) {
+        continue
+      }
+      if (data.sub_topics.find((t) => t.topic === topic)) {
+        continue
+      }
+      data.sub_topics.push({ topic, sub_topics: [], samples: [] })
+    }
+
+    // trigger reactivity
+    data = data
+
+    // Close modal
+    const modal = document.getElementById(`${id}-generate-subtopics`)
+    // @ts-expect-error dialog is not a standard element
+    modal?.close()
+    setTimeout(() => {
+      // Scroll to bottom of added topics only if it's out of view
+      const bottom = document.getElementById(`${id}-subtopics`)
+      if (bottom) {
+        const rect = bottom.getBoundingClientRect()
+        const isOffScreen = rect.bottom > window.innerHeight
+        if (isOffScreen) {
+          bottom.scrollIntoView({ behavior: "smooth", block: "end" })
+        }
+      }
+    }, 50)
+  }
+
+  function add_custom_topics() {
+    if (!custom_topics_string) {
+      return
+    }
+    const topics = custom_topics_string.split(",").map((t) => t.trim())
+    add_subtopics(topics)
+
+    custom_topics_string = ""
+  }
+
   let topic_generating: boolean = false
   let topic_generation_error: KilnError | null = null
-
   async function generate_topics() {
     try {
       topic_generating = true
@@ -90,30 +133,7 @@
         throw new KilnError("No options returned.", null)
       }
       // Add new topics
-      for (const option of response.subtopics) {
-        if (!option) {
-          continue
-        }
-        data.sub_topics.push({
-          topic: option,
-          sub_topics: [],
-          samples: [],
-        })
-      }
-      // Scroll to bottom and close modal
-      setTimeout(() => {
-        window.scrollTo({
-          top: document.body.scrollHeight,
-          behavior: "smooth",
-        })
-
-        const modal = document.getElementById(modal_id)
-        // @ts-expect-error dialog is not a standard element
-        modal?.close()
-      }, 50)
-
-      // trigger re-render
-      data = data
+      add_subtopics(response.subtopics)
     } catch (e) {
       if (e instanceof Error && e.message.includes("Load failed")) {
         topic_generation_error = new KilnError(
@@ -219,21 +239,21 @@
   </div>
 {/each}
 {#if data.sub_topics}
-  {#each data.sub_topics as sub_node}
-    <svelte:self
-      data={sub_node}
-      parent={data}
-      depth={depth + 1}
-      path={[...path, sub_node.topic]}
-      {project_id}
-      {task_id}
-      on:delete_topic={handleChildDeleteTopic}
-    />
-  {/each}
+  <div id={`${id}-subtopics`}>
+    {#each data.sub_topics as sub_node}
+      <svelte:self
+        data={sub_node}
+        path={[...path, sub_node.topic]}
+        {project_id}
+        {task_id}
+        on:delete_topic={handleChildDeleteTopic}
+      />
+    {/each}
+  </div>
 {/if}
 
 {#if generate_subtopics}
-  <dialog id={modal_id} class="modal">
+  <dialog id={`${id}-generate-subtopics`} class="modal">
     <div class="modal-box">
       <form method="dialog">
         <button
@@ -305,8 +325,9 @@
             bind:value={custom_topics_string}
             class="input input-bordered input-sm"
           />
-          <button class="btn btn-sm {custom_topics_string ? 'btn-primary' : ''}"
-            >Add Custom Topics</button
+          <button
+            class="btn btn-sm {custom_topics_string ? 'btn-primary' : ''}"
+            on:click={add_custom_topics}>Add Custom Topics</button
           >
         </div>
       {/if}
