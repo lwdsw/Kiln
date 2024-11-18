@@ -6,8 +6,8 @@
   import { KilnError, createKilnError } from "$lib/utils/error_handlers"
   import { onMount } from "svelte"
   import { page } from "$app/stores"
-  import GeneratedDataNode from "./GeneratedDataNode.svelte"
   import type { SampleDataNode } from "./gen_model"
+  import GeneratedDataNode from "./generated_data_node.svelte"
 
   let task: Task | null = null
   let task_error: KilnError | null = null
