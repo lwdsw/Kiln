@@ -123,15 +123,21 @@
     subtitle={`Grow your dataset by generating new sample inputs`}
     {action_buttons}
   >
-    <div class=" {guidance_enabled ? '' : 'hidden'}">
-      <label for="human_guidance" class="label font-medium"
-        >Guidance to help generate relevant data:</label
-      >
-      <textarea
-        id="human_guidance"
-        bind:value={human_guidance}
-        class="input input-bordered w-full md:w-[500px]"
-      />
+    <div
+      class="flex flex-row mb-4 justify-center {guidance_enabled
+        ? ''
+        : 'hidden'}"
+    >
+      <div class="flex flex-col gap-2 w-full md:w-[500px]">
+        <label for="human_guidance" class="label font-medium p-0 text-sm"
+          >Guidance to help the model generate relevant data:</label
+        >
+        <textarea
+          id="human_guidance"
+          bind:value={human_guidance}
+          class="input input-bordered"
+        />
+      </div>
     </div>
 
     {#if task_loading}

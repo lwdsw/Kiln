@@ -1,7 +1,7 @@
 <script lang="ts">
   export let value: number
   export let min: number = 1
-  export let max: number = 20
+  export let max: number = 50
 </script>
 
 <div class="flex flex-row gap-2 items-center">
