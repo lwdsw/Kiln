@@ -9,12 +9,31 @@
   import type { SampleDataNode } from "./gen_model"
   import GeneratedDataNode from "./generated_data_node.svelte"
 
+  let guidance_enabled = false
+  let human_guidance = ""
+
   let task: Task | null = null
   let task_error: KilnError | null = null
   let task_loading = true
 
   $: project_id = $page.params.project_id
   $: task_id = $page.params.task_id
+  $: action_buttons = guidance_enabled
+    ? [
+        {
+          label: "Remove Guidance",
+          handler: () => {
+            guidance_enabled = false
+            human_guidance = ""
+          },
+        },
+      ]
+    : [
+        {
+          label: "Add Guidance",
+          handler: () => (guidance_enabled = true),
+        },
+      ]
 
   let root_node: SampleDataNode = {
     topic: "",
@@ -70,14 +89,32 @@
   <AppPage
     title="Generate Synthetic Data"
     subtitle={`Grow your dataset by generating new sample inputs`}
+    {action_buttons}
   >
+    <div class=" {guidance_enabled ? '' : 'hidden'}">
+      <label for="human_guidance" class="label font-medium"
+        >Guidance to help generate relevant data:</label
+      >
+      <textarea
+        id="human_guidance"
+        bind:value={human_guidance}
+        class="input input-bordered w-full md:w-[500px]"
+      />
+    </div>
+
     {#if task_loading}
       <div class="w-full min-h-[50vh] flex justify-center items-center">
         <div class="loading loading-spinner loading-lg"></div>
       </div>
     {:else if task}
       <div class="flex flex-col">
-        <GeneratedDataNode data={root_node} path={[]} {project_id} {task_id} />
+        <GeneratedDataNode
+          data={root_node}
+          path={[]}
+          {project_id}
+          {task_id}
+          {human_guidance}
+        />
       </div>
     {:else if task_error}
       <div

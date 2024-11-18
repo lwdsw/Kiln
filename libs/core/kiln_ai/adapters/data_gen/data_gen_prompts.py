@@ -55,18 +55,19 @@ In the user message we'll provide the following:
  - The system prompt as system_prompt
  - A potential topic to generate samples for. This will be a list of strings from most general to most specific. For example, the topic ["Small Talk Topics", "Hobbies", "Cooking"] would represent the topic "Cooking" in the "Hobbies" category of "Small Talk Topics". The list may be empty, in which case you should generate samples using the system prompt alone.
  - The number of samples to generate as num_samples. If greater than 1, generate a range of samples that are diverse and relevant to the system prompt, and the topic if provided.
+ - The user message may optionally contain human_guidance, which is a string that contains additional instructions for how to generate the samples.
 
 The output must be formatted:
  - in the provided structured format, as an object with a single property "generated_samples" that maps to a list of generated samples that would be inputs to the provided system prompt.
  - With the correct number of samples (num_samples).
  - Do not include any other text or break the schema in any way.
 
-Example input:
-system_prompt: "You are an assistant that classifies the tone of a tweet. You should output one of the following labels: 'positive', 'negative', 'neutral'."
-topic: ["Technology", "New iPhone Event"]
-num_samples: 2
-
+Example inputs:
+ - system_prompt: "You are an assistant that classifies the tone of a tweet. You should output one of the following labels: 'positive', 'negative', 'neutral'."
+ - topic: ["Technology", "New iPhone Event"]
+ - num_samples: 2
 Example output: {"generated_samples": ["New iPhone looks amazing! I need that camera.", "Another boring event from Apple.", "New iPhone looks interesting, but I'm waiting for reviews."]}
+
 
 Note how the output of this task is data to input to the system prompt, not the expected output of the system prompt.
 """

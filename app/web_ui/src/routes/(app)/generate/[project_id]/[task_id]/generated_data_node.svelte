@@ -13,6 +13,7 @@
   $: depth = path.length
   export let project_id: string
   export let task_id: string
+  export let human_guidance: string | null = null
 
   let model: string = $ui_state.selected_model
 
@@ -119,6 +120,7 @@
               num_subtopics: num_subtopics_to_generate,
               model_name: model_name,
               provider: model_provider,
+              human_guidance: human_guidance ? human_guidance : null, // clear empty string
             },
             params: {
               path: {
@@ -214,6 +216,7 @@
               num_samples: num_samples_to_generate,
               model_name: model_name,
               provider: model_provider,
+              human_guidance: human_guidance ? human_guidance : null, // clear empty string
             },
             params: {
               path: {
@@ -365,6 +368,7 @@
         path={[...path, sub_node.topic]}
         {project_id}
         {task_id}
+        {human_guidance}
         on:delete_topic={handleChildDeleteTopic}
       />
     {/each}
