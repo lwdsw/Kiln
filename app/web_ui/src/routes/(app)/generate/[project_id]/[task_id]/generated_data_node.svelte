@@ -39,12 +39,15 @@
     return sample.input
   }
 
+  let topic_generation_error: KilnError | null = null
   let generate_subtopics: boolean = false
   let num_subtopics_to_generate: number = 6
   let custom_topics_string: string = ""
   async function open_generate_subtopics_modal() {
     // Avoid having a trillion of these hidden in the DOM
     generate_subtopics = true
+    // Clear any previous error
+    topic_generation_error = null
     await tick()
     const modal = document.getElementById(`${id}-generate-subtopics`)
     // @ts-expect-error dialog is not a standard element
@@ -85,6 +88,9 @@
     // @ts-expect-error dialog is not a standard element
     modal?.close()
 
+    // Optional: remove it from DOM
+    generate_subtopics = false
+
     // Scroll to bottom of added topics
     scroll_to_bottom_of_element_by_id(`${id}-subtopics`)
   }
@@ -100,7 +106,6 @@
   }
 
   let topic_generating: boolean = false
-  let topic_generation_error: KilnError | null = null
   async function generate_topics() {
     try {
       topic_generating = true
@@ -155,7 +160,6 @@
       }
     } finally {
       topic_generating = false
-      generate_subtopics = false
     }
   }
 
@@ -163,6 +167,8 @@
   async function open_generate_samples_modal() {
     // Avoid having a trillion of these hidden in the DOM
     generate_samples_modal = true
+    // Clear any previous error
+    sample_generation_error = null
     await tick()
     const modal = document.getElementById(`${id}-generate-samples`)
     // @ts-expect-error dialog is not a standard element
@@ -189,6 +195,9 @@
     const modal = document.getElementById(`${id}-generate-samples`)
     // @ts-expect-error dialog is not a standard element
     modal?.close()
+
+    // Optional: remove it from DOM
+    generate_samples_modal = false
 
     // Scroll to bottom of added samples
     scroll_to_bottom_of_element_by_id(`${id}-samples`)
@@ -251,7 +260,6 @@
       }
     } finally {
       sample_generating = false
-      generate_samples_modal = false
     }
   }
 
@@ -405,14 +413,14 @@
         <div class="flex flex-row justify-center">
           <div class="loading loading-spinner loading-lg my-12"></div>
         </div>
-      {:else if topic_generation_error}
-        <div class="flex flex-col gap-2 text-sm">
-          <div class="text-error">{topic_generation_error.message}</div>
-        </div>
       {:else}
         <div class="flex flex-col gap-2">
+          {#if topic_generation_error}
+            <div class="alert alert-error">
+              {topic_generation_error.message}
+            </div>
+          {/if}
           <div class="flex-grow font-medium">Generate topics</div>
-
           <div class="flex flex-row items-center gap-4 mt-4 mb-2">
             <div class="flex-grow font-medium text-sm">Topic Count</div>
             <IncrementUi bind:value={num_subtopics_to_generate} />
@@ -467,12 +475,13 @@
         <div class="flex flex-row justify-center">
           <div class="loading loading-spinner loading-lg my-12"></div>
         </div>
-      {:else if sample_generation_error}
-        <div class="flex flex-col gap-2 text-sm">
-          <div class="text-error">{sample_generation_error.message}</div>
-        </div>
       {:else}
         <div class="flex flex-col gap-2">
+          {#if sample_generation_error}
+            <div class="alert alert-error">
+              {sample_generation_error.message}
+            </div>
+          {/if}
           <div class="flex flex-row items-center gap-4 mt-4 mb-2">
             <div class="flex-grow font-medium text-sm">Sample Count</div>
             <IncrementUi bind:value={num_samples_to_generate} />
