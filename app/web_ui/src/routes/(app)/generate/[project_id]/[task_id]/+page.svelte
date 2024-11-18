@@ -16,89 +16,93 @@
   $: project_id = $page.params.project_id
   $: task_id = $page.params.task_id
 
-  let data_tree: SampleDataNode[] = [
-    {
-      topic: "Food",
-      samples: [
-        { input: "Takeout" },
-        { input: "Restaurant" },
-        { input: "Delivery" },
-      ],
-      sub_topics: [
-        {
-          topic: "Pizza",
-          sub_topics: [],
-          samples: [
-            {
-              input: "Pepperoni Pizza",
-            },
-            {
-              input: "Cheese Pizza",
-            },
-            {
-              input: "Vegetarian Pizza",
-            },
-          ],
-        },
-        {
-          topic: "Burger",
-          sub_topics: [],
-          samples: [
-            {
-              input: "Cheeseburger",
-            },
-            {
-              input: "Hamburger",
-            },
-            {
-              input: "Veggie Burger",
-            },
-          ],
-        },
-      ],
-    },
-    {
-      topic: "Places",
-      samples: [],
-      sub_topics: [
-        {
-          topic: "Beach",
-          sub_topics: [],
-          samples: [
-            {
-              input:
-                "Tropical Beach sf sfsf sdlf jsdklf jsdlkf jsdlkf jsdlkfj sdlk fjsdlkfj slkdjf lskdj flskdjflksdjf lksdjf klsdj fsldkf jsdlkf jsdlkf jsdlkf jsdlkf jsdlkf jsdlk fjsdlk fj",
-            },
-            {
-              input: "Rocky Beach",
-            },
-            {
-              input: "Sandy Beach",
-            },
-          ],
-        },
-        {
-          topic: "Mountain",
-          sub_topics: [],
-          samples: [
-            {
-              input: `{
+  let root_node: SampleDataNode = {
+    topic: "",
+    samples: [],
+    sub_topics: [
+      {
+        topic: "Food",
+        samples: [
+          { input: "Takeout" },
+          { input: "Restaurant" },
+          { input: "Delivery" },
+        ],
+        sub_topics: [
+          {
+            topic: "Pizza",
+            sub_topics: [],
+            samples: [
+              {
+                input: "Pepperoni Pizza",
+              },
+              {
+                input: "Cheese Pizza",
+              },
+              {
+                input: "Vegetarian Pizza",
+              },
+            ],
+          },
+          {
+            topic: "Burger",
+            sub_topics: [],
+            samples: [
+              {
+                input: "Cheeseburger",
+              },
+              {
+                input: "Hamburger",
+              },
+              {
+                input: "Veggie Burger",
+              },
+            ],
+          },
+        ],
+      },
+      {
+        topic: "Places",
+        samples: [],
+        sub_topics: [
+          {
+            topic: "Beach",
+            sub_topics: [],
+            samples: [
+              {
+                input:
+                  "Tropical Beach sf sfsf sdlf jsdklf jsdlkf jsdlkf jsdlkfj sdlk fjsdlkfj slkdjf lskdj flskdjflksdjf lksdjf klsdj fsldkf jsdlkf jsdlkf jsdlkf jsdlkf jsdlkf jsdlk fjsdlk fj",
+              },
+              {
+                input: "Rocky Beach",
+              },
+              {
+                input: "Sandy Beach",
+              },
+            ],
+          },
+          {
+            topic: "Mountain",
+            sub_topics: [],
+            samples: [
+              {
+                input: `{
                 "name": "Snowy Peak",
                 "elevation": 14000,
                 "location": "Colorado"
               }`,
-            },
-            {
-              input: "Forest Mountain",
-            },
-            {
-              input: "Rocky Mountain",
-            },
-          ],
-        },
-      ],
-    },
-  ]
+              },
+              {
+                input: "Forest Mountain",
+              },
+              {
+                input: "Rocky Mountain",
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  }
 
   onMount(async () => {
     get_task()
@@ -155,9 +159,13 @@
       </div>
     {:else if task}
       <div class="flex flex-col">
-        {#each data_tree as node}
-          <GeneratedDataNode data={node} depth={0} path={[]} />
-        {/each}
+        <GeneratedDataNode
+          data={root_node}
+          depth={0}
+          path={[]}
+          {project_id}
+          {task_id}
+        />
       </div>
     {:else if task_error}
       <div

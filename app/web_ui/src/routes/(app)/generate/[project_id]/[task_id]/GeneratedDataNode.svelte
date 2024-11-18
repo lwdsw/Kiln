@@ -2,10 +2,17 @@
   import type { SampleDataNode, SampleData } from "./gen_model"
   import AvailableModelsDropdown from "../../../run/available_models_dropdown.svelte"
   import { tick } from "svelte"
+  import { client } from "$lib/api_client"
+  import { createKilnError, KilnError } from "$lib/utils/error_handlers"
+  import { ui_state } from "$lib/stores"
 
   export let data: SampleDataNode
   export let depth: number
   export let path: string[]
+  export let project_id: string
+  export let task_id: string
+
+  let model: string = $ui_state.selected_model
 
   let expandedSamples: boolean[] = new Array(data.samples.length).fill(false)
 
@@ -37,33 +44,130 @@
     // @ts-expect-error dialog is not a standard element
     modal?.showModal()
   }
+
+  let topic_generating: boolean = false
+  let topic_generation_error: KilnError | null = null
+
+  async function generate_topics() {
+    try {
+      topic_generating = true
+      topic_generation_error = null
+      if (!model) {
+        throw new KilnError("No model selected.", null)
+      }
+      const [model_provider, model_name] = model.split("/")
+      if (!model_name || !model_provider) {
+        throw new KilnError("Invalid model selected.", null)
+      }
+      const { data: generate_response, error: generate_error } =
+        await client.POST(
+          "/api/projects/{project_id}/tasks/{task_id}/generate_categories",
+          {
+            body: {
+              node_path: path,
+              num_subtopics: num_subtopics_to_generate,
+              model_name: model_name,
+              provider: model_provider,
+            },
+            params: {
+              path: {
+                project_id,
+                task_id,
+              },
+            },
+          },
+        )
+      if (generate_error) {
+        throw generate_error
+      }
+      const response = JSON.parse(generate_response.output.output)
+      if (
+        !response ||
+        !response.subtopics ||
+        !Array.isArray(response.subtopics)
+      ) {
+        throw new KilnError("No options returned.", null)
+      }
+      // Add new topics
+      for (const option of response.subtopics) {
+        data.sub_topics.push({
+          topic: option,
+          sub_topics: [],
+          samples: [],
+        })
+      }
+      // Scroll to bottom and close modal
+      setTimeout(() => {
+        window.scrollTo({
+          top: document.body.scrollHeight,
+          behavior: "smooth",
+        })
+
+        const modal = document.getElementById(modal_id)
+        // @ts-expect-error dialog is not a standard element
+        modal?.close()
+      }, 50)
+
+      // trigger re-render
+      data = data
+    } catch (e) {
+      if (e instanceof Error && e.message.includes("Load failed")) {
+        topic_generation_error = new KilnError(
+          "Could not generate topics, unknown error. If it persists, try another model.",
+          null,
+        )
+      } else {
+        topic_generation_error = createKilnError(e)
+      }
+    } finally {
+      topic_generating = false
+    }
+  }
+
+  $: is_empty = data.sub_topics.length == 0 && data.samples.length == 0
 </script>
 
 {#if path.length == 0}
-  ROOT CONTROLS TODO
-{/if}
-
-<div
-  class="data-row bg-base-200 font-medium flex flex-row py-2"
-  style="padding-left: {depth * 25 + 20}px"
->
-  <div class="flex-1">
-    {#if depth > 0}
-      <span class="text-xs relative" style="top: -3px">⮑</span>
-    {/if}
-    {data.topic}
-  </div>
-  <div class="hover-action flex flex-row gap-4 text-gray-500 font-light">
-    <button class="link">Remove topic</button>
-    <button class="link" on:click={() => open_generate_subtopics_modal()}>
-      Add subtopics
+  <!-- Root node -->
+  <div
+    class="flex flex-row gap-8 justify-center mb-6 {is_empty
+      ? 'mt-[10vh]'
+      : ''}"
+  >
+    <button
+      class="btn {is_empty ? 'btn-primary' : ''}"
+      on:click={() => open_generate_subtopics_modal()}
+    >
+      Add Root Subtopics
     </button>
-    <button class="link">Add samples</button>
+    <button class="btn {is_empty ? 'btn-primary' : ''}">Add Root Samples</button
+    >
   </div>
-</div>
+{:else}
+  <div
+    class="data-row bg-base-200 font-medium flex flex-row pr-2"
+    style="padding-left: {(depth - 1) * 25 + 20}px"
+  >
+    <div class="flex-1 py-1">
+      {#if depth > 1}
+        <span class="text-xs relative" style="top: -3px">⮑</span>
+      {/if}
+      {data.topic}
+    </div>
+    <div
+      class="hover-action flex flex-row gap-4 text-gray-500 font-light text-sm items-center"
+    >
+      <button class="link">Delete</button>
+      <button class="link" on:click={() => open_generate_subtopics_modal()}>
+        Add subtopics
+      </button>
+      <button class="link">Add samples</button>
+    </div>
+  </div>
+{/if}
 {#each data.samples as sample, index}
   <div
-    style="padding-left: {(depth + 1) * 25 + 20}px"
+    style="padding-left: {depth * 25 + 20}px"
     class="data-row flex flex-row items-center border-b-2 border-base-200"
   >
     <div class="flex-1 font-mono text-sm overflow-hidden py-2">
@@ -75,11 +179,15 @@
     </div>
     <div
       class="hover-action flex
-        flex-row gap-x-4 gap-y-1 text-gray-500 font-light px-4"
+        flex-row text-sm gap-x-4 gap-y-1 text-gray-500 font-light px-4"
       style={expandedSamples[index] ? "display: flex" : ""}
     >
       <button class="link flex" on:click={() => toggleExpand(index)}>
-        {expandedSamples[index] ? "Collapse" : "Expand"}
+        {#if expandedSamples[index]}
+          - Collapse
+        {:else}
+          + Expand
+        {/if}
       </button>
       <button class="link flex">Delete</button>
     </div>
@@ -89,8 +197,11 @@
   {#each data.sub_topics as sub_node}
     <svelte:self
       data={sub_node}
+      parent={data}
       depth={depth + 1}
       path={[...path, data.topic]}
+      {project_id}
+      {task_id}
     />
   {/each}
 {/if}
@@ -106,57 +217,75 @@
       </form>
       <h3 class="text-lg font-bold">Add Subtopics</h3>
       <p class="text-sm font-light mb-8">
-        Add a list of subtopics for "{[...path, data.topic].join(" → ")}"
+        Add a list of subtopics to
+        {#if path.length > 0}
+          "{[...path, data.topic].join(" → ")}"
+        {:else}
+          root topic
+        {/if}
       </p>
-      <div class="flex flex-col gap-2">
-        <div class="flex-grow font-medium">Generate topics</div>
+      {#if topic_generating}
+        <div class="flex flex-row justify-center">
+          <div class="loading loading-spinner loading-lg my-12"></div>
+        </div>
+      {:else if topic_generation_error}
+        <div class="flex flex-col gap-2 text-sm">
+          <div class="text-error">{topic_generation_error.message}</div>
+        </div>
+      {:else}
+        <div class="flex flex-col gap-2">
+          <div class="flex-grow font-medium">Generate topics</div>
 
-        <div class="flex flex-row items-center gap-4 mt-4 mb-2">
-          <div class="flex-grow font-medium text-sm">Topic Count</div>
-          <div class="flex flex-row gap-2">
-            <button
-              class="btn btn-sm"
-              on:click={() =>
-                (num_subtopics_to_generate = Math.max(
-                  1,
-                  num_subtopics_to_generate - 1,
-                ))}
-            >
-              -
-            </button>
-            <span class="text-lg font-medium w-8 text-center"
-              >{num_subtopics_to_generate}</span
-            >
-            <button
-              class="btn btn-sm"
-              on:click={() =>
-                (num_subtopics_to_generate = Math.min(
-                  20,
-                  num_subtopics_to_generate + 1,
-                ))}
-            >
-              +
-            </button>
+          <div class="flex flex-row items-center gap-4 mt-4 mb-2">
+            <div class="flex-grow font-medium text-sm">Topic Count</div>
+            <div class="flex flex-row gap-2 items-center">
+              <button
+                class="btn btn-sm"
+                on:click={() =>
+                  (num_subtopics_to_generate = Math.max(
+                    1,
+                    num_subtopics_to_generate - 1,
+                  ))}
+              >
+                -
+              </button>
+              <span class="text-lg font-medium w-8 text-center"
+                >{num_subtopics_to_generate}</span
+              >
+              <button
+                class="btn btn-sm"
+                on:click={() =>
+                  (num_subtopics_to_generate = Math.min(
+                    20,
+                    num_subtopics_to_generate + 1,
+                  ))}
+              >
+                +
+              </button>
+            </div>
           </div>
+          <AvailableModelsDropdown requires_data_gen={true} bind:model />
+          <button
+            class="btn btn-sm {custom_topics_string ? '' : 'btn-primary'}"
+            on:click={generate_topics}
+          >
+            Generate {num_subtopics_to_generate} Topics
+          </button>
+          <div class="divider">OR</div>
+          <div class="flex flex-col">
+            <div class="flex-grow font-medium">Custom topics</div>
+            <div class="text-xs text-gray-500">Comma separated list</div>
+          </div>
+          <input
+            type="text"
+            bind:value={custom_topics_string}
+            class="input input-bordered input-sm"
+          />
+          <button class="btn btn-sm {custom_topics_string ? 'btn-primary' : ''}"
+            >Add Custom Topics</button
+          >
         </div>
-        <AvailableModelsDropdown requires_data_gen={true} />
-        <button class="btn btn-sm {custom_topics_string ? '' : 'btn-primary'}"
-          >Generate {num_subtopics_to_generate} Topics</button
-        >
-        <div class="divider">OR</div>
-        <div class="flex flex-col">
-          <div class="flex-grow font-medium">Custom topics</div>
-          <div class="text-xs text-gray-500">Comma separated list</div>
-        </div>
-        <input
-          type="text"
-          bind:value={custom_topics_string}
-          class="input input-bordered input-sm"
-        />
-        <button class="btn btn-sm {custom_topics_string ? 'btn-primary' : ''}"
-          >Add Custom Topics</button
-        >
-      </div>
+      {/if}
     </div>
     <form method="dialog" class="modal-backdrop">
       <button>close</button>

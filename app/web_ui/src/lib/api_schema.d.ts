@@ -382,6 +382,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/projects/{project_id}/tasks/{task_id}/generate_categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate Categories */
+        post: operations["generate_categories_api_projects__project_id__tasks__task_id__generate_categories_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/projects/{project_id}/tasks/{task_id}/generate_samples": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate Samples */
+        post: operations["generate_samples_api_projects__project_id__tasks__task_id__generate_samples_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -394,6 +428,66 @@ export interface components {
             provider_id: string;
             /** Models */
             models: components["schemas"]["ModelDetails"][];
+        };
+        /** DataGenCategoriesApiInput */
+        DataGenCategoriesApiInput: {
+            /**
+             * Node Path
+             * @description Path to the node in the category tree
+             * @default []
+             */
+            node_path: string[];
+            /**
+             * Num Subtopics
+             * @description Number of subtopics to generate
+             * @default 6
+             */
+            num_subtopics: number;
+            /**
+             * Human Guidance
+             * @description Optional human guidance for generation
+             */
+            human_guidance?: string | null;
+            /**
+             * Model Name
+             * @description The name of the model to use
+             */
+            model_name: string;
+            /**
+             * Provider
+             * @description The provider of the model to use
+             */
+            provider: string;
+        };
+        /** DataGenSampleApiInput */
+        DataGenSampleApiInput: {
+            /**
+             * Topic
+             * @description Topic path for sample generation
+             * @default []
+             */
+            topic: string[];
+            /**
+             * Num Samples
+             * @description Number of samples to generate
+             * @default 8
+             */
+            num_samples: number;
+            /**
+             * Human Guidance
+             * @description Optional human guidance for generation
+             */
+            human_guidance?: string | null;
+            /**
+             * Model Name
+             * @description The name of the model to use
+             */
+            model_name: string;
+            /**
+             * Provider
+             * @description The provider of the model to use
+             */
+            provider: string;
         };
         /**
          * DataSource
@@ -1719,6 +1813,78 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    generate_categories_api_projects__project_id__tasks__task_id__generate_categories_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DataGenCategoriesApiInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskRun-Output"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    generate_samples_api_projects__project_id__tasks__task_id__generate_samples_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DataGenSampleApiInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskRun-Output"];
                 };
             };
             /** @description Validation Error */
