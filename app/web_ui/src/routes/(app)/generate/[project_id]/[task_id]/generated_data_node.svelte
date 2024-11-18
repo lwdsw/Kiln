@@ -316,7 +316,7 @@
   </div>
 {:else}
   <div
-    class="data-row bg-base-200 font-medium flex flex-row pr-2"
+    class="data-row bg-base-200 font-medium flex flex-row pr-2 border-b-2 border-base-100"
     style="padding-left: {(depth - 1) * 25 + 20}px"
   >
     <div class="flex-1 py-1">
