@@ -6,7 +6,7 @@ from kiln_ai.adapters.data_gen.data_gen_task import (
     DataGenSampleTaskInput,
 )
 from kiln_ai.adapters.langchain_adapters import LangChainPromptAdapter
-from kiln_ai.datamodel import TaskRun
+from kiln_ai.datamodel import DataSource, DataSourceType, TaskRun
 from kiln_server.task_api import task_from_id
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -39,6 +39,18 @@ class DataGenSampleApiInput(BaseModel):
 
     # Allows use of the model_name field (usually pydantic will reserve model_*)
     model_config = ConfigDict(protected_namespaces=())
+
+
+class DataGenSaveSamplesApiInput(BaseModel):
+    input: str = Field(description="Input for this sample")
+    input_model_name: str = Field(
+        description="The name of the model used to generate the input"
+    )
+    input_provider: str = Field(
+        description="The provider of the model used to generate the input"
+    )
+    output_model_name: str = Field(description="The name of the model to use")
+    output_provider: str = Field(description="The provider of the model to use")
 
 
 def connect_data_gen_api(app: FastAPI):
@@ -87,3 +99,32 @@ def connect_data_gen_api(app: FastAPI):
 
         samples_run = await adapter.invoke(task_input.model_dump())
         return samples_run
+
+    @app.post("/api/projects/{project_id}/tasks/{task_id}/save_sample")
+    async def save_sample(
+        project_id: str,
+        task_id: str,
+        sample: DataGenSaveSamplesApiInput,
+    ) -> TaskRun:
+        task = task_from_id(project_id, task_id)
+
+        adapter = LangChainPromptAdapter(
+            task,
+            model_name=sample.output_model_name,
+            provider=sample.output_provider,
+        )
+
+        run = await adapter.invoke(
+            input=sample.input,
+            input_source=DataSource(
+                type=DataSourceType.synthetic,
+                properties={
+                    "model_name": sample.input_model_name,
+                    "model_provider": sample.input_provider,
+                    "adapter_name": "kiln_data_gen",
+                },
+            ),
+        )
+
+        run.save_to_file()
+        return run

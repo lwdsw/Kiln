@@ -15,6 +15,7 @@ from kiln_ai.datamodel import (
 from app.desktop.studio_server.data_gen_api import (
     DataGenCategoriesApiInput,
     DataGenSampleApiInput,
+    DataGenSaveSamplesApiInput,
     connect_data_gen_api,
 )
 
@@ -142,3 +143,106 @@ def test_generate_samples_success(
     res = response.json()
     assert TaskOutput.model_validate(res["output"]) == mock_task_run.output
     mock_langchain_adapter.invoke.assert_awaited_once()
+
+
+@pytest.mark.paid
+def test_save_sample_success_paid_run(
+    mock_task_from_id,
+    client,
+    test_task,
+):
+    # Arrange
+    input_data = DataGenSaveSamplesApiInput(
+        input="Test sample input",
+        input_model_name="gpt_4o",
+        input_provider="openai",
+        output_model_name="gpt_4o_mini",
+        output_provider="openai",
+    )
+
+    # Act
+
+    response = client.post(
+        "/api/projects/proj-ID/tasks/task-ID/save_sample",
+        json=input_data.model_dump(),
+    )
+
+    # Assert
+    assert response.status_code == 200
+    # Verify TaskRun was created with correct properties
+    mock_task_from_id.assert_called_once_with("proj-ID", "task-ID")
+    saved_runs = test_task.runs()
+    assert len(saved_runs) == 1
+    saved_run = saved_runs[0]
+
+    assert saved_run.input == "Test sample input"
+    assert saved_run.input_source.type == DataSourceType.synthetic
+    properties = saved_run.input_source.properties
+    assert properties == {
+        "model_name": "gpt_4o",
+        "model_provider": "openai",
+        "adapter_name": "kiln_data_gen",
+    }
+
+    assert saved_run.output.source.type == DataSourceType.synthetic
+    assert saved_run.output.source.properties["model_name"] == "gpt_4o_mini"
+    assert saved_run.output.source.properties["model_provider"] == "openai"
+    assert (
+        saved_run.output.source.properties["adapter_name"] == "kiln_langchain_adapter"
+    )
+
+    # Confirm the response contains same run
+    assert response.json()["id"] == saved_run.id
+
+    return
+
+
+def test_save_sample_success_with_mock_invoke(
+    mock_task_from_id,
+    mock_langchain_adapter,
+    client,
+    mock_task_run,
+    test_task,
+):
+    # Arrange
+    input_data = DataGenSaveSamplesApiInput(
+        input="Test sample input",
+        input_model_name="gpt_4o",
+        input_provider="openai",
+        output_model_name="gpt_4o_mini",
+        output_provider="openai",
+    )
+
+    # Act
+
+    response = client.post(
+        "/api/projects/proj-ID/tasks/task-ID/save_sample",
+        json=input_data.model_dump(),
+    )
+
+    mock_langchain_adapter.invoke.assert_awaited_once()
+    invoke_args = mock_langchain_adapter.invoke.await_args[1]
+    assert invoke_args["input"] == "Test sample input"
+    assert invoke_args["input_source"].type == DataSourceType.synthetic
+    properties = invoke_args["input_source"].properties
+    assert properties == {
+        "model_name": "gpt_4o",
+        "model_provider": "openai",
+        "adapter_name": "kiln_data_gen",
+    }
+
+    # Assert
+    assert response.status_code == 200
+    # Verify TaskRun was created with correct properties
+    mock_task_from_id.assert_called_once_with("proj-ID", "task-ID")
+    saved_runs = test_task.runs()
+    assert len(saved_runs) == 1
+    saved_run = saved_runs[0]
+    assert saved_run.input_source.type == DataSourceType.synthetic
+    # Not checking values since we mock them. We check it's called with correct properties above
+    assert saved_run.output == mock_task_run.output
+    assert saved_run.output.source.type == DataSourceType.synthetic
+    assert saved_run.output.source.properties == mock_task_run.output.source.properties
+
+    # Confirm the response contains same run
+    assert response.json()["id"] == saved_run.id
