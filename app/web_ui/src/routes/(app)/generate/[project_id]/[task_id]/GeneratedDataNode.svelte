@@ -6,6 +6,7 @@
   import { createKilnError, KilnError } from "$lib/utils/error_handlers"
   import { ui_state } from "$lib/stores"
   import { createEventDispatcher } from "svelte"
+  import IncrementUi from "./increment_ui.svelte"
 
   export let data: SampleDataNode
   export let path: string[]
@@ -48,6 +49,20 @@
     modal?.showModal()
   }
 
+  function scroll_to_bottom_of_element_by_id(id: string) {
+    // Scroll to bottom only if it's out of view
+    setTimeout(() => {
+      const bottom = document.getElementById(id)
+      if (bottom) {
+        const rect = bottom.getBoundingClientRect()
+        const isOffScreen = rect.bottom > window.innerHeight
+        if (isOffScreen) {
+          bottom.scrollIntoView({ behavior: "smooth", block: "end" })
+        }
+      }
+    }, 50)
+  }
+
   function add_subtopics(subtopics: string[]) {
     // Add ignoring dupes and empty strings
     for (const topic of subtopics) {
@@ -67,17 +82,9 @@
     const modal = document.getElementById(`${id}-generate-subtopics`)
     // @ts-expect-error dialog is not a standard element
     modal?.close()
-    setTimeout(() => {
-      // Scroll to bottom of added topics only if it's out of view
-      const bottom = document.getElementById(`${id}-subtopics`)
-      if (bottom) {
-        const rect = bottom.getBoundingClientRect()
-        const isOffScreen = rect.bottom > window.innerHeight
-        if (isOffScreen) {
-          bottom.scrollIntoView({ behavior: "smooth", block: "end" })
-        }
-      }
-    }, 50)
+
+    // Scroll to bottom of added topics
+    scroll_to_bottom_of_element_by_id(`${id}-subtopics`)
   }
 
   function add_custom_topics() {
@@ -145,6 +152,102 @@
       }
     } finally {
       topic_generating = false
+      generate_subtopics = false
+    }
+  }
+
+  let generate_samples_modal: boolean = false
+  async function open_generate_samples_modal() {
+    // Avoid having a trillion of these hidden in the DOM
+    generate_samples_modal = true
+    await tick()
+    const modal = document.getElementById(`${id}-generate-samples`)
+    // @ts-expect-error dialog is not a standard element
+    modal?.showModal()
+  }
+
+  function add_samples(samples: unknown[]) {
+    // Add ignoring dupes and empty strings
+    for (const sample of samples) {
+      if (!sample) {
+        continue
+      }
+      if (typeof sample == "string") {
+        data.samples.push({ input: sample })
+      } else if (typeof sample == "object" || Array.isArray(sample)) {
+        data.samples.push({ input: JSON.stringify(sample) })
+      }
+    }
+
+    // trigger reactivity
+    data = data
+
+    // Close modal
+    const modal = document.getElementById(`${id}-generate-samples`)
+    // @ts-expect-error dialog is not a standard element
+    modal?.close()
+
+    // Scroll to bottom of added samples
+    scroll_to_bottom_of_element_by_id(`${id}-samples`)
+  }
+
+  let num_samples_to_generate: number = 8
+  let sample_generating: boolean = false
+  let sample_generation_error: KilnError | null = null
+  async function generate_samples() {
+    try {
+      sample_generating = true
+      sample_generation_error = null
+      if (!model) {
+        throw new KilnError("No model selected.", null)
+      }
+      const [model_provider, model_name] = model.split("/")
+      if (!model_name || !model_provider) {
+        throw new KilnError("Invalid model selected.", null)
+      }
+      const { data: generate_response, error: generate_error } =
+        await client.POST(
+          "/api/projects/{project_id}/tasks/{task_id}/generate_samples",
+          {
+            body: {
+              topic: path,
+              num_samples: num_samples_to_generate,
+              model_name: model_name,
+              provider: model_provider,
+            },
+            params: {
+              path: {
+                project_id,
+                task_id,
+              },
+            },
+          },
+        )
+      if (generate_error) {
+        throw generate_error
+      }
+      const response = JSON.parse(generate_response.output.output)
+      if (
+        !response ||
+        !response.generated_samples ||
+        !Array.isArray(response.generated_samples)
+      ) {
+        throw new KilnError("No options returned.", null)
+      }
+      // Add new samples
+      add_samples(response.generated_samples)
+    } catch (e) {
+      if (e instanceof Error && e.message.includes("Load failed")) {
+        sample_generation_error = new KilnError(
+          "Could not generate samples, unknown error. If it persists, try another model.",
+          null,
+        )
+      } else {
+        sample_generation_error = createKilnError(e)
+      }
+    } finally {
+      sample_generating = false
+      generate_samples_modal = false
     }
   }
 
@@ -184,9 +287,12 @@
     >
       Add Top Level Topics
     </button>
-    <button class="btn {is_empty ? 'btn-primary' : ''}"
-      >Add Top Level Samples</button
+    <button
+      class="btn {is_empty ? 'btn-primary' : ''}"
+      on:click={() => open_generate_samples_modal()}
     >
+      Add Top Level Samples
+    </button>
   </div>
 {:else}
   <div
@@ -206,38 +312,42 @@
       <button class="link" on:click={() => open_generate_subtopics_modal()}>
         Add subtopics
       </button>
-      <button class="link">Add samples</button>
+      <button class="link" on:click={() => open_generate_samples_modal()}>
+        Add samples
+      </button>
     </div>
   </div>
 {/if}
-{#each data.samples as sample, index}
-  <div
-    style="padding-left: {depth * 25 + 20}px"
-    class="data-row flex flex-row items-center border-b-2 border-base-200"
-  >
-    <div class="flex-1 font-mono text-sm overflow-hidden py-2">
-      {#if expandedSamples[index]}
-        <pre class="whitespace-pre-wrap">{formatExpandedSample(sample)}</pre>
-      {:else}
-        <div class="truncate w-0 min-w-full">{sample.input}</div>
-      {/if}
-    </div>
+<div id={`${id}-samples`}>
+  {#each data.samples as sample, index}
     <div
-      class="hover-action flex
-        flex-row text-sm gap-x-4 gap-y-1 text-gray-500 font-light px-4"
-      style={expandedSamples[index] ? "display: flex" : ""}
+      style="padding-left: {depth * 25 + 20}px"
+      class="data-row flex flex-row items-center border-b-2 border-base-200"
     >
-      <button class="link flex" on:click={() => toggleExpand(index)}>
+      <div class="flex-1 font-mono text-sm overflow-hidden py-2">
         {#if expandedSamples[index]}
-          - Collapse
+          <pre class="whitespace-pre-wrap">{formatExpandedSample(sample)}</pre>
         {:else}
-          + Expand
+          <div class="truncate w-0 min-w-full">{sample.input}</div>
         {/if}
-      </button>
-      <button class="link flex">Delete</button>
+      </div>
+      <div
+        class="hover-action flex
+        flex-row text-sm gap-x-4 gap-y-1 text-gray-500 font-light px-4"
+        style={expandedSamples[index] ? "display: flex" : ""}
+      >
+        <button class="link flex" on:click={() => toggleExpand(index)}>
+          {#if expandedSamples[index]}
+            - Collapse
+          {:else}
+            + Expand
+          {/if}
+        </button>
+        <button class="link flex">Delete</button>
+      </div>
     </div>
-  </div>
-{/each}
+  {/each}
+</div>
 {#if data.sub_topics}
   <div id={`${id}-subtopics`}>
     {#each data.sub_topics as sub_node}
@@ -282,31 +392,7 @@
 
           <div class="flex flex-row items-center gap-4 mt-4 mb-2">
             <div class="flex-grow font-medium text-sm">Topic Count</div>
-            <div class="flex flex-row gap-2 items-center">
-              <button
-                class="btn btn-sm"
-                on:click={() =>
-                  (num_subtopics_to_generate = Math.max(
-                    1,
-                    num_subtopics_to_generate - 1,
-                  ))}
-              >
-                -
-              </button>
-              <span class="text-lg font-medium w-8 text-center"
-                >{num_subtopics_to_generate}</span
-              >
-              <button
-                class="btn btn-sm"
-                on:click={() =>
-                  (num_subtopics_to_generate = Math.min(
-                    20,
-                    num_subtopics_to_generate + 1,
-                  ))}
-              >
-                +
-              </button>
-            </div>
+            <IncrementUi bind:value={num_subtopics_to_generate} />
           </div>
           <AvailableModelsDropdown requires_data_gen={true} bind:model />
           <button
@@ -329,6 +415,52 @@
             class="btn btn-sm {custom_topics_string ? 'btn-primary' : ''}"
             on:click={add_custom_topics}>Add Custom Topics</button
           >
+        </div>
+      {/if}
+    </div>
+    <form method="dialog" class="modal-backdrop">
+      <button>close</button>
+    </form>
+  </dialog>
+{/if}
+
+{#if generate_samples_modal}
+  <dialog id={`${id}-generate-samples`} class="modal">
+    <div class="modal-box">
+      <form method="dialog">
+        <button
+          class="btn btn-sm text-xl btn-circle btn-ghost absolute right-2 top-2 focus:outline-none"
+          >✕</button
+        >
+      </form>
+      <h3 class="text-lg font-bold">Generate Samples</h3>
+      <p class="text-sm font-light mb-8">
+        Add synthetic data samples
+        {#if path.length > 0}
+          to {path.join(" → ")}
+        {/if}
+      </p>
+      {#if sample_generating}
+        <div class="flex flex-row justify-center">
+          <div class="loading loading-spinner loading-lg my-12"></div>
+        </div>
+      {:else if sample_generation_error}
+        <div class="flex flex-col gap-2 text-sm">
+          <div class="text-error">{sample_generation_error.message}</div>
+        </div>
+      {:else}
+        <div class="flex flex-col gap-2">
+          <div class="flex flex-row items-center gap-4 mt-4 mb-2">
+            <div class="flex-grow font-medium text-sm">Sample Count</div>
+            <IncrementUi bind:value={num_samples_to_generate} />
+          </div>
+          <AvailableModelsDropdown requires_data_gen={true} bind:model />
+          <button
+            class="btn mt-6 {custom_topics_string ? '' : 'btn-primary'}"
+            on:click={generate_samples}
+          >
+            Generate {num_samples_to_generate} Samples
+          </button>
         </div>
       {/if}
     </div>
