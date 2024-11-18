@@ -159,13 +159,7 @@
       </div>
     {:else if task}
       <div class="flex flex-col">
-        <GeneratedDataNode
-          data={root_node}
-          depth={0}
-          path={[]}
-          {project_id}
-          {task_id}
-        />
+        <GeneratedDataNode data={root_node} path={[]} {project_id} {task_id} />
       </div>
     {:else if task_error}
       <div

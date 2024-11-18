@@ -7,8 +7,8 @@
   import { ui_state } from "$lib/stores"
 
   export let data: SampleDataNode
-  export let depth: number
   export let path: string[]
+  $: depth = path.length
   export let project_id: string
   export let task_id: string
 
@@ -90,6 +90,9 @@
       }
       // Add new topics
       for (const option of response.subtopics) {
+        if (!option) {
+          continue
+        }
         data.sub_topics.push({
           topic: option,
           sub_topics: [],
