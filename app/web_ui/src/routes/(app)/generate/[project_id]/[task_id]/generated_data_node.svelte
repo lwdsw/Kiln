@@ -271,6 +271,13 @@
     data = data
   }
 
+  function delete_sample(sample_to_delete: SampleData) {
+    data.samples = data.samples.filter((s) => s !== sample_to_delete)
+
+    // Trigger reactivity
+    data = data
+  }
+
   $: is_empty = data.sub_topics.length == 0 && data.samples.length == 0
 </script>
 
@@ -343,7 +350,9 @@
             + Expand
           {/if}
         </button>
-        <button class="link flex">Delete</button>
+        <button class="link flex" on:click={() => delete_sample(sample)}>
+          Delete
+        </button>
       </div>
     </div>
   {/each}
