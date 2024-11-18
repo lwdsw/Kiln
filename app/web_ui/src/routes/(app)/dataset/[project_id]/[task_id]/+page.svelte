@@ -1,5 +1,6 @@
 <script lang="ts">
   import AppPage from "../../../app_page.svelte"
+  import EmptyInto from "./empty_into.svelte"
   import { client } from "$lib/api_client"
   import type { TaskRun } from "$lib/types"
   import { KilnError, createKilnError } from "$lib/utils/error_handlers"
@@ -189,13 +190,15 @@
 
 <AppPage
   title="Dataset"
-  subtitle="Explore your runs, sample data, and ratings for this task."
+  subtitle="Explore sample and ratings for this task."
   action_buttons={[{ label: "Add Data", href: "/run" }]}
 >
   {#if loading}
     <div class="w-full min-h-[50vh] flex justify-center items-center">
       <div class="loading loading-spinner loading-lg"></div>
     </div>
+  {:else if runs && runs.length == 0}
+    <EmptyInto {project_id} {task_id} />
   {:else if runs}
     <div class="overflow-x-auto">
       <table class="table">

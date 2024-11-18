@@ -288,7 +288,7 @@
 {#if path.length == 0}
   <!-- Root node -->
   <div
-    class="flex flex-row gap-16 justify-center items-center {is_empty
+    class="flex flex-col md:flex-row gap-16 justify-center items-center {is_empty
       ? 'mt-[10vh]'
       : ''} "
   >
@@ -296,9 +296,9 @@
       <DataGenIntro />
     {/if}
     <div
-      class="flex flex-row gap-8 justify-center {is_empty
-        ? ' flex-col gap-4'
-        : 'mb-6'}"
+      class="flex flex-row justify-center {is_empty
+        ? ' flex-col gap-6'
+        : 'mb-6 gap-8'}"
     >
       <button
         class="btn {is_empty ? 'btn-primary' : ''}"
