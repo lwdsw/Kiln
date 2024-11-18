@@ -7,6 +7,7 @@
   import { ui_state } from "$lib/stores"
   import { createEventDispatcher } from "svelte"
   import IncrementUi from "./increment_ui.svelte"
+  import DataGenIntro from "./data_gen_intro.svelte"
 
   export let data: SampleDataNode
   export let path: string[]
@@ -287,22 +288,31 @@
 {#if path.length == 0}
   <!-- Root node -->
   <div
-    class="flex flex-row gap-8 justify-center mb-6 {is_empty
+    class="flex flex-row gap-16 justify-center items-center {is_empty
       ? 'mt-[10vh]'
-      : ''}"
+      : ''} "
   >
-    <button
-      class="btn {is_empty ? 'btn-primary' : ''}"
-      on:click={() => open_generate_subtopics_modal()}
+    {#if is_empty}
+      <DataGenIntro />
+    {/if}
+    <div
+      class="flex flex-row gap-8 justify-center {is_empty
+        ? ' flex-col gap-4'
+        : 'mb-6'}"
     >
-      Add Top Level Topics
-    </button>
-    <button
-      class="btn {is_empty ? 'btn-primary' : ''}"
-      on:click={() => open_generate_samples_modal()}
-    >
-      Add Top Level Samples
-    </button>
+      <button
+        class="btn {is_empty ? 'btn-primary' : ''}"
+        on:click={() => open_generate_subtopics_modal()}
+      >
+        Add Top Level Topics
+      </button>
+      <button
+        class="btn {is_empty ? 'btn-primary' : ''}"
+        on:click={() => open_generate_samples_modal()}
+      >
+        Add Top Level Samples
+      </button>
+    </div>
   </div>
 {:else}
   <div
