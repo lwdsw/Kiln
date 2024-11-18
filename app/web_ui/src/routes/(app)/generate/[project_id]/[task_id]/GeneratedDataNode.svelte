@@ -138,9 +138,10 @@
       class="btn {is_empty ? 'btn-primary' : ''}"
       on:click={() => open_generate_subtopics_modal()}
     >
-      Add Root Subtopics
+      Add Top Level Topics
     </button>
-    <button class="btn {is_empty ? 'btn-primary' : ''}">Add Root Samples</button
+    <button class="btn {is_empty ? 'btn-primary' : ''}"
+      >Add Top Level Samples</button
     >
   </div>
 {:else}
@@ -199,7 +200,7 @@
       data={sub_node}
       parent={data}
       depth={depth + 1}
-      path={[...path, data.topic]}
+      path={[...path, sub_node.topic]}
       {project_id}
       {task_id}
     />
@@ -217,11 +218,9 @@
       </form>
       <h3 class="text-lg font-bold">Add Subtopics</h3>
       <p class="text-sm font-light mb-8">
-        Add a list of subtopics to
+        Add a list of subtopics
         {#if path.length > 0}
-          "{[...path, data.topic].join(" → ")}"
-        {:else}
-          root topic
+          to {path.join(" → ")}
         {/if}
       </p>
       {#if topic_generating}

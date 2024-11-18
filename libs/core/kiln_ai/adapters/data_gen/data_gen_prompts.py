@@ -10,7 +10,7 @@ Your job is the following: I will give you a path of nodes down the topic tree -
 Example 1:
 node path: "News Topics" -> "Sports" -> "Football"
 desired number of subtopics: 5
-subtopics: ["college football", "football stadiums", "health consequences football", "Seattle Seahawks", "football sponsorships"]
+subtopics: ["College Football", "Football Stadiums", "Health Consequences Football", "Seattle Seahawks", "Football Sponsorships"]
 
 Example 2:
 node path: "News Topics" -> "Entertainment" -> "Movies" -> "Star Portraits"
@@ -23,17 +23,17 @@ Here are three new examples, this time for generating smalltalk topics for a fri
 Example 1:
 node path: "Small Talk Topics"
 desired number of subtopics: 7
-subtopics: ["weather", "weekend plans", "hobbies", "family", "books", "food", "music"]
+subtopics: ["Weather", "Weekend Plans", "Hobbies", "Family", "Books", "Food", "Music"]
 
 Example 2:
 node path: y
 desired number of subtopics: 5
-subtopics: ["parents", "grandparents", "siblings", "family traditions", "family vacations"]
+subtopics: ["Parents", "Grandparents", "Siblings", "Family Traditions", "Family Vacations"]
 
 Example 3:
 node path: "Small Talk Topics" -> "Hobbies" -> "Cooking"
 desired number of subtopics: 6
-subtopics: ["recipes", "asian food", "favourite dishes", "cookbooks", "kitchen gadgets", "vegan cooking"]
+subtopics: ["Recipes", "Asian Food", "Favourite Dishes", "Cookbooks", "Kitchen Gadgets", "Vegan Cooking"]
 
 
 The system prompt for the model we want to train will be provided to you in a user message as system_prompt.
