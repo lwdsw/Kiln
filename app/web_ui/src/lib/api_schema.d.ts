@@ -435,6 +435,8 @@ export interface components {
             name: string;
             /** Supports Structured Output */
             supports_structured_output: boolean;
+            /** Supports Data Gen */
+            supports_data_gen: boolean;
         };
         /**
          * ModelName

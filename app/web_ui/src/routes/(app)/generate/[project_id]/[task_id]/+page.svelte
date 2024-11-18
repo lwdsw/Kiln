@@ -7,6 +7,7 @@
   import { onMount } from "svelte"
   import { page } from "$app/stores"
   import GeneratedDataNode from "./GeneratedDataNode.svelte"
+  import type { SampleDataNode } from "./gen_model"
 
   let task: Task | null = null
   let task_error: KilnError | null = null
@@ -14,16 +15,6 @@
 
   $: project_id = $page.params.project_id
   $: task_id = $page.params.task_id
-
-  type SampleData = {
-    input: string
-  }
-
-  type SampleDataNode = {
-    topic: string
-    sub_topics: SampleDataNode[]
-    samples: SampleData[]
-  }
 
   let data_tree: SampleDataNode[] = [
     {
@@ -75,7 +66,8 @@
           sub_topics: [],
           samples: [
             {
-              input: "Tropical Beach",
+              input:
+                "Tropical Beach sf sfsf sdlf jsdklf jsdlkf jsdlkf jsdlkfj sdlk fjsdlkfj slkdjf lskdj flskdjflksdjf lksdjf klsdj fsldkf jsdlkf jsdlkf jsdlkf jsdlkf jsdlkf jsdlk fjsdlk fj",
             },
             {
               input: "Rocky Beach",
@@ -90,7 +82,11 @@
           sub_topics: [],
           samples: [
             {
-              input: "Snowy Peak",
+              input: `{
+                "name": "Snowy Peak",
+                "elevation": 14000,
+                "location": "Colorado"
+              }`,
             },
             {
               input: "Forest Mountain",
@@ -151,21 +147,17 @@
 <div class="max-w-[1400px]">
   <AppPage
     title="Generate Synthetic Data"
-    subtitle={`AI tools to help you grow your dataset for "${task?.name}"`}
+    subtitle={`Grow your dataset by generating new sample inputs`}
   >
     {#if task_loading}
       <div class="w-full min-h-[50vh] flex justify-center items-center">
         <div class="loading loading-spinner loading-lg"></div>
       </div>
     {:else if task}
-      <div class="overflow-x-auto">
-        <table class="table">
-          <tbody>
-            {#each data_tree as node}
-              <GeneratedDataNode data={node} depth={0} />
-            {/each}
-          </tbody>
-        </table>
+      <div class="flex flex-col">
+        {#each data_tree as node}
+          <GeneratedDataNode data={node} depth={0} path={[]} />
+        {/each}
       </div>
     {:else if task_error}
       <div
