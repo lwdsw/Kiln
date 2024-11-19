@@ -149,10 +149,12 @@
   let saved_count = 0
   function visit_node_for_collection(node: SampleDataNode, path: string[]) {
     node.samples.forEach((sample) => {
-      if (sample.saved) {
+      if (sample.saved_id) {
         already_saved_count++
       } else {
-        samples_to_save.push({ ...sample, topic_path: path })
+        // Path may not have been set yet
+        sample.topic_path = path
+        samples_to_save.push(sample)
       }
     })
     node.sub_topics.forEach((sub_topic) => {
@@ -169,23 +171,89 @@
 
   let save_all_running = false
   let save_all_error: KilnError | null = null
+  let save_all_sub_errors: KilnError[] = []
   let save_all_completed = false
+  let ui_show_errors = false
   async function save_all_samples() {
     try {
       save_all_running = true
       save_all_error = null
       save_all_completed = false
-      //throw new Error("Not implemented")
+      save_all_sub_errors = []
+      const [provider, model_name] = model.split("/")
       for (const sample of samples_to_save) {
-        // 1s delay
-        await new Promise((resolve) => setTimeout(resolve, 1000))
-        saved_count++
+        const { saved_id, error } = await save_sample(
+          sample,
+          model_name,
+          provider,
+          prompt_method,
+        )
+        if (error) {
+          save_all_sub_errors.push(error)
+        } else if (!saved_id) {
+          save_all_sub_errors.push(new KilnError("No ID returned from server"))
+        } else {
+          sample.saved_id = saved_id
+          saved_count++
+        }
       }
     } catch (e) {
       save_all_error = createKilnError(e)
     } finally {
       save_all_running = false
       save_all_completed = true
+    }
+  }
+
+  type SaveSampleResponse = {
+    saved_id: string | null
+    error: KilnError | null
+  }
+
+  async function save_sample(
+    sample: SampleData,
+    model_name: string,
+    provider: string,
+    prompt_method: string,
+  ): Promise<SaveSampleResponse> {
+    try {
+      const formatted_input = task?.input_json_schema
+        ? JSON.parse(sample.input)
+        : sample.input
+      const {
+        error: post_error,
+        data,
+        response,
+      } = await client.POST(
+        "/api/projects/{project_id}/tasks/{task_id}/save_sample",
+        {
+          params: {
+            path: {
+              project_id,
+              task_id,
+            },
+          },
+          body: {
+            input: formatted_input,
+            input_model_name: sample.model_name,
+            input_provider: sample.model_provider,
+            output_model_name: model_name,
+            output_provider: provider,
+            prompt_method,
+          },
+        },
+      )
+      if (post_error) {
+        throw post_error
+      }
+      if (response.status !== 200 || !data.id) {
+        throw new KilnError("Failed to save sample")
+      }
+
+      return { saved_id: data.id, error: null }
+    } catch (e) {
+      const error = createKilnError(e)
+      return { saved_id: null, error }
     }
   }
 </script>
@@ -251,9 +319,7 @@
 
     {#if save_all_running}
       <div class="min-h-[200px] flex flex-col justify-center items-center">
-        <div
-          class="loading loading-spinner loading-lg mb-6 loading-success"
-        ></div>
+        <div class="loading loading-spinner loading-lg mb-6 text-success"></div>
         <progress
           class="progress w-56 progress-success"
           value={saved_count}
@@ -285,10 +351,25 @@
             >dataset tab</a
           > to review and manage.
         </div>
-        {#if saved_count < samples_to_save.length}
+        {#if save_all_sub_errors.length > 0}
           <div class="text-error font-light text-sm mt-4">
-            {samples_to_save.length - saved_count} samples failed to save. Running
-            again may resolve transient issues.
+            {save_all_sub_errors.length} samples failed to save. Running again may
+            resolve transient issues.
+            <button
+              class="link"
+              on:click={() => (ui_show_errors = !ui_show_errors)}
+            >
+              {ui_show_errors ? "Hide Errors" : "Show Errors"}
+            </button>
+          </div>
+          <div
+            class="flex flex-col gap-2 mt-4 text-xs text-error {ui_show_errors
+              ? ''
+              : 'hidden'}"
+          >
+            {#each save_all_sub_errors as error}
+              <div>{error.getMessage()}</div>
+            {/each}
           </div>
         {/if}
         {#if save_all_error}

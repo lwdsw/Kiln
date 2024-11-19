@@ -1,6 +1,6 @@
 export type SampleData = {
   input: string
-  saved: boolean
+  saved_id: string | null
   model_name: string
   model_provider: string
   // Optional. The tree path to the topic that the sample belongs to.

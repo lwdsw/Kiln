@@ -194,7 +194,7 @@
       if (input) {
         data.samples.push({
           input: input,
-          saved: false,
+          saved_id: null,
           model_name,
           model_provider,
         })

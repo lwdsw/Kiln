@@ -6,6 +6,7 @@ from kiln_ai.adapters.data_gen.data_gen_task import (
     DataGenSampleTaskInput,
 )
 from kiln_ai.adapters.langchain_adapters import LangChainPromptAdapter
+from kiln_ai.adapters.prompt_builders import prompt_builder_from_ui_name
 from kiln_ai.datamodel import DataSource, DataSourceType, TaskRun
 from kiln_server.task_api import task_from_id
 from pydantic import BaseModel, ConfigDict, Field
@@ -42,7 +43,7 @@ class DataGenSampleApiInput(BaseModel):
 
 
 class DataGenSaveSamplesApiInput(BaseModel):
-    input: str = Field(description="Input for this sample")
+    input: str | dict = Field(description="Input for this sample")
     input_model_name: str = Field(
         description="The name of the model used to generate the input"
     )
@@ -51,6 +52,9 @@ class DataGenSaveSamplesApiInput(BaseModel):
     )
     output_model_name: str = Field(description="The name of the model to use")
     output_provider: str = Field(description="The provider of the model to use")
+    prompt_method: str = Field(
+        description="The prompt method used to generate the output"
+    )
 
 
 def connect_data_gen_api(app: FastAPI):
@@ -108,10 +112,13 @@ def connect_data_gen_api(app: FastAPI):
     ) -> TaskRun:
         task = task_from_id(project_id, task_id)
 
+        prompt_builder = prompt_builder_from_ui_name(sample.prompt_method)(task)
+
         adapter = LangChainPromptAdapter(
             task,
             model_name=sample.output_model_name,
             provider=sample.output_provider,
+            prompt_builder=prompt_builder,
         )
 
         run = await adapter.invoke(

@@ -416,6 +416,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/projects/{project_id}/tasks/{task_id}/save_sample": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Save Sample */
+        post: operations["save_sample_api_projects__project_id__tasks__task_id__save_sample_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -488,6 +505,39 @@ export interface components {
              * @description The provider of the model to use
              */
             provider: string;
+        };
+        /** DataGenSaveSamplesApiInput */
+        DataGenSaveSamplesApiInput: {
+            /**
+             * Input
+             * @description Input for this sample
+             */
+            input: string | Record<string, never>;
+            /**
+             * Input Model Name
+             * @description The name of the model used to generate the input
+             */
+            input_model_name: string;
+            /**
+             * Input Provider
+             * @description The provider of the model used to generate the input
+             */
+            input_provider: string;
+            /**
+             * Output Model Name
+             * @description The name of the model to use
+             */
+            output_model_name: string;
+            /**
+             * Output Provider
+             * @description The provider of the model to use
+             */
+            output_provider: string;
+            /**
+             * Prompt Method
+             * @description The prompt method used to generate the output
+             */
+            prompt_method: string;
         };
         /**
          * DataSource
@@ -1875,6 +1925,42 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["DataGenSampleApiInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskRun-Output"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_sample_api_projects__project_id__tasks__task_id__save_sample_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DataGenSaveSamplesApiInput"];
             };
         };
         responses: {

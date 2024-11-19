@@ -158,10 +158,10 @@ def test_save_sample_success_paid_run(
         input_provider="openai",
         output_model_name="gpt_4o_mini",
         output_provider="openai",
+        prompt_method="basic",
     )
 
     # Act
-
     response = client.post(
         "/api/projects/proj-ID/tasks/task-ID/save_sample",
         json=input_data.model_dump(),
@@ -211,6 +211,7 @@ def test_save_sample_success_with_mock_invoke(
         input_provider="openai",
         output_model_name="gpt_4o_mini",
         output_provider="openai",
+        prompt_method="basic",
     )
 
     # Act
