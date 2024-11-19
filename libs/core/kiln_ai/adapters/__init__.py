@@ -20,4 +20,5 @@ __all__ = [
     "ml_model_list",
     "prompt_builders",
     "repair",
+    "data_gen",
 ]
