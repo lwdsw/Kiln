@@ -206,7 +206,9 @@
       <div class="loading loading-spinner loading-lg"></div>
     </div>
   {:else if runs && runs.length == 0}
-    <EmptyInto {project_id} {task_id} />
+    <div class="flex flex-col items-center justify-center min-h-[60vh]">
+      <EmptyInto {project_id} {task_id} />
+    </div>
   {:else if runs}
     <div class="overflow-x-auto">
       <table class="table">
