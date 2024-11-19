@@ -129,7 +129,7 @@ def connect_data_gen_api(app: FastAPI):
             prompt_builder=prompt_builder,
         )
 
-        properties = {
+        properties: dict[str, str | int | float] = {
             "model_name": sample.input_model_name,
             "model_provider": sample.input_provider,
             "adapter_name": "kiln_data_gen",
