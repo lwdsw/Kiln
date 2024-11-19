@@ -15,6 +15,7 @@ class DataGenCategoriesTaskInput(BaseModel):
     system_prompt: str
     num_subtopics: int
     human_guidance: str | None = None
+    existing_topics: list[str] | None = None
 
     @classmethod
     def from_task(
@@ -23,12 +24,14 @@ class DataGenCategoriesTaskInput(BaseModel):
         node_path: list[str] = [],
         num_subtopics: int = 6,
         human_guidance: str | None = None,
+        existing_topics: list[str] | None = None,
     ) -> "DataGenCategoriesTaskInput":
         prompt_builder = SimplePromptBuilder(task=task)
         return cls(
             node_path=node_path,
             num_subtopics=num_subtopics,
             human_guidance=human_guidance,
+            existing_topics=existing_topics,
             system_prompt=prompt_builder.build_prompt(),
         )
 

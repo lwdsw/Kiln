@@ -21,6 +21,10 @@ class DataGenCategoriesApiInput(BaseModel):
         description="Optional human guidance for generation",
         default=None,
     )
+    existing_topics: list[str] | None = Field(
+        description="Optional list of existing topics to avoid",
+        default=None,
+    )
     model_name: str = Field(description="The name of the model to use")
     provider: str = Field(description="The provider of the model to use")
 
@@ -70,6 +74,7 @@ def connect_data_gen_api(app: FastAPI):
             node_path=input.node_path,
             num_subtopics=input.num_subtopics,
             human_guidance=input.human_guidance,
+            existing_topics=input.existing_topics,
         )
 
         adapter = LangChainPromptAdapter(

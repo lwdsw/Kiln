@@ -35,13 +35,13 @@ node path: "Small Talk Topics" -> "Hobbies" -> "Cooking"
 desired number of subtopics: 6
 subtopics: ["Recipes", "Asian Food", "Favourite Dishes", "Cookbooks", "Kitchen Gadgets", "Vegan Cooking"]
 
-The system prompt for the model we want to train will be provided to you in a user message as system_prompt.
+The user message will contain the following:
+ - The system prompt for the model we want to train as system_prompt.
+ - The node path as node_path. It will be formated as a list of strings from most general to most specific. For example, the node_path for Example 3 above would be ["Small Talk Topics", "Hobbies", "Cooking"]. If empty, the node path is the root node.
+ - The desired number of subtopics for this node as num_subtopics. Return exactly this number of subtopics.
+ - Optionally, it may contain human_guidance, which is a string that contains additional instructions for how to generate the subtopics.
+ - Optionally, it may contain existing_topics, which is a list of subtopics that already exist at this node. You should not generate subtopics that are in this list.
 
-The node path will be provided to you in a user message as node_path. It will be formated as a list of strings from most general to most specific. For example, the node_path for Example 3 above would be ["Small Talk Topics", "Hobbies", "Cooking"]. If empty, the node path is the root node.
-
-The user message will also contain the desired number of subtopics for this node as num_subtopics. Return exactly this number of subtopics.
-
-The user message may optionally contain human_guidance, which is a string that contains additional instructions for how to generate the subtopics.
 
 When generating subtopics, remain somewhat vague. Things can only be tangentially related and they don't have to be interpreted in a single way. Importantly, make sure that the subtopics fit the system prompt.
 """

@@ -466,6 +466,11 @@ export interface components {
              */
             human_guidance?: string | null;
             /**
+             * Existing Topics
+             * @description Optional list of existing topics to avoid
+             */
+            existing_topics?: string[] | null;
+            /**
              * Model Name
              * @description The name of the model to use
              */

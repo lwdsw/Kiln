@@ -120,6 +120,7 @@
       if (!model_name || !model_provider) {
         throw new KilnError("Invalid model selected.", null)
       }
+      const existing_topics = data.sub_topics.map((t) => t.topic)
       const { data: generate_response, error: generate_error } =
         await client.POST(
           "/api/projects/{project_id}/tasks/{task_id}/generate_categories",
@@ -130,6 +131,8 @@
               model_name: model_name,
               provider: model_provider,
               human_guidance: human_guidance ? human_guidance : null, // clear empty string
+              existing_topics:
+                existing_topics.length > 0 ? existing_topics : null, // clear empty array
             },
             params: {
               path: {
