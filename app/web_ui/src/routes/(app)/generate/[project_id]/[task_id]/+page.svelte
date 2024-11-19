@@ -126,7 +126,16 @@
 
   // Handle Svelte navigation: warn if there are unsaved changes
   beforeNavigate((navigation) => {
-    if (has_unsaved_changes()) {
+    if (save_all_running) {
+      if (
+        !confirm(
+          "Content generation is currently running. If you leave, it will be stopped and your changes will be lost.\n\n" +
+            "Press Cancel to stay, OK to leave.",
+        )
+      ) {
+        navigation.cancel()
+      }
+    } else if (has_unsaved_changes()) {
       if (
         !confirm(
           "You have unsaved changes which will be lost if you leave.\n\n" +
