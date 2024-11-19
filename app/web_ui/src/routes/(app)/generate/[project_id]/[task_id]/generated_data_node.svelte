@@ -312,13 +312,11 @@
 
 {#if path.length == 0}
   <!-- Root node -->
-  <div
-    class="flex flex-col md:flex-row gap-16 justify-center items-center {is_empty
-      ? 'mt-[10vh]'
-      : ''} "
-  >
+  <div class="flex flex-col md:flex-row gap-32 justify-center items-center">
     {#if is_empty}
-      <DataGenIntro />
+      <div class="flex flex-col items-center justify-center min-h-[60vh]">
+        <DataGenIntro />
+      </div>
     {/if}
     <div
       class="flex flex-row justify-center {is_empty
@@ -335,7 +333,7 @@
         class="btn {is_empty ? 'btn-primary' : ''}"
         on:click={() => open_generate_samples_modal()}
       >
-        Add Top Level Samples
+        Add Top Level Data
       </button>
     </div>
   </div>
@@ -358,7 +356,7 @@
         Add subtopics
       </button>
       <button class="link" on:click={() => open_generate_samples_modal()}>
-        Add samples
+        Add data
       </button>
     </div>
   </div>
