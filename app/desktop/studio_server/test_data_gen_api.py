@@ -17,6 +17,8 @@ from app.desktop.studio_server.data_gen_api import (
     DataGenSampleApiInput,
     DataGenSaveSamplesApiInput,
     connect_data_gen_api,
+    topic_path_from_string,
+    topic_path_to_string,
 )
 
 
@@ -159,6 +161,7 @@ def test_save_sample_success_paid_run(
         output_model_name="gpt_4o_mini",
         output_provider="openai",
         prompt_method="basic",
+        topic_path=[],  # No topic path
     )
 
     # Act
@@ -183,6 +186,7 @@ def test_save_sample_success_paid_run(
         "model_provider": "openai",
         "adapter_name": "kiln_data_gen",
     }
+    assert "topic_path" not in properties
 
     assert saved_run.output.source.type == DataSourceType.synthetic
     assert saved_run.output.source.properties["model_name"] == "gpt_4o_mini"
@@ -212,6 +216,7 @@ def test_save_sample_success_with_mock_invoke(
         output_model_name="gpt_4o_mini",
         output_provider="openai",
         prompt_method="basic",
+        topic_path=["AI", "Machine Learning", "Deep Learning"],
     )
 
     # Act
@@ -230,6 +235,7 @@ def test_save_sample_success_with_mock_invoke(
         "model_name": "gpt_4o",
         "model_provider": "openai",
         "adapter_name": "kiln_data_gen",
+        "topic_path": "AI>>>>>Machine Learning>>>>>Deep Learning",
     }
 
     # Assert
@@ -243,7 +249,61 @@ def test_save_sample_success_with_mock_invoke(
     # Not checking values since we mock them. We check it's called with correct properties above
     assert saved_run.output == mock_task_run.output
     assert saved_run.output.source.type == DataSourceType.synthetic
-    assert saved_run.output.source.properties == mock_task_run.output.source.properties
+
+    assert saved_run.output.source.properties == mock_task_run.input_source.properties
 
     # Confirm the response contains same run
     assert response.json()["id"] == saved_run.id
+
+
+def test_save_sample_success_with_topic_path(
+    mock_task_from_id,
+    mock_langchain_adapter,
+    client,
+    mock_task_run,
+):
+    # Arrange
+    input_data = DataGenSaveSamplesApiInput(
+        input="Test sample input",
+        topic_path=["AI", "Machine Learning", "Deep Learning"],
+        input_model_name="gpt_4o",
+        input_provider="openai",
+        output_model_name="gpt_4o_mini",
+        output_provider="openai",
+        prompt_method="basic",
+    )
+
+    # Act
+    response = client.post(
+        "/api/projects/proj-ID/tasks/task-ID/save_sample",
+        json=input_data.model_dump(),
+    )
+
+    # Assert
+    assert response.status_code == 200
+    invoke_args = mock_langchain_adapter.invoke.await_args[1]
+    assert (
+        invoke_args["input_source"].properties["topic_path"]
+        == "AI>>>>>Machine Learning>>>>>Deep Learning"
+    )
+    parsed_path = topic_path_from_string(
+        invoke_args["input_source"].properties["topic_path"]
+    )
+    assert parsed_path == ["AI", "Machine Learning", "Deep Learning"]
+
+
+def test_topic_path_conversions():
+    # Test empty path
+    assert topic_path_to_string([]) is None
+    assert topic_path_from_string(None) == []
+    assert topic_path_from_string("") == []
+
+    # Test non-empty path
+    test_path = ["AI", "Machine Learning", "Deep Learning"]
+    path_string = topic_path_to_string(test_path)
+    assert path_string == "AI>>>>>Machine Learning>>>>>Deep Learning"
+    assert topic_path_from_string(path_string) == test_path
+
+    # Test single item path
+    assert topic_path_to_string(["AI"]) == "AI"
+    assert topic_path_from_string("AI") == ["AI"]

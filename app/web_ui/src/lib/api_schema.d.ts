@@ -519,6 +519,11 @@ export interface components {
              */
             input: string | Record<string, never>;
             /**
+             * Topic Path
+             * @description The path to the topic for this sample. Empty is the root topic.
+             */
+            topic_path: string[];
+            /**
              * Input Model Name
              * @description The name of the model used to generate the input
              */

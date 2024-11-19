@@ -48,6 +48,9 @@ class DataGenSampleApiInput(BaseModel):
 
 class DataGenSaveSamplesApiInput(BaseModel):
     input: str | dict = Field(description="Input for this sample")
+    topic_path: list[str] = Field(
+        description="The path to the topic for this sample. Empty is the root topic."
+    )
     input_model_name: str = Field(
         description="The name of the model used to generate the input"
     )
@@ -126,17 +129,34 @@ def connect_data_gen_api(app: FastAPI):
             prompt_builder=prompt_builder,
         )
 
+        properties = {
+            "model_name": sample.input_model_name,
+            "model_provider": sample.input_provider,
+            "adapter_name": "kiln_data_gen",
+        }
+        topic_path = topic_path_to_string(sample.topic_path)
+        if topic_path:
+            properties["topic_path"] = topic_path
+
         run = await adapter.invoke(
             input=sample.input,
             input_source=DataSource(
                 type=DataSourceType.synthetic,
-                properties={
-                    "model_name": sample.input_model_name,
-                    "model_provider": sample.input_provider,
-                    "adapter_name": "kiln_data_gen",
-                },
+                properties=properties,
             ),
         )
 
         run.save_to_file()
         return run
+
+
+def topic_path_to_string(topic_path: list[str]) -> str | None:
+    if topic_path and len(topic_path) > 0:
+        return ">>>>>".join(topic_path)
+    return None
+
+
+def topic_path_from_string(topic_path: str | None) -> list[str]:
+    if topic_path:
+        return topic_path.split(">>>>>")
+    return []

@@ -164,17 +164,18 @@
   let samples_to_save: SampleData[] = []
   let saved_count = 0
   function visit_node_for_collection(node: SampleDataNode, path: string[]) {
+    const topic_path = node.topic ? [...path, node.topic] : path
     node.samples.forEach((sample) => {
       if (sample.saved_id) {
         already_saved_count++
       } else {
         // Path may not have been set yet
-        sample.topic_path = path
+        sample.topic_path = topic_path
         samples_to_save.push(sample)
       }
     })
     node.sub_topics.forEach((sub_topic) => {
-      visit_node_for_collection(sub_topic, [...path, node.topic])
+      visit_node_for_collection(sub_topic, topic_path)
     })
   }
 
@@ -203,6 +204,7 @@
           model_name,
           provider,
           prompt_method,
+          sample.topic_path,
         )
         if (error) {
           save_all_sub_errors.push(error)
@@ -231,6 +233,7 @@
     model_name: string,
     provider: string,
     prompt_method: string,
+    topic_path: string[] | undefined,
   ): Promise<SaveSampleResponse> {
     try {
       const formatted_input = task?.input_json_schema
@@ -256,6 +259,7 @@
             output_model_name: model_name,
             output_provider: provider,
             prompt_method,
+            topic_path: topic_path || [],
           },
         },
       )
