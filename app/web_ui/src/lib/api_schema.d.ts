@@ -382,6 +382,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/projects/{project_id}/tasks/{task_id}/generate_categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate Categories */
+        post: operations["generate_categories_api_projects__project_id__tasks__task_id__generate_categories_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/projects/{project_id}/tasks/{task_id}/generate_samples": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate Samples */
+        post: operations["generate_samples_api_projects__project_id__tasks__task_id__generate_samples_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/projects/{project_id}/tasks/{task_id}/save_sample": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Save Sample */
+        post: operations["save_sample_api_projects__project_id__tasks__task_id__save_sample_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -394,6 +445,109 @@ export interface components {
             provider_id: string;
             /** Models */
             models: components["schemas"]["ModelDetails"][];
+        };
+        /** DataGenCategoriesApiInput */
+        DataGenCategoriesApiInput: {
+            /**
+             * Node Path
+             * @description Path to the node in the category tree
+             * @default []
+             */
+            node_path: string[];
+            /**
+             * Num Subtopics
+             * @description Number of subtopics to generate
+             * @default 6
+             */
+            num_subtopics: number;
+            /**
+             * Human Guidance
+             * @description Optional human guidance for generation
+             */
+            human_guidance?: string | null;
+            /**
+             * Existing Topics
+             * @description Optional list of existing topics to avoid
+             */
+            existing_topics?: string[] | null;
+            /**
+             * Model Name
+             * @description The name of the model to use
+             */
+            model_name: string;
+            /**
+             * Provider
+             * @description The provider of the model to use
+             */
+            provider: string;
+        };
+        /** DataGenSampleApiInput */
+        DataGenSampleApiInput: {
+            /**
+             * Topic
+             * @description Topic path for sample generation
+             * @default []
+             */
+            topic: string[];
+            /**
+             * Num Samples
+             * @description Number of samples to generate
+             * @default 8
+             */
+            num_samples: number;
+            /**
+             * Human Guidance
+             * @description Optional human guidance for generation
+             */
+            human_guidance?: string | null;
+            /**
+             * Model Name
+             * @description The name of the model to use
+             */
+            model_name: string;
+            /**
+             * Provider
+             * @description The provider of the model to use
+             */
+            provider: string;
+        };
+        /** DataGenSaveSamplesApiInput */
+        DataGenSaveSamplesApiInput: {
+            /**
+             * Input
+             * @description Input for this sample
+             */
+            input: string | Record<string, never>;
+            /**
+             * Topic Path
+             * @description The path to the topic for this sample. Empty is the root topic.
+             */
+            topic_path: string[];
+            /**
+             * Input Model Name
+             * @description The name of the model used to generate the input
+             */
+            input_model_name: string;
+            /**
+             * Input Provider
+             * @description The provider of the model used to generate the input
+             */
+            input_provider: string;
+            /**
+             * Output Model Name
+             * @description The name of the model to use
+             */
+            output_model_name: string;
+            /**
+             * Output Provider
+             * @description The provider of the model to use
+             */
+            output_provider: string;
+            /**
+             * Prompt Method
+             * @description The prompt method used to generate the output
+             */
+            prompt_method: string;
         };
         /**
          * DataSource
@@ -435,6 +589,8 @@ export interface components {
             name: string;
             /** Supports Structured Output */
             supports_structured_output: boolean;
+            /** Supports Data Gen */
+            supports_data_gen: boolean;
         };
         /**
          * ModelName
@@ -619,14 +775,13 @@ export interface components {
             name: string;
             /**
              * Description
-             * @default
+             * @description A description of the task for you and your team. Will not be used in prompts/training/validation.
              */
-            description: string;
-            /** @default 2 */
-            priority: components["schemas"]["Priority"];
-            /** @default flexible */
-            determinism: components["schemas"]["TaskDeterminism"];
-            /** Instruction */
+            description?: string | null;
+            /**
+             * Instruction
+             * @description The instructions for the task. Will be used in prompts/training/validation.
+             */
             instruction: string;
             /**
              * Requirements
@@ -645,16 +800,6 @@ export interface components {
             /** Model Type */
             readonly model_type: string;
         };
-        /**
-         * TaskDeterminism
-         * @description Defines how strictly task outputs should match expected results.
-         *
-         *     - deterministic: Requires exact matches
-         *     - semantic_match: Allows different wording with same meaning
-         *     - flexible: Allows variation in both wording and meaning within requirements
-         * @enum {string}
-         */
-        TaskDeterminism: "deterministic" | "semantic_match" | "flexible";
         /**
          * TaskOutput
          * @description An output for a specific task run.
@@ -1728,6 +1873,114 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    generate_categories_api_projects__project_id__tasks__task_id__generate_categories_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DataGenCategoriesApiInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskRun-Output"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    generate_samples_api_projects__project_id__tasks__task_id__generate_samples_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DataGenSampleApiInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskRun-Output"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_sample_api_projects__project_id__tasks__task_id__save_sample_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DataGenSaveSamplesApiInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskRun-Output"];
                 };
             };
             /** @description Validation Error */

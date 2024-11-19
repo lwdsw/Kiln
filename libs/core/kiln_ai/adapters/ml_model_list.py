@@ -89,6 +89,7 @@ class KilnModelProvider(BaseModel):
 
     name: ModelProviderName
     supports_structured_output: bool = True
+    supports_data_gen: bool = True
     provider_options: Dict = {}
 
 
@@ -177,6 +178,7 @@ built_in_models: List[KilnModel] = [
             KilnModelProvider(
                 name=ModelProviderName.openrouter,
                 supports_structured_output=False,  # it should, but doesn't work on openrouter
+                supports_data_gen=False,  # doesn't work on openrouter
                 provider_options={"model": "google/gemini-pro-1.5"},
             ),
         ],
@@ -189,6 +191,7 @@ built_in_models: List[KilnModel] = [
         providers=[
             KilnModelProvider(
                 name=ModelProviderName.openrouter,
+                supports_data_gen=False,
                 provider_options={"model": "google/gemini-flash-1.5"},
             ),
         ],
@@ -202,6 +205,7 @@ built_in_models: List[KilnModel] = [
             KilnModelProvider(
                 name=ModelProviderName.openrouter,
                 supports_structured_output=False,
+                supports_data_gen=False,
                 provider_options={"model": "google/gemini-flash-1.5-8b"},
             ),
         ],
@@ -215,6 +219,7 @@ built_in_models: List[KilnModel] = [
             KilnModelProvider(
                 name=ModelProviderName.openrouter,
                 supports_structured_output=False,
+                supports_data_gen=False,
                 provider_options={"model": "nvidia/llama-3.1-nemotron-70b-instruct"},
             ),
         ],
@@ -232,6 +237,7 @@ built_in_models: List[KilnModel] = [
             KilnModelProvider(
                 name=ModelProviderName.amazon_bedrock,
                 supports_structured_output=False,
+                supports_data_gen=False,
                 provider_options={
                     "model": "meta.llama3-1-8b-instruct-v1:0",
                     "region_name": "us-west-2",  # Llama 3.1 only in west-2
@@ -239,6 +245,7 @@ built_in_models: List[KilnModel] = [
             ),
             KilnModelProvider(
                 name=ModelProviderName.ollama,
+                supports_data_gen=False,
                 provider_options={
                     "model": "llama3.1:8b",
                     "model_aliases": ["llama3.1"],  # 8b is default
@@ -247,6 +254,7 @@ built_in_models: List[KilnModel] = [
             KilnModelProvider(
                 name=ModelProviderName.openrouter,
                 supports_structured_output=False,
+                supports_data_gen=False,
                 provider_options={"model": "meta-llama/llama-3.1-8b-instruct"},
             ),
         ],
@@ -263,7 +271,9 @@ built_in_models: List[KilnModel] = [
             ),
             KilnModelProvider(
                 name=ModelProviderName.amazon_bedrock,
+                # not sure how AWS manages to break this, but it's not working
                 supports_structured_output=False,
+                supports_data_gen=False,
                 provider_options={
                     "model": "meta.llama3-1-70b-instruct-v1:0",
                     "region_name": "us-west-2",  # Llama 3.1 only in west-2
@@ -287,6 +297,7 @@ built_in_models: List[KilnModel] = [
         providers=[
             KilnModelProvider(
                 name=ModelProviderName.amazon_bedrock,
+                supports_data_gen=False,
                 provider_options={
                     "model": "meta.llama3-1-405b-instruct-v1:0",
                     "region_name": "us-west-2",  # Llama 3.1 only in west-2
@@ -346,7 +357,14 @@ built_in_models: List[KilnModel] = [
             KilnModelProvider(
                 name=ModelProviderName.openrouter,
                 supports_structured_output=False,
+                supports_data_gen=False,
                 provider_options={"model": "meta-llama/llama-3.2-3b-instruct"},
+            ),
+            KilnModelProvider(
+                name=ModelProviderName.ollama,
+                supports_structured_output=False,
+                supports_data_gen=False,
+                provider_options={"model": "llama3.2"},
             ),
         ],
     ),
@@ -359,7 +377,14 @@ built_in_models: List[KilnModel] = [
             KilnModelProvider(
                 name=ModelProviderName.openrouter,
                 supports_structured_output=False,
+                supports_data_gen=False,
                 provider_options={"model": "meta-llama/llama-3.2-11b-vision-instruct"},
+            ),
+            KilnModelProvider(
+                name=ModelProviderName.ollama,
+                supports_structured_output=False,
+                supports_data_gen=False,
+                provider_options={"model": "llama3.2-vision"},
             ),
         ],
     ),
@@ -372,7 +397,14 @@ built_in_models: List[KilnModel] = [
             KilnModelProvider(
                 name=ModelProviderName.openrouter,
                 supports_structured_output=False,
+                supports_data_gen=False,
                 provider_options={"model": "meta-llama/llama-3.2-90b-vision-instruct"},
+            ),
+            KilnModelProvider(
+                name=ModelProviderName.ollama,
+                supports_structured_output=False,
+                supports_data_gen=False,
+                provider_options={"model": "llama3.2-vision:90b"},
             ),
         ],
     ),
@@ -386,10 +418,13 @@ built_in_models: List[KilnModel] = [
             KilnModelProvider(
                 name=ModelProviderName.ollama,
                 supports_structured_output=False,
+                supports_data_gen=False,
                 provider_options={"model": "phi3.5"},
             ),
             KilnModelProvider(
                 name=ModelProviderName.openrouter,
+                supports_structured_output=False,
+                supports_data_gen=False,
                 provider_options={"model": "microsoft/phi-3.5-mini-128k-instruct"},
             ),
         ],
@@ -404,6 +439,7 @@ built_in_models: List[KilnModel] = [
             KilnModelProvider(
                 name=ModelProviderName.ollama,
                 supports_structured_output=False,
+                supports_data_gen=False,
                 provider_options={
                     "model": "gemma2:2b",
                 },
@@ -419,12 +455,14 @@ built_in_models: List[KilnModel] = [
         providers=[
             KilnModelProvider(
                 name=ModelProviderName.ollama,
+                supports_data_gen=False,
                 provider_options={
                     "model": "gemma2:9b",
                 },
             ),
             KilnModelProvider(
                 name=ModelProviderName.openrouter,
+                supports_data_gen=False,
                 provider_options={"model": "google/gemma-2-9b-it"},
             ),
         ],
@@ -438,17 +476,32 @@ built_in_models: List[KilnModel] = [
         providers=[
             KilnModelProvider(
                 name=ModelProviderName.ollama,
+                supports_data_gen=False,
                 provider_options={
                     "model": "gemma2:27b",
                 },
             ),
             KilnModelProvider(
                 name=ModelProviderName.openrouter,
+                supports_data_gen=False,
                 provider_options={"model": "google/gemma-2-27b-it"},
             ),
         ],
     ),
 ]
+
+
+def get_model_and_provider(
+    model_name: str, provider_name: str
+) -> tuple[KilnModel | None, KilnModelProvider | None]:
+    model = next(filter(lambda m: m.name == model_name, built_in_models), None)
+    if model is None:
+        return None, None
+    provider = next(filter(lambda p: p.name == provider_name, model.providers), None)
+    # all or nothing
+    if provider is None or model is None:
+        return None, None
+    return model, provider
 
 
 def provider_name_from_id(id: str) -> str:

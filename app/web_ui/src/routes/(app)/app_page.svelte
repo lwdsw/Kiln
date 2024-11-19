@@ -26,10 +26,10 @@
   <div class="flex flex-col grow">
     <h1 class="text-2xl font-bold">{title}</h1>
     {#if subtitle}
-      <p class="text-lg mt-2">{subtitle}</p>
+      <p class="text-base font-medium mt-1">{subtitle}</p>
     {/if}
     {#if sub_subtitle}
-      <p class="text-sm text-gray-500 mt-1">{sub_subtitle}</p>
+      <p class="text-sm font-light mt-1">{sub_subtitle}</p>
     {/if}
   </div>
   <div class="flex flex-col md:flex-row gap-2">

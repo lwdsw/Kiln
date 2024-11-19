@@ -20,6 +20,7 @@
 - 🚀 **Intuitive Desktop Apps**: Apps for Windows and MacOS. Anyone on your team can contribute to your datasets & feedback to improve quality, without code.
 - 🤝 **Team Collaboration**: Designed for collaboration, with git-based version control for your AI dataset.
 - 📊 **Rapid Evaluation**: Compare various models and data-science techniques with no-code tools.
+- 🤖 **Synthetic Data Generation**: Generate data with our no-code visual tooling.
 - 🔄 **Iterative Improvement**: Continuous dataset improvement with built-in evaluation, RLHF and QA tooling.
 - 🧑‍💻 **Open-Source Library and API**: Our python library and OpenAPI REST API are MIT open source.
 - 🔒 **Privacy-First**: We can't see your data. Bring your own API keys or run locally with Ollama.
@@ -33,7 +34,6 @@ The Kiln desktop app is a free download, available on [MacOS and Windows](https:
 [<img width="190" alt="Download button" src="https://github.com/user-attachments/assets/09874d7a-4873-4bb7-81c8-c3939206dc81">](https://github.com/Kiln-AI/Kiln/releases/latest)
 
 ![Preview of App](https://github.com/user-attachments/assets/65f7a58f-ed96-461a-9c07-1fa5e1dd6b80)
-
 
 ## Install Python Library
 
