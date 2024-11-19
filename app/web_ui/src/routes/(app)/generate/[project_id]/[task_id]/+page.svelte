@@ -107,7 +107,14 @@
   }
 
   function has_unsaved_changes(): boolean {
-    return root_node.samples.length != 0 || root_node.sub_topics.length != 0
+    if (save_all_completed && save_all_sub_errors.length > 0) {
+      return true
+    }
+    update_data_for_save()
+    if (samples_to_save.length > 0) {
+      return true
+    }
+    return false
   }
 
   // Handle browser reload/close: warn if there are unsaved changes
@@ -123,6 +130,16 @@
       if (
         !confirm(
           "You have unsaved changes which will be lost if you leave.\n\n" +
+            "Press Cancel to stay, OK to leave.",
+        )
+      ) {
+        navigation.cancel()
+      }
+    }
+    if (root_node.sub_topics.length > 0) {
+      if (
+        !confirm(
+          "Your topic tree will be lost if you leave.\n\n" +
             "Press Cancel to stay, OK to leave.",
         )
       ) {
