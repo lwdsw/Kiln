@@ -11,6 +11,7 @@
   import { ui_state, projects } from "$lib/stores"
   import { get } from "svelte/store"
   import { client } from "$lib/api_client"
+  import { tick } from "svelte"
 
   // Prevents flash of complete UI if we're going to redirect
   export let redirect_on_created: string | null = "/"
@@ -33,8 +34,9 @@
 
   // Warn before unload if there's any user input
   $: warn_before_unload =
-    [task.name, task.description, task.instruction].some((value) => !!value) ||
-    task.requirements.some((req) => !!req.name || !!req.instruction)
+    !saved &&
+    ([task.name, task.description, task.instruction].some((value) => !!value) ||
+      task.requirements.some((req) => !!req.name || !!req.instruction))
 
   export let target_project_id: string | null = null
   if (!target_project_id) {
@@ -124,13 +126,12 @@
         current_task_id: data.id,
         current_project_id: target_project_id,
       })
+      saved = true
+      // Wait for the saved change to propagate to the warn_before_unload
+      await tick()
       if (redirect_on_created) {
         goto(redirect_on_created)
       }
-      saved = true
-      setTimeout(() => {
-        saved = false
-      }, 2000)
     } catch (e) {
       error = createKilnError(e)
     } finally {

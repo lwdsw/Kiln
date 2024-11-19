@@ -7,7 +7,7 @@
   import { KilnError, createKilnError } from "$lib/utils/error_handlers"
   import { client } from "$lib/api_client"
   import type { Project } from "$lib/types"
-  import { onMount } from "svelte"
+  import { onMount, tick } from "svelte"
 
   let importing = false
   onMount(() => {
@@ -28,9 +28,8 @@
   let submitting = false
   let saved = false
 
-  $: warn_before_unload = [project?.name, project?.description].some(
-    (value) => !!value,
-  )
+  $: warn_before_unload =
+    !saved && [project?.name, project?.description].some((value) => !!value)
 
   function redirect_to_project(project_id: string) {
     goto(redirect_on_created + "/" + project_id)
@@ -84,17 +83,16 @@
       // now reload the projects, which should fetch the new project as current_project
       await load_projects()
       error = null
-      if (redirect_on_created && data?.id) {
-        redirect_to_project(data.id)
-        return
-      }
       if (create) {
         created = true
       }
       saved = true
-      setTimeout(() => {
-        saved = false
-      }, 3000)
+      // Wait for saved to propagate to warn_before_unload
+      await tick()
+      if (redirect_on_created && data?.id) {
+        redirect_to_project(data.id)
+        return
+      }
     } catch (e) {
       error = createKilnError(e)
     } finally {
@@ -123,15 +121,14 @@
       }
 
       await load_projects()
+      created = true
+      saved = true
+      // Wait for saved to propagate to warn_before_unload
+      await tick()
       if (redirect_on_created && data?.id) {
         redirect_to_project(data.id)
         return
       }
-      created = true
-      saved = true
-      setTimeout(() => {
-        saved = false
-      }, 3000)
     } catch (e) {
       error = createKilnError(e)
     } finally {

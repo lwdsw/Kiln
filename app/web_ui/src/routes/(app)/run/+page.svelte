@@ -12,7 +12,7 @@
   import RunInputForm from "./run_input_form.svelte"
 
   // TODO: implement checking input content
-  let warn_before_unload = false
+  // let warn_before_unload
   // TODO UI for errors
   let error: KilnError | null = null
   let submitting = false
@@ -103,7 +103,6 @@
         <FormContainer
           submit_label="Run"
           on:submit={run_task}
-          bind:warn_before_unload
           bind:error
           bind:submitting
           bind:primary={run_focus}

@@ -13,6 +13,17 @@
   export let submitting = false
   export let saved = false
   export let keyboard_submit = true
+  $: ui_saved_indicator = update_ui_saved_indicator(saved)
+
+  function update_ui_saved_indicator(saved: boolean): boolean {
+    // Turn off the UI indicator after a short delay
+    if (saved) {
+      setTimeout(() => {
+        ui_saved_indicator = false
+      }, 3000)
+    }
+    return saved
+  }
 
   async function focus_field(field: string) {
     // Async as the forms validation is also trying to set focus and we want to win
@@ -102,6 +113,13 @@
   }
   // Handle Svelte navigation: warn if there are unsaved changes
   beforeNavigate((navigation) => {
+    // check for same URL. Don't want to warn if just changing query params
+    if (
+      navigation?.to?.url?.pathname &&
+      navigation?.to?.url?.pathname === navigation?.from?.url?.pathname
+    ) {
+      return
+    }
     if (warn_before_unload) {
       if (
         !confirm(
@@ -158,13 +176,13 @@
     {/if}
     <button
       type="submit"
-      class="relative btn {primary ? 'btn-primary' : ''} {saved
+      class="relative btn {primary ? 'btn-primary' : ''} {ui_saved_indicator
         ? 'btn-success'
         : ''}"
       on:click={validate_and_submit}
       disabled={submitting}
     >
-      {#if saved}
+      {#if ui_saved_indicator}
         ✔ Saved
       {:else if !submitting}
         {submit_label}
