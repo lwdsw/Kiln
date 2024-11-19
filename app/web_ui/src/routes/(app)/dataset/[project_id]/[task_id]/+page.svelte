@@ -16,6 +16,7 @@
     | keyof TaskRun
     | "rating"
     | "inputPreview"
+    | "source"
     | "outputPreview"
     | "model"
     | "repairState"
@@ -28,6 +29,7 @@
   const columns = [
     { key: "rating", label: "Rating" },
     { key: "repairState", label: "Repair State" },
+    { key: "source", label: "Source" },
     { key: "model", label: "Model" },
     { key: "created_at", label: "Created At" },
     { key: "inputPreview", label: "Input Preview" },
@@ -138,6 +140,10 @@
         aValue = a.output.rating?.value ?? -1
         bValue = b.output.rating?.value ?? -1
         break
+      case "source":
+        aValue = a.input_source?.type ?? ""
+        bValue = b.input_source?.type ?? ""
+        break
       case "inputPreview":
         aValue = (a.input ?? "").toLowerCase()
         bValue = (b.input ?? "").toLowerCase()
@@ -245,6 +251,10 @@
                   : "Unrated"}
               </td>
               <td>{formatRepairState(run)}</td>
+              <td
+                >{run.input_source?.type.charAt(0).toUpperCase() +
+                  run.input_source?.type.slice(1)}</td
+              >
               <td>
                 {model_name(
                   run.output?.source?.properties["model_name"],

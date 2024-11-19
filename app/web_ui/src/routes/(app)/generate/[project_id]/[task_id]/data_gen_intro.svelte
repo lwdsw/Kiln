@@ -1,4 +1,4 @@
-<div class="flex flex-col gap-6 max-w-[300px] font-light text-sm">
+<div class="flex flex-col gap-6 max-w-[300px] font-light">
   <div>
     Creating a topic tree can help you generate a breadth of topics and data:
   </div>

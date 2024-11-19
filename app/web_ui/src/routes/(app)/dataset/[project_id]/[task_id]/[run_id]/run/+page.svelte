@@ -22,7 +22,11 @@
   $: {
     model_props = Object.fromEntries(
       Object.entries({
-        Model: model_name(
+        "Input Source":
+          "" +
+          run?.input_source?.type.charAt(0).toUpperCase() +
+          run?.input_source?.type.slice(1),
+        "Output Model": model_name(
           "" + run?.output?.source?.properties?.model_name,
           $model_info,
         ),
