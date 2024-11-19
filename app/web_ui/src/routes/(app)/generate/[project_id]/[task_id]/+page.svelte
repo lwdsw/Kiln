@@ -135,8 +135,7 @@
       ) {
         navigation.cancel()
       }
-    }
-    if (root_node.sub_topics.length > 0) {
+    } else if (root_node.sub_topics.length > 0) {
       if (
         !confirm(
           "Your topic tree will be lost if you leave.\n\n" +

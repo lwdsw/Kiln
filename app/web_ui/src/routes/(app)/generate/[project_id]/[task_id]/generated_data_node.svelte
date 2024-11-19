@@ -26,6 +26,9 @@
   function toggleExpand(index: number) {
     expandedSamples[index] = !expandedSamples[index]
   }
+  function collapseAll() {
+    expandedSamples = new Array(data.samples.length).fill(false)
+  }
 
   function formatExpandedSample(sample: SampleData): string {
     // If JSON, pretty format it
@@ -302,6 +305,7 @@
 
   function delete_sample(sample_to_delete: SampleData) {
     data.samples = data.samples.filter((s) => s !== sample_to_delete)
+    collapseAll()
 
     // Trigger reactivity
     data = data
@@ -339,7 +343,7 @@
   </div>
 {:else}
   <div
-    class="data-row bg-base-200 font-medium flex flex-row pr-2 border-b-2 border-base-100"
+    class="data-row-collapsed bg-base-200 font-medium flex flex-row pr-4 border-b-2 border-base-100"
     style="padding-left: {(depth - 1) * 25 + 20}px"
   >
     <div class="flex-1 py-1">
@@ -365,18 +369,22 @@
   {#each data.samples as sample, index}
     <div
       style="padding-left: {depth * 25 + 20}px"
-      class="data-row flex flex-row items-center border-b-2 border-base-200"
+      class="{expandedSamples[index]
+        ? 'data-row-expanded'
+        : 'data-row-collapsed'} data-row flex flex-row items-center border-b-2 border-base-200"
     >
-      <div class="flex-1 font-mono text-sm overflow-hidden py-2">
+      <button
+        on:click={() => toggleExpand(index)}
+        class="w-full block text-left flex-1 font-mono text-sm overflow-hidden py-2"
+      >
         {#if expandedSamples[index]}
           <pre class="whitespace-pre-wrap">{formatExpandedSample(sample)}</pre>
         {:else}
           <div class="truncate w-0 min-w-full">{sample.input}</div>
         {/if}
-      </div>
+      </button>
       <div
-        class="hover-action flex
-        flex-row text-sm gap-x-4 gap-y-1 text-gray-500 font-light px-4"
+        class="hover-action flex flex-row text-sm gap-x-4 gap-y-1 text-gray-500 font-light px-4"
         style={expandedSamples[index] ? "display: flex" : ""}
       >
         <button class="link flex" on:click={() => toggleExpand(index)}>
@@ -518,11 +526,11 @@
 {/if}
 
 <style>
-  .data-row .hover-action {
+  .data-row-collapsed .hover-action {
     display: none;
     visibility: hidden;
   }
-  .data-row:hover .hover-action {
+  .data-row-collapsed:hover .hover-action {
     display: flex;
     visibility: visible;
   }
