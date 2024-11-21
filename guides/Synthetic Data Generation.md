@@ -41,6 +41,8 @@ Kiln synthetic data generation is designed to be used in our interactive UI.
 
 As you work, delete topics or examples that don't match your goals, and regenerate the data until you're happy with the results. Adding human guidance can help with this process.
 
+[<img width="190" alt="Download button" src="https://github.com/user-attachments/assets/09874d7a-4873-4bb7-81c8-c3939206dc81">](https://github.com/Kiln-AI/Kiln/releases/latest)
+
 ### Structured Data Generation (JSON, tool calling)
 
 If your task requires structured input and/or output, your synthetic data generation will automatically follow the schemas you defined. All values are validated against the schemas you define, and nothing will be saved into your dataset if they don't comply.
