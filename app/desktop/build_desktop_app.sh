@@ -36,7 +36,7 @@ elif [ "$(uname)" == "Linux" ]; then
   echo "Building Linux App"
   cp desktop/win_taskbar.png desktop/build/taskbar.png
   cp desktop/win_icon.png desktop/build/icon.png
-  PLATFORM_OPTS="--windowed"
+  PLATFORM_OPTS="--windowed --onefile"
 else
   echo "Unsupported operating system: $(uname)"
   exit 1
