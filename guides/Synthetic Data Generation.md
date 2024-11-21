@@ -1,16 +1,20 @@
 # Synthetic Data Generation - Kiln AI 
 
-[Kiln](https://getkiln.ai) can generate synthetic data for your tasks. This can be used to grow your dataset, which is helpful for many reasons:
+[Kiln](https://getkiln.ai) can generate synthetic data for your tasks. 
+
+## Video Walkthrough
+
+<img src="https://github.com/user-attachments/assets/eab36818-2c88-4e52-ac39-a71c40e5cc79" width="520"/>
+
+## Use Cases
+
+Synthetic data is helpful for many reasons:
 
 - To generate a dataset for fine-tuning
 - To generate examples to be used for few-shot or multi-shot prompting
 - To test your task in a controlled environment
 - To generate eval datasets
-- To generate targeted data to reproduce a bug/issue, which can be used for training, evaluating a fix, and backtesting
-
-## Video Walkthrough
-
-<img src="https://github.com/user-attachments/assets/eab36818-2c88-4e52-ac39-a71c40e5cc79" width="520"/>
+- To generate targeted data to reproduce a bug/issue, which can be used for training a fix, evaluating a fix, and backtesting
 
 ## How it works
 
