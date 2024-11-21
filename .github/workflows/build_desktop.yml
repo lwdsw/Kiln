@@ -10,7 +10,14 @@ jobs:
       fail-fast: false
       matrix:
         # macos-latest is for arm64 build, macos-13 is for x86_64
-        os: ["windows-latest", "macos-latest", "macos-13", "ubuntu-latest"]
+        include:
+          - os: windows-latest
+          - os: macos-latest # arm64
+          - os: macos-13 # x86_64
+          - os: ubuntu-latest
+            arch: x64
+          - os: ubuntu-latest
+            arch: arm64
 
     steps:
       - uses: actions/checkout@v4
