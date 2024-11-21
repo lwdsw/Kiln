@@ -27,7 +27,7 @@ if [ "$(uname)" == "Darwin" ]; then
 
   PY_PLAT=$(python -c 'import platform; print(platform.machine())')
   echo "Building MacOS app for single platform ($PY_PLAT)"
-elif [ "$(uname)" == "MINGW64_NT-10.0" ] || [ "$(uname)" == "CYGWIN_NT-10.0" ] || [ "$(uname)" == "MSYS_NT-10.0" ]; then
+elif [[ "$(uname)" =~ ^MINGW64_NT-10.0 ]] || [[ "$(uname)" =~ ^MSYS_NT-10.0 ]]; then
   echo "Building Windows App"
   cp desktop/win_taskbar.png desktop/build/taskbar.png
   cp desktop/win_icon.png desktop/build/icon.png
