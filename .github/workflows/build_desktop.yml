@@ -10,7 +10,7 @@ jobs:
       fail-fast: false
       matrix:
         # macos-latest is for arm64 build, macos-13 is for x86_64
-        os: ["windows-latest", "macos-latest", "macos-13"]
+        os: ["windows-latest", "macos-latest", "macos-13", "ubuntu-latest"]
 
     steps:
       - uses: actions/checkout@v4
@@ -34,7 +34,7 @@ jobs:
         run: uv sync
 
       # Compress MacOS app param ignored on Windows
-      - run: uv run sh ./app/desktop/build_desktop_app.sh --compress-mac-app
+      - run: uv run bash ./app/desktop/build_desktop_app.sh --compress-mac-app
       - uses: actions/upload-artifact@v4
         with:
           name: kiln-desktop-${{ runner.os }}-${{ runner.arch }}
