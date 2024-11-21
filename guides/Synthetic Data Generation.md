@@ -1,6 +1,6 @@
 # Synthetic Data Generation - Kiln AI 
 
-Kiln can generate synthetic data for your tasks. This can be used to grow your dataset, which is helpful for many reasons:
+[Kiln](https://getkiln.ai) can generate synthetic data for your tasks. This can be used to grow your dataset, which is helpful for many reasons:
 
 - To generate a dataset for fine-tuning
 - To generate examples to be used for few-shot or multi-shot prompting
@@ -95,3 +95,7 @@ You can consume your dataset in a few different ways:
 ## Synthetic Data Generation From Code
 
 Kiln includes a python library for data generation, which can be used to generate data from code. See our [python library docs](https://kiln-ai.github.io/Kiln/kiln_core_docs/kiln_ai/adapters/data_gen/data_gen_task.html) for more information.
+
+# Get Started
+
+See our [main Github Readme](https://github.com/Kiln-AI/Kiln?tab=readme-ov-file#readme) for more information on how to get started with Kiln.
