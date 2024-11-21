@@ -10,6 +10,9 @@ Kiln can generate synthetic data for your tasks. This can be used to grow your d
 
 ## Video Walkthrough
 
+<img src="https://github.com/user-attachments/assets/eab36818-2c88-4e52-ac39-a71c40e5cc79" width="520"/>
+
+
 ## How it works
 
 ### Zero-Shot Data Generation
