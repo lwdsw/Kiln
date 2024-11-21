@@ -12,7 +12,6 @@ Kiln can generate synthetic data for your tasks. This can be used to grow your d
 
 <img src="https://github.com/user-attachments/assets/eab36818-2c88-4e52-ac39-a71c40e5cc79" width="520"/>
 
-
 ## How it works
 
 ### Zero-Shot Data Generation
@@ -79,6 +78,9 @@ The dataset format is designed to be Git friendly, including:
 Kiln includes a rating interface for rating dataset entries. This can be used to score the quality of the generated data, or to score the quality of a model.
 
 Only highly rated data will be used for features like multi-shot prompting.
+
+<img width="337" alt="rating UI" src="https://github.com/user-attachments/assets/6872d5ad-18ad-46f3-9091-2e26741cb852">
+
 
 ## Consuming Your Dataset
 
