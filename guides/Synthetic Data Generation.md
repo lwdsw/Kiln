@@ -1,4 +1,4 @@
-# Kiln AI Synthetic Data Generation
+# Synthetic Data Generation - Kiln AI 
 
 Kiln can generate synthetic data for your tasks. This can be used to grow your dataset, which is helpful for many reasons:
 
