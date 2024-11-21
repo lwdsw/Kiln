@@ -14,10 +14,7 @@ jobs:
           - os: windows-latest
           - os: macos-latest # arm64
           - os: macos-13 # x86_64
-          - os: ubuntu-latest
-            arch: x64
-          - os: ubuntu-latest
-            arch: arm64
+          - os: ubuntu-latest # x86_64 (no arm64 support on GH Actions yet)
 
     steps:
       - uses: actions/checkout@v4
