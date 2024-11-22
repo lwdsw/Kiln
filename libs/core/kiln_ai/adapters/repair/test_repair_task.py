@@ -60,7 +60,7 @@ json_joke_schema = """{
 
 @pytest.fixture
 def sample_task(tmp_path):
-    task_path = tmp_path / "task.json"
+    task_path = tmp_path / "task.kiln"
     task = Task(
         name="Joke Generator",
         path=task_path,

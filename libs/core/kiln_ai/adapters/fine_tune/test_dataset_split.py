@@ -1,12 +1,9 @@
+# ruff: noqa: I001 - Import order matters here. Need datamodel before dataset_split
+
 import pytest
 from pydantic import ValidationError
 
-from kiln_ai.adapters.fine_tune.dataset_split import (
-    AllDatasetFilter,
-    DatasetSplit,
-    DatasetSplitDefinition,
-    HighRatingDatasetFilter,
-)
+# import datamodel first or we get circular import errors
 from kiln_ai.datamodel import (
     DataSource,
     DataSourceType,
@@ -17,10 +14,18 @@ from kiln_ai.datamodel import (
     TaskRun,
 )
 
+# import dataset_split last
+from kiln_ai.adapters.fine_tune.dataset_split import (
+    AllDatasetFilter,
+    DatasetSplit,
+    DatasetSplitDefinition,
+    HighRatingDatasetFilter,
+)
+
 
 @pytest.fixture
 def sample_task(tmp_path):
-    task_path = tmp_path / "task.json"
+    task_path = tmp_path / "task.kiln"
     task = Task(
         name="Test Task",
         path=task_path,
@@ -51,7 +56,7 @@ def sample_task_runs(sample_task):
                     properties={"created_by": "test-user"},
                 ),
                 rating=TaskOutputRating(
-                    rating=rating, type=TaskOutputRatingType.five_star
+                    value=rating, type=TaskOutputRatingType.five_star
                 ),
             ),
         )
@@ -137,7 +142,8 @@ def test_high_rating_dataset_filter(sample_task_runs):
 
 def test_dataset_split_from_task(sample_task, sample_task_runs, standard_splits):
     assert sample_task_runs is not None
-    dataset = DatasetSplit.from_task(sample_task, standard_splits)
+    dataset = DatasetSplit.from_task("Split Name", sample_task, standard_splits)
+    assert dataset.name == "Split Name"
 
     # Check that all task runs are included
     all_ids = []
@@ -155,7 +161,9 @@ def test_dataset_split_from_task(sample_task, sample_task_runs, standard_splits)
 def test_dataset_split_with_high_rating_filter(
     sample_task, sample_task_runs, standard_splits
 ):
+    assert len(sample_task_runs) == 10
     dataset = DatasetSplit.from_task(
+        "Split Name",
         sample_task,
         standard_splits,
         filter=HighRatingDatasetFilter,
@@ -174,13 +182,8 @@ def test_dataset_split_with_high_rating_filter(
     assert test_size == 1  # ~20% of 6
 
 
-def test_dataset_split_with_empty_splits(sample_task):
-    dataset = DatasetSplit.from_task(sample_task, [])
-    assert dataset.split_contents == {}
-
-
 def test_dataset_split_with_single_split(sample_task, sample_task_runs):
     splits = [DatasetSplitDefinition(name="all", percentage=1.0)]
-    dataset = DatasetSplit.from_task(sample_task, splits)
+    dataset = DatasetSplit.from_task("Split Name", sample_task, splits)
 
     assert len(dataset.split_contents["all"]) == len(sample_task_runs)

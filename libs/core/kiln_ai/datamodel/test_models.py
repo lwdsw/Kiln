@@ -27,7 +27,7 @@ def test_project_file(tmp_path):
 
 @pytest.fixture
 def test_task_file(tmp_path):
-    test_file_path = tmp_path / "task.json"
+    test_file_path = tmp_path / "task.kiln"
     data = {
         "v": 1,
         "name": "Test Task",

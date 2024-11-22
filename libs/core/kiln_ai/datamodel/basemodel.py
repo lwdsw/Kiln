@@ -116,6 +116,7 @@ class KilnBaseModel(BaseModel):
 
         Raises:
             ValueError: If the loaded model is not of the expected type or version
+            FileNotFoundError: If the file does not exist
         """
         with open(path, "r") as file:
             file_data = file.read()

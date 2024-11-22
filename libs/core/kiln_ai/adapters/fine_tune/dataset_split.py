@@ -23,6 +23,12 @@ def HighRatingDatasetFilter(task_run: "TaskRun") -> bool:
 
 
 class DatasetSplitDefinition(BaseModel):
+    """
+    A definition of a split in a dataset.
+
+    Example: name="train", description="The training set", percentage=0.8 (80% of the dataset)
+    """
+
     name: str = NAME_FIELD
     description: str | None = Field(
         default=None,
@@ -66,12 +72,20 @@ class DatasetSplit(KilnParentedModel):
     @classmethod
     def from_task(
         cls,
+        name: str,
         task: "Task",
         splits: list[DatasetSplitDefinition],
         filter: DatasetFilter = AllDatasetFilter,
+        description: str | None = None,
     ):
         split_contents = cls.build_split_contents(task, splits, filter)
-        return cls(parent=task, splits=splits, split_contents=split_contents)
+        return cls(
+            parent=task,
+            name=name,
+            description=description,
+            splits=splits,
+            split_contents=split_contents,
+        )
 
     @classmethod
     def build_split_contents(
