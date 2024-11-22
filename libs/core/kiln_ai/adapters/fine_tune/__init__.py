@@ -4,6 +4,10 @@
 A set of classes for fine-tuning models.
 """
 
-from . import dataset_split
+import sys
 
-__all__ = ["dataset_split"]
+# Avoid circular import since we use datamodel in some tests
+if "pytest" not in sys.modules:
+    from . import dataset_split
+
+    __all__ = ["dataset_split"]

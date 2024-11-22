@@ -20,6 +20,9 @@ from kiln_ai.adapters.fine_tune.dataset_split import (
     DatasetSplit,
     DatasetSplitDefinition,
     HighRatingDatasetFilter,
+    Train80Test20SplitDefinition,
+    AllSplitDefinition,
+    Train60Test20Val20SplitDefinition,
 )
 
 
@@ -66,7 +69,7 @@ def sample_task_runs(sample_task):
 
 
 @pytest.fixture
-def standard_splits():
+def standard_splitstandard_splitss():
     return [
         DatasetSplitDefinition(name="train", percentage=0.8),
         DatasetSplitDefinition(name="test", percentage=0.2),
@@ -140,32 +143,42 @@ def test_high_rating_dataset_filter(sample_task_runs):
         )
 
 
-def test_dataset_split_from_task(sample_task, sample_task_runs, standard_splits):
+@pytest.mark.parametrize(
+    "splits,expected_sizes",
+    [
+        (Train80Test20SplitDefinition, {"train": 8, "test": 2}),
+        (AllSplitDefinition, {"all": 10}),
+        (Train60Test20Val20SplitDefinition, {"train": 6, "test": 2, "val": 2}),
+        (
+            [
+                DatasetSplitDefinition(name="train", percentage=0.7),
+                DatasetSplitDefinition(name="validation", percentage=0.2),
+                DatasetSplitDefinition(name="test", percentage=0.1),
+            ],
+            {"train": 7, "validation": 2, "test": 1},
+        ),
+    ],
+)
+def test_dataset_split_from_task(sample_task, sample_task_runs, splits, expected_sizes):
     assert sample_task_runs is not None
-    dataset = DatasetSplit.from_task("Split Name", sample_task, standard_splits)
+    dataset = DatasetSplit.from_task("Split Name", sample_task, splits)
     assert dataset.name == "Split Name"
 
-    # Check that all task runs are included
-    all_ids = []
-    for ids in dataset.split_contents.values():
-        all_ids.extend(ids)
-    assert len(all_ids) == len(sample_task_runs)
+    # Check split sizes match expected
+    for split_name, expected_size in expected_sizes.items():
+        assert len(dataset.split_contents[split_name]) == expected_size
 
-    # Check split proportions
-    train_size = len(dataset.split_contents["train"])
-    test_size = len(dataset.split_contents["test"])
-    assert train_size == 8  # 80% of 10
-    assert test_size == 2  # 20% of 10
+    # Verify total size matches input size
+    total_size = sum(len(ids) for ids in dataset.split_contents.values())
+    assert total_size == len(sample_task_runs)
 
 
-def test_dataset_split_with_high_rating_filter(
-    sample_task, sample_task_runs, standard_splits
-):
+def test_dataset_split_with_high_rating_filter(sample_task, sample_task_runs):
     assert len(sample_task_runs) == 10
     dataset = DatasetSplit.from_task(
         "Split Name",
         sample_task,
-        standard_splits,
+        Train80Test20SplitDefinition,
         filter=HighRatingDatasetFilter,
     )
 

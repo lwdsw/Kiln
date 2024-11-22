@@ -41,6 +41,20 @@ class DatasetSplitDefinition(BaseModel):
     )
 
 
+AllSplitDefinition: list[DatasetSplitDefinition] = [
+    DatasetSplitDefinition(name="all", percentage=1.0)
+]
+Train80Test20SplitDefinition: list[DatasetSplitDefinition] = [
+    DatasetSplitDefinition(name="train", percentage=0.8),
+    DatasetSplitDefinition(name="test", percentage=0.2),
+]
+Train60Test20Val20SplitDefinition: list[DatasetSplitDefinition] = [
+    DatasetSplitDefinition(name="train", percentage=0.6),
+    DatasetSplitDefinition(name="test", percentage=0.2),
+    DatasetSplitDefinition(name="val", percentage=0.2),
+]
+
+
 class DatasetSplit(KilnParentedModel):
     """
     A collection of task runs, with optional splits (train, test, validation)
