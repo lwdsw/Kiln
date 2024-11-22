@@ -200,3 +200,41 @@ def test_dataset_split_with_single_split(sample_task, sample_task_runs):
     dataset = DatasetSplit.from_task("Split Name", sample_task, splits)
 
     assert len(dataset.split_contents["all"]) == len(sample_task_runs)
+
+
+def test_missing_count(sample_task, sample_task_runs):
+    assert sample_task_runs is not None
+    # Create a dataset split with all task runs
+    dataset = DatasetSplit.from_task(
+        "Split Name", sample_task, Train80Test20SplitDefinition
+    )
+
+    # Initially there should be no missing runs
+    assert dataset.missing_count() == 0
+
+    # Add some IDs to the split, that aren't on disk
+    dataset.split_contents["test"].append("1")
+    dataset.split_contents["test"].append("2")
+    dataset.split_contents["test"].append("3")
+    # shouldn't happen, but should not double count if it does
+    dataset.split_contents["train"].append("3")
+
+    # Now we should have 3 missing runs
+    assert dataset.missing_count() == 3
+
+
+def test_smaller_sample(sample_task, sample_task_runs):
+    assert sample_task_runs is not None
+    # Create a dataset split with all task runs
+    dataset = DatasetSplit.from_task(
+        "Split Name", sample_task, Train80Test20SplitDefinition
+    )
+
+    # Initially there should be no missing runs
+    assert dataset.missing_count() == 0
+
+    dataset.split_contents["test"].pop()
+    dataset.split_contents["train"].pop()
+
+    # Now we should have 0 missing runs. It's okay that dataset has newer data.
+    assert dataset.missing_count() == 0

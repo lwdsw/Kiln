@@ -131,3 +131,18 @@ class DatasetSplit(KilnParentedModel):
             split_contents[splits[-1].name] = valid_ids[start_idx:]
 
         return split_contents
+
+    def missing_count(self) -> int:
+        """
+        Returns:
+            int: the number of task runs that have an ID persisted in this dataset split, but no longer exist in the dataset
+        """
+        if TYPE_CHECKING and not isinstance(self.parent, Task):
+            raise ValueError("DatasetSplit has no parent task")
+        runs = self.parent.runs()
+        all_ids = set(run.id for run in runs)
+        all_ids_in_splits = set()
+        for ids in self.split_contents.values():
+            all_ids_in_splits.update(ids)
+        missing = all_ids_in_splits - all_ids
+        return len(missing)
