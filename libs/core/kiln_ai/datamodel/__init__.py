@@ -9,11 +9,14 @@ import jsonschema.exceptions
 from pydantic import BaseModel, Field, model_validator
 from typing_extensions import Self
 
+from kiln_ai.adapters.fine_tune.dataset_split import DatasetSplit
 from kiln_ai.datamodel.json_schema import JsonObjectSchema, schema_from_json_str
 
 from .basemodel import (
     ID_FIELD,
     ID_TYPE,
+    NAME_FIELD,
+    SHORT_NAME_FIELD,
     KilnBaseModel,
     KilnParentedModel,
     KilnParentModel,
@@ -40,26 +43,6 @@ __all__ = [
     "TaskRequirement",
     "TaskDeterminism",
 ]
-
-
-# Conventions:
-# 1) Names are filename safe as they may be used as file names. They are informational and not to be used in prompts/training/validation.
-# 2) Descrptions are for Kiln users to describe/understanding the purpose of this object. They must never be used in prompts/training/validation. Use "instruction/requirements" instead.
-
-# Filename compatible names
-NAME_REGEX = r"^[A-Za-z0-9 _-]+$"
-NAME_FIELD = Field(
-    min_length=1,
-    max_length=120,
-    pattern=NAME_REGEX,
-    description="A name for this entity.",
-)
-SHORT_NAME_FIELD = Field(
-    min_length=1,
-    max_length=32,
-    pattern=NAME_REGEX,
-    description="A name for this entity",
-)
 
 
 class Priority(IntEnum):
@@ -376,7 +359,7 @@ class TaskDeterminism(str, Enum):
 class Task(
     KilnParentedModel,
     KilnParentModel,
-    parent_of={"runs": TaskRun},
+    parent_of={"runs": TaskRun, "dataset_splits": DatasetSplit},
 ):
     """
     Represents a specific task to be performed, with associated requirements and validation rules.

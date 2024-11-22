@@ -38,6 +38,25 @@ ID_TYPE = Optional[str]
 T = TypeVar("T", bound="KilnBaseModel")
 PT = TypeVar("PT", bound="KilnParentedModel")
 
+# Naming conventions:
+# 1) Names are filename safe as they may be used as file names. They are informational and not to be used in prompts/training/validation.
+# 2) Descrptions are for Kiln users to describe/understanding the purpose of this object. They must never be used in prompts/training/validation. Use "instruction/requirements" instead.
+
+# Filename compatible names
+NAME_REGEX = r"^[A-Za-z0-9 _-]+$"
+NAME_FIELD = Field(
+    min_length=1,
+    max_length=120,
+    pattern=NAME_REGEX,
+    description="A name for this entity.",
+)
+SHORT_NAME_FIELD = Field(
+    min_length=1,
+    max_length=32,
+    pattern=NAME_REGEX,
+    description="A name for this entity",
+)
+
 
 class KilnBaseModel(BaseModel):
     """Base model for all Kiln data models with common functionality for persistence and versioning.
