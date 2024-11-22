@@ -9,6 +9,7 @@ import jsonschema.exceptions
 from pydantic import BaseModel, Field, model_validator
 from typing_extensions import Self
 
+from kiln_ai.adapters.fine_tune.base_finetune import BaseFinetune
 from kiln_ai.adapters.fine_tune.dataset_split import DatasetSplit
 from kiln_ai.datamodel.json_schema import JsonObjectSchema, schema_from_json_str
 
@@ -359,7 +360,11 @@ class TaskDeterminism(str, Enum):
 class Task(
     KilnParentedModel,
     KilnParentModel,
-    parent_of={"runs": TaskRun, "dataset_splits": DatasetSplit},
+    parent_of={
+        "runs": TaskRun,
+        "dataset_splits": DatasetSplit,
+        "finetunes": BaseFinetune,
+    },
 ):
     """
     Represents a specific task to be performed, with associated requirements and validation rules.

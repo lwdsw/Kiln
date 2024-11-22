@@ -132,14 +132,24 @@ class DatasetSplit(KilnParentedModel):
 
         return split_contents
 
+    def parent_task(self) -> "Task | None":
+        # inline import to avoid circular import
+        from kiln_ai.datamodel import Task
+
+        if not isinstance(self.parent, Task):
+            return None
+        return self.parent
+
     def missing_count(self) -> int:
         """
         Returns:
             int: the number of task runs that have an ID persisted in this dataset split, but no longer exist in the dataset
         """
-        if TYPE_CHECKING and not isinstance(self.parent, Task):
+        parent = self.parent_task()
+        if parent is None:
             raise ValueError("DatasetSplit has no parent task")
-        runs = self.parent.runs()
+
+        runs = parent.runs()
         all_ids = set(run.id for run in runs)
         all_ids_in_splits = set()
         for ids in self.split_contents.values():
