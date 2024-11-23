@@ -52,13 +52,14 @@ def sample_task(tmp_path):
 @pytest.fixture
 def basic_finetune(sample_task):
     return MockFinetune(
-        model=FinetuneModel(
+        datamodel=FinetuneModel(
             parent=sample_task,
             name="test_finetune",
             provider="test_provider",
             provider_id="model_1234",
             base_model_id="test_model",
         ),
+        train_split_name="train",
     )
 
 

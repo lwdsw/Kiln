@@ -22,7 +22,7 @@ class OpenAIFinetune(BaseFinetuneAdapter):
     """
 
     def status(self) -> FineTuneStatus:
-        if not self.model or not self.model.provider_id:
+        if not self.datamodel or not self.datamodel.provider_id:
             return FineTuneStatus(
                 status=FineTuneStatusType.pending,
                 message="This fine-tune has not been started or has not been assigned a provider ID.",
@@ -30,7 +30,7 @@ class OpenAIFinetune(BaseFinetuneAdapter):
 
         try:
             # Will raise an error if the job is not found, or for other issues
-            response = oai_client.fine_tuning.jobs.retrieve(self.model.provider_id)
+            response = oai_client.fine_tuning.jobs.retrieve(self.datamodel.provider_id)
         except openai.APIConnectionError:
             return FineTuneStatus(
                 status=FineTuneStatusType.unknown, message="Server connection error"

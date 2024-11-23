@@ -14,12 +14,13 @@ from kiln_ai.utils.config import Config
 @pytest.fixture
 def openai_finetune():
     finetune = OpenAIFinetune(
-        model=FinetuneModel(
+        datamodel=FinetuneModel(
             name="test-finetune",
             provider="openai",
             provider_id="openai-123",
             base_model_id="gpt-4o",
         ),
+        train_split_name="train",
     )
     return finetune
 
