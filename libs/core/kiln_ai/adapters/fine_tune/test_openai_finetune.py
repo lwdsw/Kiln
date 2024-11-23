@@ -93,35 +93,29 @@ def test_status_api_errors(
 
 
 @pytest.mark.parametrize(
-    "job_status,finished_at,estimated_finish,expected_status,message_contains",
+    "job_status,expected_status,message_contains",
     [
-        ("failed", None, None, FineTuneStatusType.failed, "Job failed"),
-        ("cancelled", None, None, FineTuneStatusType.failed, "Job cancelled"),
-        ("succeeded", time.time(), None, FineTuneStatusType.completed, "Job completed"),
-        ("running", None, None, FineTuneStatusType.running, "Job is still running"),
-        ("queued", None, None, FineTuneStatusType.running, "Job is still running"),
+        ("failed", FineTuneStatusType.failed, "Job failed"),
+        ("cancelled", FineTuneStatusType.failed, "Job cancelled"),
+        ("succeeded", FineTuneStatusType.completed, "Job completed"),
+        ("running", FineTuneStatusType.running, "Job is still running"),
+        ("queued", FineTuneStatusType.running, "Job is still running"),
         (
             "validating_files",
-            None,
-            None,
             FineTuneStatusType.running,
             "Job is still running",
         ),
-        ("unknown_status", None, None, FineTuneStatusType.unknown, "Unknown status"),
+        ("unknown_status", FineTuneStatusType.unknown, "Unknown status"),
     ],
 )
 def test_status_job_states(
     openai_finetune,
     mock_response,
     job_status,
-    finished_at,
-    estimated_finish,
     expected_status,
     message_contains,
 ):
     mock_response.status = job_status
-    mock_response.finished_at = finished_at
-    mock_response.estimated_finish = estimated_finish
 
     with patch(
         "kiln_ai.adapters.fine_tune.openai_finetune.oai_client.fine_tuning.jobs.retrieve",
