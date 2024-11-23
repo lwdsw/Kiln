@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import TYPE_CHECKING, Literal
 
-from pydantic import Field
+from pydantic import BaseModel, Field
 
 from kiln_ai.datamodel.basemodel import NAME_FIELD, KilnParentedModel
 
@@ -11,11 +11,21 @@ if TYPE_CHECKING:
     from kiln_ai.datamodel import Task
 
 
-class FineTuneStatus(str, Enum):
+class FineTuneStatusType(str, Enum):
+    """
+    The status of a fine-tune.
+    """
+
+    unknown = "unknown"  # server error
     pending = "pending"
     running = "running"
     completed = "completed"
     failed = "failed"
+
+
+class FineTuneStatus(BaseModel):
+    status: FineTuneStatusType
+    message: str | None = None
 
 
 @dataclass

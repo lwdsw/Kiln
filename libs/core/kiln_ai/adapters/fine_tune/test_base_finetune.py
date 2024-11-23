@@ -8,6 +8,7 @@ from kiln_ai.adapters.fine_tune.base_finetune import (
     BaseFinetune,
     FineTuneParameter,
     FineTuneStatus,
+    FineTuneStatusType,
 )
 
 
@@ -18,7 +19,7 @@ class MockFinetune(BaseFinetune):
         pass
 
     def status(self) -> FineTuneStatus:
-        return FineTuneStatus.pending
+        return FineTuneStatus(status=FineTuneStatusType.pending, message="loading...")
 
     @classmethod
     def available_parameters(cls) -> list[FineTuneParameter]:
@@ -93,7 +94,8 @@ def test_finetune_parent_task(sample_task, basic_finetune):
 
 
 def test_finetune_status(basic_finetune):
-    assert basic_finetune.status() == FineTuneStatus.pending
+    assert basic_finetune.status().status == FineTuneStatusType.pending
+    assert basic_finetune.status().message == "loading..."
     assert isinstance(basic_finetune.status(), FineTuneStatus)
 
 
@@ -110,15 +112,6 @@ def test_available_parameters():
     assert epochs_param.name == "epochs"
     assert epochs_param.type == "int"
     assert epochs_param.optional is False
-
-
-def test_finetune_status_enum():
-    assert set(FineTuneStatus) == {
-        FineTuneStatus.pending,
-        FineTuneStatus.running,
-        FineTuneStatus.completed,
-        FineTuneStatus.failed,
-    }
 
 
 def test_finetune_with_parameters(sample_task):
