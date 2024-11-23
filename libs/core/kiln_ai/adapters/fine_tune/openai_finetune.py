@@ -17,6 +17,10 @@ oai_client = openai.OpenAI(
 
 
 class OpenAIFinetune(BaseFinetuneAdapter):
+    """
+    A fine-tuning adapter for OpenAI.
+    """
+
     def status(self) -> FineTuneStatus:
         if not self.model or not self.model.provider_id:
             return FineTuneStatus(
