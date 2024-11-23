@@ -5,10 +5,10 @@ import pytest
 from pydantic import ValidationError
 
 from kiln_ai.datamodel import (
-    BaseFinetune,
     DatasetSplit,
     DataSource,
     DataSourceType,
+    Finetune,
     Project,
     Task,
     TaskDeterminism,
@@ -105,8 +105,8 @@ def test_dataset_split_relationship():
 
 
 def test_base_finetune_relationship():
-    assert BaseFinetune.relationship_name() == "finetunes"
-    assert BaseFinetune.parent_type().__name__ == "Task"
+    assert Finetune.relationship_name() == "finetunes"
+    assert Finetune.parent_type().__name__ == "Task"
 
 
 def test_structured_output_workflow(tmp_path):

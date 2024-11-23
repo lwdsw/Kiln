@@ -1,28 +1,22 @@
-# ruff: noqa: I001 - Import order matters here. Need datamodel before dataset_split
-
 import pytest
 from pydantic import ValidationError
 
 # import datamodel first or we get circular import errors
 from kiln_ai.datamodel import (
+    AllDatasetFilter,
+    AllSplitDefinition,
+    DatasetSplit,
+    DatasetSplitDefinition,
     DataSource,
     DataSourceType,
+    HighRatingDatasetFilter,
     Task,
     TaskOutput,
     TaskOutputRating,
     TaskOutputRatingType,
     TaskRun,
-)
-
-# import dataset_split last
-from kiln_ai.adapters.fine_tune.dataset_split import (
-    AllDatasetFilter,
-    DatasetSplit,
-    DatasetSplitDefinition,
-    HighRatingDatasetFilter,
-    Train80Test20SplitDefinition,
-    AllSplitDefinition,
     Train60Test20Val20SplitDefinition,
+    Train80Test20SplitDefinition,
 )
 
 

@@ -4,7 +4,7 @@ import openai
 from openai.types.fine_tuning import FineTuningJob
 
 from kiln_ai.adapters.fine_tune.base_finetune import (
-    BaseFinetune,
+    BaseFinetuneAdapter,
     FineTuneParameter,
     FineTuneStatus,
     FineTuneStatusType,
@@ -16,9 +16,9 @@ oai_client = openai.OpenAI(
 )
 
 
-class OpenAIFinetune(BaseFinetune):
+class OpenAIFinetune(BaseFinetuneAdapter):
     def status(self) -> FineTuneStatus:
-        if not self.provider_id:
+        if not self.model or not self.model.provider_id:
             return FineTuneStatus(
                 status=FineTuneStatusType.pending,
                 message="This fine-tune has not been started or has not been assigned a provider ID.",
@@ -26,7 +26,7 @@ class OpenAIFinetune(BaseFinetune):
 
         try:
             # Will raise an error if the job is not found, or for other issues
-            response = oai_client.fine_tuning.jobs.retrieve(self.provider_id)
+            response = oai_client.fine_tuning.jobs.retrieve(self.model.provider_id)
         except openai.APIConnectionError:
             return FineTuneStatus(
                 status=FineTuneStatusType.unknown, message="Server connection error"
@@ -67,11 +67,7 @@ class OpenAIFinetune(BaseFinetune):
             return FineTuneStatus(
                 status=FineTuneStatusType.failed, message="Job cancelled"
             )
-        if (
-            status in ["validating_files", "running", "queued"]
-            or response.finished_at is None
-            or response.estimated_finish is not None
-        ):
+        if status in ["validating_files", "running", "queued"]:
             time_to_finish_msg: str | None = None
             if response.estimated_finish is not None:
                 time_to_finish_msg = f"Estimated finish time: {int(response.estimated_finish - time.time())} seconds."

@@ -6,6 +6,7 @@ from pydantic import ValidationError
 from kiln_ai.datamodel import (
     DataSource,
     DataSourceType,
+    Finetune,
     Project,
     Task,
     TaskOutput,
@@ -225,3 +226,77 @@ def test_task_run_intermediate_outputs():
         "cot": "chain of thought output",
         "draft": "draft output",
     }
+
+
+def test_finetune_basic():
+    # Test basic initialization
+    finetune = Finetune(
+        name="test-finetune",
+        provider="openai",
+        base_model_id="gpt-3.5-turbo",
+    )
+    assert finetune.name == "test-finetune"
+    assert finetune.provider == "openai"
+    assert finetune.base_model_id == "gpt-3.5-turbo"
+    assert finetune.provider_id is None
+    assert finetune.parameters == {}
+    assert finetune.description is None
+
+
+def test_finetune_full():
+    # Test with all fields populated
+    finetune = Finetune(
+        name="test-finetune",
+        description="Test description",
+        provider="openai",
+        base_model_id="gpt-3.5-turbo",
+        provider_id="ft-abc123",
+        parameters={
+            "epochs": 3,
+            "learning_rate": 0.1,
+            "batch_size": 4,
+            "use_fp16": True,
+            "model_suffix": "-v1",
+        },
+    )
+    assert finetune.description == "Test description"
+    assert finetune.provider_id == "ft-abc123"
+    assert finetune.parameters == {
+        "epochs": 3,
+        "learning_rate": 0.1,
+        "batch_size": 4,
+        "use_fp16": True,
+        "model_suffix": "-v1",
+    }
+
+
+def test_finetune_parent_task():
+    # Test parent_task() method
+    task = Task(name="Test Task", instruction="Test instruction")
+    finetune = Finetune(
+        name="test-finetune",
+        provider="openai",
+        base_model_id="gpt-3.5-turbo",
+        parent=task,
+    )
+
+    assert finetune.parent_task() == task
+
+    # Test with no parent
+    finetune_no_parent = Finetune(
+        name="test-finetune",
+        provider="openai",
+        base_model_id="gpt-3.5-turbo",
+    )
+    assert finetune_no_parent.parent_task() is None
+
+
+def test_finetune_parameters_validation():
+    # Test that parameters only accept valid types
+    with pytest.raises(ValidationError):
+        Finetune(
+            name="test-finetune",
+            provider="openai",
+            base_model_id="gpt-3.5-turbo",
+            parameters={"invalid": [1, 2, 3]},  # Lists are not allowed
+        )

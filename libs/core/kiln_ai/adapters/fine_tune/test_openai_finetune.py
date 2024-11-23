@@ -1,31 +1,32 @@
-# ruff: noqa: I001 - Import order matters here. Need datamodel before finetune
-
 import time
 from unittest.mock import MagicMock, patch
 
 import openai
 import pytest
+from openai.types.fine_tuning import FineTuningJob
 
-from kiln_ai.utils.config import Config
-from kiln_ai.datamodel import Task
 from kiln_ai.adapters.fine_tune.base_finetune import FineTuneStatusType
 from kiln_ai.adapters.fine_tune.openai_finetune import OpenAIFinetune
+from kiln_ai.datamodel import Finetune as FinetuneModel
+from kiln_ai.utils.config import Config
 
 
 @pytest.fixture
 def openai_finetune():
     finetune = OpenAIFinetune(
-        name="test-finetune",
-        provider="openai",
-        provider_id="openai-123",
-        base_model_id="gpt-4o",
+        model=FinetuneModel(
+            name="test-finetune",
+            provider="openai",
+            provider_id="openai-123",
+            base_model_id="gpt-4o",
+        ),
     )
     return finetune
 
 
 @pytest.fixture
 def mock_response():
-    response = MagicMock()
+    response = MagicMock(spec=FineTuningJob)
     response.error = None
     response.status = "succeeded"
     response.finished_at = time.time()

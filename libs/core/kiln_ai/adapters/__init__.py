@@ -12,26 +12,22 @@ The prompt_builders submodule contains classes that build prompts for use with t
 The repair submodule contains an adapter for the repair task.
 """
 
-import sys
+from . import (
+    base_adapter,
+    data_gen,
+    fine_tune,
+    langchain_adapters,
+    ml_model_list,
+    prompt_builders,
+    repair,
+)
 
-# Avoid circular import since we use datamodel in some tests
-if "pytest" not in sys.modules:
-    from . import (
-        base_adapter,
-        data_gen,
-        fine_tune,
-        langchain_adapters,
-        ml_model_list,
-        prompt_builders,
-        repair,
-    )
-
-    __all__ = [
-        "base_adapter",
-        "langchain_adapters",
-        "ml_model_list",
-        "prompt_builders",
-        "repair",
-        "data_gen",
-        "fine_tune",
-    ]
+__all__ = [
+    "base_adapter",
+    "langchain_adapters",
+    "ml_model_list",
+    "prompt_builders",
+    "repair",
+    "data_gen",
+    "fine_tune",
+]
