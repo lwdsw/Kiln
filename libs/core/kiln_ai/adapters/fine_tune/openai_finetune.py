@@ -12,7 +12,7 @@ from kiln_ai.adapters.fine_tune.base_finetune import (
 from kiln_ai.utils.config import Config
 
 oai_client = openai.OpenAI(
-    api_key=Config.shared().open_ai_api_key,
+    api_key=Config.shared().open_ai_api_key or "",
 )
 
 
