@@ -43,7 +43,7 @@ class OpenAIFinetune(BaseFinetuneAdapter):
         except openai.APIStatusError as e:
             if e.status_code == 404:
                 return FineTuneStatus(
-                    status=FineTuneStatusType.failed,
+                    status=FineTuneStatusType.unknown,
                     message="Job with this ID not found. It may have been deleted.",
                 )
             return FineTuneStatus(

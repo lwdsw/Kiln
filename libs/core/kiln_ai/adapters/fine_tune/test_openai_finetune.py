@@ -45,7 +45,7 @@ def test_setup(openai_finetune):
     # Real API call, with fake ID
     status = openai_finetune.status()
     # fake id fails
-    assert status.status == FineTuneStatusType.failed
+    assert status.status == FineTuneStatusType.unknown
     assert "Job with this ID not found. It may have been deleted." == status.message
 
 
@@ -68,7 +68,7 @@ def test_setup(openai_finetune):
                 response=MagicMock(status_code=404),
                 body={},
             ),
-            FineTuneStatusType.failed,
+            FineTuneStatusType.unknown,
             "Job with this ID not found",
         ),
         (

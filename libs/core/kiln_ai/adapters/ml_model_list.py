@@ -90,6 +90,7 @@ class KilnModelProvider(BaseModel):
     name: ModelProviderName
     supports_structured_output: bool = True
     supports_data_gen: bool = True
+    provider_finetune_id: str | None = None
     provider_options: Dict = {}
 
 
@@ -122,6 +123,7 @@ built_in_models: List[KilnModel] = [
             KilnModelProvider(
                 name=ModelProviderName.openai,
                 provider_options={"model": "gpt-4o-mini"},
+                provider_finetune_id="gpt-4o-mini-2024-07-18",
             ),
             KilnModelProvider(
                 name=ModelProviderName.openrouter,
@@ -138,6 +140,7 @@ built_in_models: List[KilnModel] = [
             KilnModelProvider(
                 name=ModelProviderName.openai,
                 provider_options={"model": "gpt-4o"},
+                provider_finetune_id="gpt-4o-2024-08-06",
             ),
             KilnModelProvider(
                 name=ModelProviderName.openrouter,
