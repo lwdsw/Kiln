@@ -236,6 +236,7 @@ def test_finetune_basic():
         base_model_id="gpt-3.5-turbo",
         dataset_split_id="dataset-123",
         train_split_name="train",
+        system_message="Test system message",
     )
     assert finetune.name == "test-finetune"
     assert finetune.provider == "openai"
@@ -257,6 +258,7 @@ def test_finetune_full():
         provider_id="ft-abc123",
         dataset_split_id="dataset-123",
         train_split_name="train",
+        system_message="Test system message",
         parameters={
             "epochs": 3,
             "learning_rate": 0.1,
@@ -274,6 +276,7 @@ def test_finetune_full():
         "use_fp16": True,
         "model_suffix": "-v1",
     }
+    assert finetune.system_message == "Test system message"
 
 
 def test_finetune_parent_task():
@@ -286,6 +289,7 @@ def test_finetune_parent_task():
         parent=task,
         dataset_split_id="dataset-123",
         train_split_name="train",
+        system_message="Test system message",
     )
 
     assert finetune.parent_task() == task
@@ -297,6 +301,7 @@ def test_finetune_parent_task():
         base_model_id="gpt-3.5-turbo",
         dataset_split_id="dataset-123",
         train_split_name="train",
+        system_message="Test system message",
     )
     assert finetune_no_parent.parent_task() is None
 

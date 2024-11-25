@@ -1,4 +1,5 @@
 import time
+from pathlib import Path
 
 import openai
 from openai.types.fine_tuning import FineTuningJob
@@ -9,6 +10,8 @@ from kiln_ai.adapters.fine_tune.base_finetune import (
     FineTuneStatus,
     FineTuneStatusType,
 )
+from kiln_ai.adapters.fine_tune.dataset_formatter import DatasetFormat, DatasetFormatter
+from kiln_ai.datamodel import DatasetSplit, Task
 from kiln_ai.utils.config import Config
 
 oai_client = openai.OpenAI(
@@ -91,6 +94,27 @@ class OpenAIFinetune(BaseFinetuneAdapter):
     def _start(self) -> None:
         # TODO: Implement this
         return None
+
+    def generate_and_upload_jsonl(
+        self, dataset: DatasetSplit, split_name: str, task: Task
+    ) -> str:
+        formatter = DatasetFormatter(dataset, self.datamodel.system_message)
+        # All OpenAI models support tool calls for structured outputs
+        format = (
+            DatasetFormat.CHAT_MESSAGE_TOOLCALL_JSONL
+            if task.output_json_schema
+            else DatasetFormat.CHAT_MESSAGE_RESPONSE_JSONL
+        )
+        path = formatter.dump_to_file(split_name, format)
+
+        response = oai_client.files.create(
+            file=open(path, "rb"),
+            purpose="fine-tune",
+        )
+        id = response.id
+        if not id:
+            raise ValueError("Failed to upload file to OpenAI")
+        return id
 
     @classmethod
     def available_parameters(cls) -> list[FineTuneParameter]:

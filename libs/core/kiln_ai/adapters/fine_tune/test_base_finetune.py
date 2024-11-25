@@ -64,6 +64,7 @@ def basic_finetune(sample_task):
             base_model_id="test_model",
             train_split_name="train",
             dataset_split_id="dataset-123",
+            system_message="Test system message",
         ),
     )
 
@@ -160,6 +161,7 @@ def test_create_and_start_success(mock_dataset, mock_model):
         model=mock_model,
         train_split_name="train",
         parameters={"epochs": 10},  # Required parameter
+        system_message="Test system message",
     )
 
     assert isinstance(adapter, MockFinetune)
@@ -172,6 +174,7 @@ def test_create_and_start_success(mock_dataset, mock_model):
     assert datamodel.dataset_split_id == mock_dataset.id
     assert datamodel.train_split_name == "train"
     assert datamodel.parameters == {"epochs": 10}
+    assert datamodel.system_message == "Test system message"
     assert datamodel.path.exists()
 
 
@@ -185,12 +188,14 @@ def test_create_and_start_with_all_params(mock_dataset, mock_model):
         name="Custom Name",
         description="Custom Description",
         test_split_name="test",
+        system_message="Test system message",
     )
 
     assert datamodel.name == "Custom Name"
     assert datamodel.description == "Custom Description"
     assert datamodel.test_split_name == "test"
     assert datamodel.parameters == {"epochs": 10, "learning_rate": 0.001}
+    assert datamodel.system_message == "Test system message"
     assert adapter.datamodel == datamodel
 
     # load the datamodel from the file, confirm it's saved
@@ -206,6 +211,7 @@ def test_create_and_start_invalid_parameters(mock_dataset, mock_model):
             model=mock_model,
             train_split_name="train",
             parameters={"learning_rate": 0.001},  # Missing required 'epochs'
+            system_message="Test system message",
         )
 
 
@@ -221,6 +227,7 @@ def test_create_and_start_no_parent_task(mock_model):
             model=mock_model,
             train_split_name="train",
             parameters={"epochs": 10},
+            system_message="Test system message",
         )
 
 
@@ -239,4 +246,5 @@ def test_create_and_start_no_parent_task_path(mock_model):
             model=mock_model,
             train_split_name="train",
             parameters={"epochs": 10},
+            system_message="Test system message",
         )

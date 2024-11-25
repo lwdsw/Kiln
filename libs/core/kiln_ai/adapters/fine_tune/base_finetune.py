@@ -68,6 +68,7 @@ class BaseFinetuneAdapter(ABC):
         dataset: DatasetSplit,
         model: KilnModelProvider,
         train_split_name: str,
+        system_message: str,
         parameters: dict[str, str | int | float | bool] = {},
         name: str | None = None,
         description: str | None = None,
@@ -102,6 +103,7 @@ class BaseFinetuneAdapter(ABC):
             train_split_name=train_split_name,
             test_split_name=test_split_name,
             parameters=parameters,
+            system_message=system_message,
             parent=parent_task,
         )
 

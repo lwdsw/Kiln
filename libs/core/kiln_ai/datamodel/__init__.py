@@ -171,6 +171,9 @@ class Finetune(KilnParentedModel):
         default={},
         description="The parameters to use for this fine-tune. These are provider-specific.",
     )
+    system_message: str = Field(
+        description="The system message to use for this fine-tune.",
+    )
 
     def parent_task(self) -> Task | None:
         if not isinstance(self.parent, Task):
