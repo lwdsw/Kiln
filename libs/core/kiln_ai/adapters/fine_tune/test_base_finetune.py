@@ -58,8 +58,9 @@ def basic_finetune(sample_task):
             provider="test_provider",
             provider_id="model_1234",
             base_model_id="test_model",
+            train_split_name="train",
+            dataset_split_id="dataset-123",
         ),
-        train_split_name="train",
     )
 
 

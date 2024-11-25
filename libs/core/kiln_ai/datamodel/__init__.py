@@ -156,8 +156,19 @@ class Finetune(KilnParentedModel):
         default=None,
         description="The ID of the fine-tuned model on the provider's side.",
     )
+    dataset_split_id: str = Field(
+        description="The ID of the dataset split to use for this fine-tune.",
+    )
+    train_split_name: str = Field(
+        default="train",
+        description="The name of the training split to use for this fine-tune.",
+    )
+    test_split_name: str | None = Field(
+        default=None,
+        description="The name of the test split to use for this fine-tune. Optional.",
+    )
     parameters: dict[str, str | int | float | bool] = Field(
-        default_factory=dict,
+        default={},
         description="The parameters to use for this fine-tune. These are provider-specific.",
     )
 

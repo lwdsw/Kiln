@@ -234,10 +234,14 @@ def test_finetune_basic():
         name="test-finetune",
         provider="openai",
         base_model_id="gpt-3.5-turbo",
+        dataset_split_id="dataset-123",
+        train_split_name="train",
     )
     assert finetune.name == "test-finetune"
     assert finetune.provider == "openai"
     assert finetune.base_model_id == "gpt-3.5-turbo"
+    assert finetune.dataset_split_id == "dataset-123"
+    assert finetune.train_split_name == "train"
     assert finetune.provider_id is None
     assert finetune.parameters == {}
     assert finetune.description is None
@@ -251,6 +255,8 @@ def test_finetune_full():
         provider="openai",
         base_model_id="gpt-3.5-turbo",
         provider_id="ft-abc123",
+        dataset_split_id="dataset-123",
+        train_split_name="train",
         parameters={
             "epochs": 3,
             "learning_rate": 0.1,
@@ -278,6 +284,8 @@ def test_finetune_parent_task():
         provider="openai",
         base_model_id="gpt-3.5-turbo",
         parent=task,
+        dataset_split_id="dataset-123",
+        train_split_name="train",
     )
 
     assert finetune.parent_task() == task
@@ -287,6 +295,8 @@ def test_finetune_parent_task():
         name="test-finetune",
         provider="openai",
         base_model_id="gpt-3.5-turbo",
+        dataset_split_id="dataset-123",
+        train_split_name="train",
     )
     assert finetune_no_parent.parent_task() is None
 

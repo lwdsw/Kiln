@@ -19,8 +19,9 @@ def openai_finetune():
             provider="openai",
             provider_id="openai-123",
             base_model_id="gpt-4o",
+            train_split_name="train",
+            dataset_split_id="dataset-123",
         ),
-        train_split_name="train",
     )
     return finetune
 

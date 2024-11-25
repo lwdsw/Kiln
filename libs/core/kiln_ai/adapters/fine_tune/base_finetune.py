@@ -47,12 +47,8 @@ class BaseFinetuneAdapter(ABC):
     def __init__(
         self,
         datamodel: FinetuneModel,
-        train_split_name: str,
-        test_split_name: str | None = None,
     ):
         self.datamodel = datamodel
-        self.train_split_name = train_split_name
-        self.test_split_name = test_split_name
 
     @abstractmethod
     def start(self) -> None:
