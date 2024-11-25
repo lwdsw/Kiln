@@ -57,11 +57,13 @@ def test_setup(openai_finetune):
             FineTuneStatusType.unknown,
             "Server connection error",
         ),
-        # (
-        #    openai.RateLimitError(message="Rate limit exceeded", body={}),
-        #    FineTuneStatusType.unknown,
-        #    "Rate limit exceeded",
-        # ),
+        (
+            openai.RateLimitError(
+                message="Rate limit exceeded", body={}, response=MagicMock()
+            ),
+            FineTuneStatusType.unknown,
+            "Rate limit exceeded",
+        ),
         (
             openai.APIStatusError(
                 "Not found",
