@@ -88,7 +88,7 @@ class OpenAIFinetune(BaseFinetuneAdapter):
             message=f"Unknown status: [{status}]",
         )
 
-    def start(self) -> None:
+    def _start(self) -> None:
         # TODO: Implement this
         return None
 
