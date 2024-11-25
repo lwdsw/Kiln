@@ -17,7 +17,7 @@ from kiln_ai.datamodel import Finetune as FinetuneModel
 class MockFinetune(BaseFinetuneAdapter):
     """Mock implementation of BaseFinetune for testing"""
 
-    def _start(self) -> None:
+    def _start(self, dataset: DatasetSplit) -> None:
         pass
 
     def status(self) -> FineTuneStatus:
@@ -187,13 +187,13 @@ def test_create_and_start_with_all_params(mock_dataset, mock_model):
         parameters={"epochs": 10, "learning_rate": 0.001},
         name="Custom Name",
         description="Custom Description",
-        test_split_name="test",
+        validation_split_name="test",
         system_message="Test system message",
     )
 
     assert datamodel.name == "Custom Name"
     assert datamodel.description == "Custom Description"
-    assert datamodel.test_split_name == "test"
+    assert datamodel.validation_split_name == "test"
     assert datamodel.parameters == {"epochs": 10, "learning_rate": 0.001}
     assert datamodel.system_message == "Test system message"
     assert adapter.datamodel == datamodel

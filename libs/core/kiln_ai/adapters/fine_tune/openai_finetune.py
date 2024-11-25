@@ -1,5 +1,4 @@
 import time
-from pathlib import Path
 
 import openai
 from openai.types.fine_tuning import FineTuningJob
@@ -91,8 +90,38 @@ class OpenAIFinetune(BaseFinetuneAdapter):
             message=f"Unknown status: [{status}]",
         )
 
-    def _start(self) -> None:
-        # TODO: Implement this
+    def _start(self, dataset: DatasetSplit) -> None:
+        task = self.datamodel.parent_task()
+        if not task:
+            raise ValueError("Task is required to start a fine-tune")
+
+        train_file_id = self.generate_and_upload_jsonl(
+            dataset, self.datamodel.train_split_name, task
+        )
+        validation_file_id = None
+        if self.datamodel.validation_split_name:
+            validation_file_id = self.generate_and_upload_jsonl(
+                dataset, self.datamodel.validation_split_name, task
+            )
+
+        hyperparameters = {
+            k: v
+            for k, v in self.datamodel.parameters.items()
+            if k in ["n_epochs", "learning_rate_multiplier", "batch_size"]
+        }
+
+        ft = oai_client.fine_tuning.jobs.create(
+            training_file=train_file_id,
+            model=self.datamodel.base_model_id,
+            validation_file=validation_file_id,
+            seed=self.datamodel.parameters.get("seed"),  # type: ignore
+            hyperparameters=hyperparameters,  # type: ignore
+            suffix=f"kiln_ai.{self.datamodel.id}",
+        )
+        self.datamodel.provider_id = ft.id
+        # Model can get more specific after fine-tune call (gpt-4o-mini to gpt-4o-mini-2024-07-18)
+        self.datamodel.base_model_id = ft.model
+
         return None
 
     def generate_and_upload_jsonl(

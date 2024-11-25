@@ -163,9 +163,9 @@ class Finetune(KilnParentedModel):
         default="train",
         description="The name of the training split to use for this fine-tune.",
     )
-    test_split_name: str | None = Field(
+    validation_split_name: str | None = Field(
         default=None,
-        description="The name of the test split to use for this fine-tune. Optional.",
+        description="The name of the validation split to use for this fine-tune. Optional.",
     )
     parameters: dict[str, str | int | float | bool] = Field(
         default={},

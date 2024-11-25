@@ -1,5 +1,6 @@
 import time
 from pathlib import Path
+from unittest import mock
 from unittest.mock import MagicMock, patch
 
 import openai
@@ -332,3 +333,101 @@ def test_generate_and_upload_jsonl_api_error(openai_finetune, mock_dataset, mock
     ):
         with pytest.raises(openai.APIError):
             openai_finetune.generate_and_upload_jsonl(mock_dataset, "train", mock_task)
+
+
+def test_start_success(openai_finetune, mock_dataset, mock_task):
+    openai_finetune.datamodel.parent = mock_task
+
+    # Mock parameters
+    openai_finetune.datamodel.parameters = {
+        "n_epochs": 3,
+        "learning_rate_multiplier": 0.1,
+        "batch_size": 4,
+        "ignored_param": "value",
+    }
+
+    # Mock the fine-tuning response
+    mock_ft_response = MagicMock()
+    mock_ft_response.id = "ft-123"
+    mock_ft_response.model = "gpt-4o-mini-2024-07-18"
+
+    with (
+        patch.object(
+            openai_finetune,
+            "generate_and_upload_jsonl",
+            side_effect=["train-file-123", "val-file-123"],
+        ) as mock_upload,
+        patch(
+            "kiln_ai.adapters.fine_tune.openai_finetune.oai_client.fine_tuning.jobs.create",
+            return_value=mock_ft_response,
+        ) as mock_create,
+    ):
+        openai_finetune._start(mock_dataset)
+
+        # Verify file uploads
+        assert mock_upload.call_count == 1  # Only training file
+        mock_upload.assert_called_with(
+            mock_dataset, openai_finetune.datamodel.train_split_name, mock_task
+        )
+
+        # Verify fine-tune creation
+        mock_create.assert_called_once_with(
+            training_file="train-file-123",
+            model="gpt-4o",
+            validation_file=None,
+            seed=None,
+            hyperparameters={
+                "n_epochs": 3,
+                "learning_rate_multiplier": 0.1,
+                "batch_size": 4,
+            },
+            suffix=f"kiln_ai.{openai_finetune.datamodel.id}",
+        )
+
+        # Verify model updates
+        assert openai_finetune.datamodel.provider_id == "ft-123"
+        assert openai_finetune.datamodel.base_model_id == "gpt-4o-mini-2024-07-18"
+
+
+def test_start_with_validation(openai_finetune, mock_dataset, mock_task):
+    openai_finetune.datamodel.parent = mock_task
+    openai_finetune.datamodel.validation_split_name = "validation"
+
+    mock_ft_response = MagicMock()
+    mock_ft_response.id = "ft-123"
+    mock_ft_response.model = "gpt-4o-mini-2024-07-18"
+
+    with (
+        patch.object(
+            openai_finetune,
+            "generate_and_upload_jsonl",
+            side_effect=["train-file-123", "val-file-123"],
+        ) as mock_upload,
+        patch(
+            "kiln_ai.adapters.fine_tune.openai_finetune.oai_client.fine_tuning.jobs.create",
+            return_value=mock_ft_response,
+        ) as mock_create,
+    ):
+        openai_finetune._start(mock_dataset)
+
+        # Verify both files were uploaded
+        assert mock_upload.call_count == 2
+        mock_upload.assert_has_calls(
+            [
+                mock.call(
+                    mock_dataset, openai_finetune.datamodel.train_split_name, mock_task
+                ),
+                mock.call(mock_dataset, "validation", mock_task),
+            ]
+        )
+
+        # Verify validation file was included
+        mock_create.assert_called_once()
+        assert mock_create.call_args[1]["validation_file"] == "val-file-123"
+
+
+def test_start_no_task(openai_finetune, mock_dataset):
+    openai_finetune.datamodel.parent = None
+
+    with pytest.raises(ValueError, match="Task is required to start a fine-tune"):
+        openai_finetune._start(mock_dataset)

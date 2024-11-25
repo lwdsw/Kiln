@@ -72,7 +72,7 @@ class BaseFinetuneAdapter(ABC):
         parameters: dict[str, str | int | float | bool] = {},
         name: str | None = None,
         description: str | None = None,
-        test_split_name: str | None = None,
+        validation_split_name: str | None = None,
     ) -> tuple["BaseFinetuneAdapter", FinetuneModel]:
         """
         Create and start a fine-tune.
@@ -101,21 +101,21 @@ class BaseFinetuneAdapter(ABC):
             base_model_id=model.provider_finetune_id,
             dataset_split_id=dataset.id,
             train_split_name=train_split_name,
-            test_split_name=test_split_name,
+            validation_split_name=validation_split_name,
             parameters=parameters,
             system_message=system_message,
             parent=parent_task,
         )
 
         adapter = cls(datamodel)
-        adapter._start()
+        adapter._start(dataset)
 
         datamodel.save_to_file()
 
         return adapter, datamodel
 
     @abstractmethod
-    def _start(self) -> None:
+    def _start(self, dataset: DatasetSplit) -> None:
         """
         Start the fine-tune.
         """
