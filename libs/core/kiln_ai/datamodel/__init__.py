@@ -592,6 +592,12 @@ class Task(
     def runs(self) -> list[TaskRun]:
         return super().runs()  # type: ignore
 
+    def dataset_splits(self) -> list[DatasetSplit]:
+        return super().dataset_splits()  # type: ignore
+
+    def finetunes(self) -> list[Finetune]:
+        return super().finetunes()  # type: ignore
+
 
 class Project(KilnParentModel, parent_of={"tasks": Task}):
     """
