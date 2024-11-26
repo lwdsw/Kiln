@@ -570,6 +570,23 @@ provider_warnings: Dict[ModelProviderName, ModelProviderWarning] = {
 }
 
 
+async def provider_enabled(provider_name: ModelProviderName) -> bool:
+    if provider_name == ModelProviderName.ollama:
+        try:
+            tags = await get_ollama_connection()
+            return tags is not None and len(tags.models) > 0
+        except Exception:
+            return False
+
+    provider_warning = provider_warnings.get(provider_name)
+    if provider_warning is None:
+        return False
+    for required_key in provider_warning.required_config_keys:
+        if get_config_value(required_key) is None:
+            return False
+    return True
+
+
 def get_config_value(key: str):
     try:
         return Config.shared().__getattr__(key)
