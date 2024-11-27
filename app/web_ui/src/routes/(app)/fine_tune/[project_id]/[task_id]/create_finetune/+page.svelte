@@ -36,6 +36,13 @@
   $: selected_dataset_has_val = selected_dataset?.splits?.find(
     (s) => s.name === "val",
   )
+  $: selected_dataset_training_set_name = selected_dataset?.split_contents[
+    "train"
+  ]
+    ? "train"
+    : selected_dataset?.split_contents["all"]
+      ? "all"
+      : null
   $: step_3_visible =
     model_provider !== disabled_header &&
     !!selected_dataset &&
@@ -328,6 +335,43 @@
           select_options={dataset_select}
           bind:value={dataset_id}
         />
+        {#if selected_dataset}
+          {#if selected_dataset_training_set_name && selected_dataset.split_contents[selected_dataset_training_set_name]?.length < 100}
+            <div class="text-error text-sm mt-2">
+              Warning: Your selected dataset has less than 100 examples for
+              training. We strongly recommend creating a larger dataset before
+              fine-tuning. Try our
+              <a href={`/generate/${project_id}/${task_id}`} class="link">
+                generation tool
+              </a>
+              to expand your dataset.
+            </div>
+          {/if}
+          <div class="text-sm">
+            The selected dataset has {selected_dataset.splits?.length}
+            {selected_dataset.splits?.length === 1 ? "split" : "splits"}:
+            <ul class="list-disc list-inside pt-2">
+              {#each Object.entries(selected_dataset.split_contents) as [split_name, split_contents]}
+                <li>
+                  {split_name.charAt(0).toUpperCase() +
+                    split_name.slice(1)}:{" "}
+                  {split_contents.length} examples
+                  <span class="text-xs text-gray-500 pl-2">
+                    {#if split_name === "val" && automatic_validation === disabled_header}
+                      May be used for validation during fine-tuning
+                    {:else if split_name === "val" && automatic_validation === "yes"}
+                      Will be used for validation during fine-tuning
+                    {:else if split_name === "test"}
+                      Will not be used, reserved for later evaluation
+                    {:else if split_name === selected_dataset_training_set_name}
+                      Will be used for training
+                    {/if}
+                  </span>
+                </li>
+              {/each}
+            </ul>
+          </div>
+        {/if}
         {#if selected_dataset && selected_dataset_has_val}
           <FormElement
             label="Automatic Validation"
