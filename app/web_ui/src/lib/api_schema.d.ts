@@ -443,7 +443,8 @@ export interface paths {
         /** Dataset Splits */
         get: operations["dataset_splits_api_projects__project_id__tasks__task_id__dataset_splits_get"];
         put?: never;
-        post?: never;
+        /** Create Dataset Split */
+        post: operations["create_dataset_split_api_projects__project_id__tasks__task_id__dataset_splits_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -513,6 +514,15 @@ export interface components {
             provider_id: string;
             /** Models */
             models: components["schemas"]["ModelDetails"][];
+        };
+        /** CreateDatasetSplitRequest */
+        CreateDatasetSplitRequest: {
+            dataset_split_type: components["schemas"]["DatasetSplitType"];
+            filter_type: components["schemas"]["DatasetFilterType"];
+            /** Name */
+            name?: string | null;
+            /** Description */
+            description?: string | null;
         };
         /** DataGenCategoriesApiInput */
         DataGenCategoriesApiInput: {
@@ -645,6 +655,11 @@ export interface components {
          */
         DataSourceType: "human" | "synthetic";
         /**
+         * DatasetFilterType
+         * @enum {string}
+         */
+        DatasetFilterType: "all" | "high_rating";
+        /**
          * DatasetSplit
          * @description A collection of task runs, with optional splits (train, test, validation)
          */
@@ -713,6 +728,11 @@ export interface components {
              */
             percentage: number;
         };
+        /**
+         * DatasetSplitType
+         * @enum {string}
+         */
+        DatasetSplitType: "train_test" | "train_test_val" | "all";
         /**
          * FineTuneParameter
          * @description A parameter for a fine-tune. Hyperparameters, etc.
@@ -2263,6 +2283,42 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DatasetSplit"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_dataset_split_api_projects__project_id__tasks__task_id__dataset_splits_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateDatasetSplitRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DatasetSplit"];
                 };
             };
             /** @description Validation Error */

@@ -342,7 +342,7 @@ def test_create_dataset_split_auto_name(client, mock_task_from_id, mock_dataset_
         # Verify auto-generated name format
         from_task_mock.assert_called_once()
         args = from_task_mock.call_args[0]
-        assert args[0] == "2024-01-01 12:00:00 filter_all split_train_test"
+        assert args[0] == "2024-01-01 12-00-00 filter--all split--train_test"
         save_mock.assert_called_once()
 
 

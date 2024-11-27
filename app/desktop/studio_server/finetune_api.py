@@ -128,7 +128,7 @@ def connect_fine_tune_api(app: FastAPI):
 
         name = request.name
         if not name:
-            name = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} filter_{request.filter_type.value} split_{request.dataset_split_type.value}"
+            name = f"{datetime.now().strftime('%Y-%m-%d %H-%M-%S')} filter--{request.filter_type.value} split--{request.dataset_split_type.value}"
 
         dataset_split = DatasetSplit.from_task(
             name, task, split_definitions, filter, request.description

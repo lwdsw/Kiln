@@ -17,6 +17,12 @@
   let model_provider = disabled_header
   let dataset_id = disabled_header
   let new_dataset_split = disabled_header
+  let new_dataset_filter = disabled_header
+  let automatic_validation = disabled_header
+
+  // TODO
+  model_provider = "openai/gpt-4o"
+  //dataset_id = "new"
 
   $: project_id = $page.params.project_id
   $: task_id = $page.params.task_id
@@ -26,14 +32,16 @@
   let available_models_error: KilnError | null = null
   let available_models_loading = true
 
-  // TODO: existing data
+  $: selected_dataset = datasets?.find((d) => d.id === dataset_id)
+  $: selected_dataset_has_val = selected_dataset?.splits?.find(
+    (s) => s.name === "val",
+  )
   $: step_3_visible =
     model_provider !== disabled_header &&
-    dataset_id != disabled_header &&
-    ((dataset_id === "new" && new_dataset_split != disabled_header) ||
-      dataset_id === "TODO")
+    !!selected_dataset &&
+    (!selected_dataset_has_val || automatic_validation !== disabled_header)
   $: step_3_run_visible =
-    step_3_visible && !model_provider.startsWith("download_")
+    !!step_3_visible && !model_provider.startsWith("download_")
   $: step_3_download_visible =
     step_3_visible && model_provider.startsWith("download_")
 
@@ -148,7 +156,10 @@
     dataset_select = []
     dataset_select.push([disabled_header, "Select a dataset to fine-tune with"])
     for (const dataset of datasets) {
-      dataset_select.push(["" + dataset.id, dataset.name])
+      dataset_select.push([
+        "" + dataset.id,
+        "[ID:" + dataset.id + "] " + dataset.name,
+      ])
     }
     dataset_select.push(["new", "New Dataset"])
   }
@@ -206,6 +217,73 @@
     bool: "Boolean - 'true' or 'false'",
     string: "String",
   }
+
+  $: handle_dataset_select(dataset_id)
+
+  function handle_dataset_select(dataset_id_new: string) {
+    if (dataset_id_new === "new") {
+      dataset_id = disabled_header
+      const modal = document.getElementById("create_dataset_modal")
+      if (modal) {
+        // @ts-expect-error daisyui functions not typed
+        modal.showModal()
+      }
+    }
+  }
+
+  let create_dataset_split_error: KilnError | null = null
+  let create_dataset_split_loading = false
+  async function create_dataset() {
+    try {
+      create_dataset_split_loading = true
+      const { data: create_dataset_split_response, error: get_error } =
+        await client.POST(
+          "/api/projects/{project_id}/tasks/{task_id}/dataset_splits",
+          {
+            params: {
+              path: {
+                project_id,
+                task_id,
+              },
+            },
+            body: {
+              // @ts-expect-error types are validated by the server
+              dataset_split_type: new_dataset_split,
+              // @ts-expect-error types are validated by the server
+              filter_type: new_dataset_filter,
+            },
+          },
+        )
+      if (get_error) {
+        throw get_error
+      }
+      if (!create_dataset_split_response || !create_dataset_split_response.id) {
+        throw new Error("Invalid response from server")
+      }
+      if (!datasets) {
+        datasets = []
+      }
+      datasets.push(create_dataset_split_response)
+      build_available_dataset_select(datasets)
+      dataset_id = create_dataset_split_response.id
+      const modal = document.getElementById("create_dataset_modal")
+      if (modal) {
+        // @ts-expect-error daisyui functions not typed
+        modal.close()
+      }
+    } catch (e) {
+      if (e instanceof Error && e.message.includes("Load failed")) {
+        create_dataset_split_error = new KilnError(
+          "Could not create a dataset split for fine-tuning.",
+          null,
+        )
+      } else {
+        create_dataset_split_error = createKilnError(e)
+      }
+    } finally {
+      create_dataset_split_loading = false
+    }
+  }
 </script>
 
 <AppPage
@@ -243,30 +321,26 @@
         <div class="text-xl font-bold">Step 2: Select a Dataset</div>
         <FormElement
           label="Dataset"
-          description="Select which dataset to fine-tune with."
+          description="Select a dataset to fine-tune with."
           info_description="These datasets are subsets of the current task's data. We freeze a copy when you create a fine-tune so that you can create multiple fine-tunes from the same dataset for consistent evaluation."
           inputType="select"
           id="dataset"
           select_options={dataset_select}
           bind:value={dataset_id}
         />
-        {#if dataset_id === "new"}
+        {#if selected_dataset && selected_dataset_has_val}
           <FormElement
-            label="Dataset Splits"
-            description="Select a splitting strategy for your dataset."
-            info_description="You can split your dataset into training and evaluation sets, or use the entire dataset for training. If in doubt, select 'Train/Test' and we will split 80/20."
+            label="Automatic Validation"
+            description="The selected dataset has a validation set. Should we use this for validation during fine-tuning? Select 'Yes' if your task is completely deterministic (classification), and 'No' if the task is not deterministic (e.g. generation)."
             inputType="select"
-            id="dataset_split"
+            id="automatic_validation"
             select_options={[
-              [disabled_header, "Select a split strategy"],
-              ["train_test", "Train/Test -- 80/20"],
-              ["train_test_val", "Train/Test/Val -- 60/20/20"],
-              ["full", "Entire Dataset"],
+              [disabled_header, "Select if your task is deterministic"],
+              ["yes", "Yes - My task is deterministic (classification)"],
+              ["no", "No - My task is not deterministic (generation)"],
             ]}
-            bind:value={new_dataset_split}
+            bind:value={automatic_validation}
           />
-        {:else}
-          TODO: select train and val splits
         {/if}
       {/if}
       {#if step_3_download_visible}
@@ -301,6 +375,7 @@
               description={hyperparameter.description}
               info_description="If you aren't sure, leave blank for default/recommended value. Ensure your value is valid for the type (e.g. an integer can't have decimals)."
               inputType="input"
+              optional={hyperparameter.optional}
               id={hyperparameter.name}
               bind:value={hyperparameter_values[hyperparameter.name]}
             />
@@ -310,3 +385,61 @@
     </FormContainer>
   {/if}
 </AppPage>
+
+<dialog id="create_dataset_modal" class="modal">
+  <div class="modal-box">
+    <form method="dialog">
+      <button
+        class="btn btn-sm text-xl btn-circle btn-ghost absolute right-2 top-2 focus:outline-none"
+        >✕</button
+      >
+    </form>
+    <h3 class="text-lg font-bold mb-2">Create a New Dataset Split</h3>
+    <div class="font-light text-sm mb-6">
+      A dataset split is a collection of examples from the current task. We
+      freeze a copy when you create a fine-tune so that you can create multiple
+      fine-tunes from the exactly same dataset.
+    </div>
+    <div class="flex flex-row gap-6 justify-center flex-col">
+      <FormContainer
+        submit_label="Create Dataset"
+        on:submit={create_dataset}
+        bind:error={create_dataset_split_error}
+        bind:submitting={create_dataset_split_loading}
+      >
+        <FormElement
+          label="Dataset Filter"
+          description="Select a filter for your dataset. Typically you want to filter out examples that are not rated 4+ stars."
+          info_description="A 'High Rating' filter will include only examples that are rated 4+ stars. The 'All' filter will include all examples."
+          inputType="select"
+          optional={false}
+          id="dataset_filter"
+          select_options={[
+            [disabled_header, "Select a dataset filter"],
+            ["high_rating", "High Rating (4+ stars)"],
+            ["all", "All (no filter)"],
+          ]}
+          bind:value={new_dataset_filter}
+        />
+        <FormElement
+          label="Dataset Splits"
+          description="Select a splitting strategy for your dataset."
+          info_description="You can split your dataset into training and evaluation sets, or use the entire dataset for training. If in doubt, select 'Train/Test' and we will split 80/20."
+          inputType="select"
+          optional={false}
+          id="dataset_split"
+          select_options={[
+            [disabled_header, "Select a split strategy"],
+            ["train_test", "Train/Test -- 80/20"],
+            ["train_test_val", "Train/Test/Val -- 60/20/20"],
+            ["all", "Entire Dataset -- 100"],
+          ]}
+          bind:value={new_dataset_split}
+        />
+      </FormContainer>
+    </div>
+  </div>
+  <form method="dialog" class="modal-backdrop">
+    <button>close</button>
+  </form>
+</dialog>
