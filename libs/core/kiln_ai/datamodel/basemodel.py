@@ -1,4 +1,5 @@
 import json
+import re
 import shutil
 import uuid
 from abc import ABCMeta
@@ -56,6 +57,15 @@ SHORT_NAME_FIELD = Field(
     pattern=NAME_REGEX,
     description="A name for this entity",
 )
+
+
+def string_to_valid_name(name: str) -> str:
+    # Replace any character not allowed by NAME_REGEX with an underscore
+    valid_name = re.sub(r"[^A-Za-z0-9 _-]", "_", name)
+    # Replace consecutive underscores with a single underscore
+    valid_name = re.sub(r"_+", "_", valid_name)
+    # Remove leading and trailing underscores or whitespace
+    return valid_name.strip("_").strip()
 
 
 class KilnBaseModel(BaseModel):

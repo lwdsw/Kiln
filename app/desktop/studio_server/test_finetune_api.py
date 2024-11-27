@@ -19,6 +19,7 @@ from kiln_ai.datamodel import (
 
 from app.desktop.studio_server.finetune_api import (
     CreateDatasetSplitRequest,
+    CreateFinetuneRequest,
     DatasetFilterType,
     DatasetSplitType,
     connect_fine_tune_api,
@@ -342,7 +343,7 @@ def test_create_dataset_split_auto_name(client, mock_task_from_id, mock_dataset_
         # Verify auto-generated name format
         from_task_mock.assert_called_once()
         args = from_task_mock.call_args[0]
-        assert args[0] == "2024-01-01 12-00-00 filter--all split--train_test"
+        assert args[0] == "2024-01-01 12-00-00 filter-all split-train_test"
         save_mock.assert_called_once()
 
 
@@ -378,3 +379,253 @@ def test_create_dataset_split_request_validation():
         CreateDatasetSplitRequest(
             dataset_split_type=DatasetSplitType.TRAIN_TEST, filter_type="invalid_type"
         )
+
+
+@pytest.fixture
+def mock_finetune_adapter():
+    adapter = Mock()
+    adapter.create_and_start.return_value = (
+        None,  # First return value is ignored in the API
+        Finetune(
+            id="new_ft",
+            name="New Finetune",
+            provider="test_provider",
+            base_model_id="base_model_1",
+            dataset_split_id="split1",
+            system_message="Test system message",
+        ),
+    )
+    return adapter
+
+
+def test_create_finetune(
+    client, mock_task_from_id, mock_task, mock_finetune_registry, mock_finetune_adapter
+):
+    mock_finetune_registry["test_provider"] = mock_finetune_adapter
+
+    request_data = {
+        "name": "New Finetune",
+        "description": "Test description",
+        "dataset_id": "split1",
+        "train_split_name": "train",
+        "validation_split_name": "validation",
+        "parameters": {"learning_rate": 0.001, "epochs": 10},
+        "provider": "test_provider",
+        "base_model_id": "base_model_1",
+        "custom_system_message": "Test system message",
+    }
+
+    response = client.post(
+        "/api/projects/project1/tasks/task1/finetunes", json=request_data
+    )
+
+    assert response.status_code == 200
+    result = response.json()
+    assert result["id"] == "new_ft"
+    assert result["name"] == "New Finetune"
+    assert result["provider"] == "test_provider"
+    assert result["base_model_id"] == "base_model_1"
+
+    # Verify the adapter was called correctly
+    mock_finetune_adapter.create_and_start.assert_called_once_with(
+        dataset=mock_task.dataset_splits.return_value[0],  # First split from our mock
+        provider_id="test_provider",
+        provider_base_model_id="base_model_1",
+        train_split_name="train",
+        system_message="Test system message",
+        parameters={"learning_rate": 0.001, "epochs": 10},
+        name="New Finetune",
+        description="Test description",
+        validation_split_name="validation",
+    )
+
+
+def test_create_finetune_invalid_provider(client, mock_task_from_id):
+    request_data = {
+        "dataset_id": "split1",
+        "train_split_name": "train",
+        "parameters": {},
+        "provider": "invalid_provider",
+        "base_model_id": "base_model_1",
+        "custom_system_message": "Test system message",
+    }
+
+    response = client.post(
+        "/api/projects/project1/tasks/task1/finetunes", json=request_data
+    )
+
+    assert response.status_code == 400
+    assert (
+        response.json()["detail"] == "Fine tune provider 'invalid_provider' not found"
+    )
+
+
+def test_create_finetune_invalid_dataset(
+    client, mock_task_from_id, mock_finetune_registry, mock_finetune_adapter
+):
+    mock_finetune_registry["test_provider"] = mock_finetune_adapter
+
+    request_data = {
+        "dataset_id": "invalid_split_id",
+        "train_split_name": "train",
+        "parameters": {},
+        "provider": "test_provider",
+        "base_model_id": "base_model_1",
+        "custom_system_message": "Test system message",
+    }
+
+    response = client.post(
+        "/api/projects/project1/tasks/task1/finetunes", json=request_data
+    )
+
+    assert response.status_code == 404
+    assert (
+        response.json()["detail"]
+        == "Dataset split with ID 'invalid_split_id' not found"
+    )
+
+
+def test_create_finetune_request_validation():
+    # Test valid request with all fields
+    request = CreateFinetuneRequest(
+        name="Test Finetune",
+        description="Test description",
+        dataset_id="split1",
+        train_split_name="train",
+        validation_split_name="validation",
+        parameters={"param1": "value1"},
+        provider="test_provider",
+        base_model_id="base_model_1",
+        custom_system_message="Test system message",
+    )
+    assert request.name == "Test Finetune"
+    assert request.description == "Test description"
+    assert request.dataset_id == "split1"
+    assert request.validation_split_name == "validation"
+
+    # Test valid request with only required fields
+    request = CreateFinetuneRequest(
+        dataset_id="split1",
+        train_split_name="train",
+        parameters={},
+        provider="test_provider",
+        base_model_id="base_model_1",
+        custom_system_message="Test system message",
+    )
+    assert request.name is None
+    assert request.description is None
+    assert request.validation_split_name is None
+
+    # Test invalid request (missing required field)
+    with pytest.raises(ValueError):
+        CreateFinetuneRequest(
+            dataset_id="split1",  # Missing other required fields
+        )
+
+
+def test_create_finetune_no_system_message(
+    client, mock_task_from_id, mock_finetune_registry, mock_finetune_adapter
+):
+    mock_finetune_registry["test_provider"] = mock_finetune_adapter
+
+    request_data = {
+        "dataset_id": "split1",
+        "train_split_name": "train",
+        "parameters": {},
+        "provider": "test_provider",
+        "base_model_id": "base_model_1",
+    }
+
+    response = client.post(
+        "/api/projects/project1/tasks/task1/finetunes", json=request_data
+    )
+
+    assert response.status_code == 400
+    assert (
+        response.json()["detail"]
+        == "System message generator or custom system message is required"
+    )
+
+
+@pytest.fixture
+def mock_prompt_builder():
+    builder = Mock()
+    builder.build_prompt.return_value = "Generated system message"
+    builder_class = Mock(return_value=builder)
+
+    with unittest.mock.patch(
+        "app.desktop.studio_server.finetune_api.prompt_builder_from_ui_name",
+        return_value=builder_class,
+    ) as mock:
+        yield mock, builder
+
+
+def test_create_finetune_with_prompt_builder(
+    client,
+    mock_task_from_id,
+    mock_task,
+    mock_finetune_registry,
+    mock_finetune_adapter,
+    mock_prompt_builder,
+):
+    mock_finetune_registry["test_provider"] = mock_finetune_adapter
+    prompt_builder_mock, builder = mock_prompt_builder
+
+    request_data = {
+        "dataset_id": "split1",
+        "train_split_name": "train",
+        "parameters": {},
+        "provider": "test_provider",
+        "base_model_id": "base_model_1",
+        "system_message_generator": "test_prompt_builder",
+    }
+
+    response = client.post(
+        "/api/projects/project1/tasks/task1/finetunes", json=request_data
+    )
+
+    assert response.status_code == 200
+    result = response.json()
+    assert result["id"] == "new_ft"
+
+    # Verify prompt builder was called correctly
+    prompt_builder_mock.assert_called_once_with("test_prompt_builder")
+    builder.build_prompt.assert_called_once()
+
+    # Verify the adapter was called with the generated system message
+    mock_finetune_adapter.create_and_start.assert_called_once()
+    call_kwargs = mock_finetune_adapter.create_and_start.call_args[1]
+    assert call_kwargs["system_message"] == "Generated system message"
+
+
+def test_create_finetune_prompt_builder_error(
+    client,
+    mock_task_from_id,
+    mock_finetune_registry,
+    mock_finetune_adapter,
+    mock_prompt_builder,
+):
+    mock_finetune_registry["test_provider"] = mock_finetune_adapter
+    prompt_builder_mock, builder = mock_prompt_builder
+
+    # Make the prompt builder raise an error
+    builder.build_prompt.side_effect = ValueError("Invalid prompt configuration")
+
+    request_data = {
+        "dataset_id": "split1",
+        "train_split_name": "train",
+        "parameters": {},
+        "provider": "test_provider",
+        "base_model_id": "base_model_1",
+        "system_message_generator": "test_prompt_builder",
+    }
+
+    response = client.post(
+        "/api/projects/project1/tasks/task1/finetunes", json=request_data
+    )
+
+    assert response.status_code == 400
+    assert (
+        response.json()["detail"]
+        == "Error generating system message using generator: test_prompt_builder. Source error: Invalid prompt configuration"
+    )

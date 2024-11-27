@@ -124,7 +124,7 @@ def test_generate_chat_message_toolcall():
                         "type": "function",
                         "function": {
                             "name": "task_response",
-                            "arguments": {"key": "value"},
+                            "arguments": '{"key": "value"}',
                         },
                     }
                 ],
@@ -251,4 +251,4 @@ def test_dataset_formatter_dump_to_file_tool_format(mock_dataset, tmp_path):
             tool_call = assistant_msg["tool_calls"][0]
             assert tool_call["type"] == "function"
             assert tool_call["function"]["name"] == "task_response"
-            assert tool_call["function"]["arguments"] == {"test": "output"}
+            assert tool_call["function"]["arguments"] == '{"test": "output"}'

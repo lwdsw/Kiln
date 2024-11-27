@@ -10,6 +10,7 @@ from kiln_ai.adapters.ml_model_list import (
     provider_enabled,
     provider_name_from_id,
 )
+from kiln_ai.adapters.prompt_builders import prompt_builder_from_ui_name
 from kiln_ai.datamodel import (
     AllDatasetFilter,
     AllSplitDefinition,
@@ -19,6 +20,7 @@ from kiln_ai.datamodel import (
     Train60Test20Val20SplitDefinition,
     Train80Test20SplitDefinition,
 )
+from kiln_ai.datamodel.basemodel import string_to_valid_name
 from kiln_server.task_api import task_from_id
 from pydantic import BaseModel
 
@@ -64,6 +66,19 @@ class CreateDatasetSplitRequest(BaseModel):
     filter_type: DatasetFilterType
     name: str | None = None
     description: str | None = None
+
+
+class CreateFinetuneRequest(BaseModel):
+    name: str | None = None
+    description: str | None = None
+    dataset_id: str
+    train_split_name: str
+    validation_split_name: str | None = None
+    parameters: dict[str, str | int | float | bool]
+    provider: str
+    base_model_id: str
+    system_message_generator: str | None = None
+    custom_system_message: str | None = None
 
 
 def connect_fine_tune_api(app: FastAPI):
@@ -128,10 +143,79 @@ def connect_fine_tune_api(app: FastAPI):
 
         name = request.name
         if not name:
-            name = f"{datetime.now().strftime('%Y-%m-%d %H-%M-%S')} filter--{request.filter_type.value} split--{request.dataset_split_type.value}"
+            name = f"{datetime.now().strftime('%Y-%m-%d %H-%M-%S')} filter-{string_to_valid_name(request.filter_type.value)} split-{string_to_valid_name(request.dataset_split_type.value)}"
 
         dataset_split = DatasetSplit.from_task(
             name, task, split_definitions, filter, request.description
         )
         dataset_split.save_to_file()
         return dataset_split
+
+    @app.post("/api/projects/{project_id}/tasks/{task_id}/finetunes")
+    async def create_finetune(
+        project_id: str, task_id: str, request: CreateFinetuneRequest
+    ) -> Finetune:
+        task = task_from_id(project_id, task_id)
+        if request.provider not in finetune_registry:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Fine tune provider '{request.provider}' not found",
+            )
+        finetune_adapter_class = finetune_registry[request.provider]
+
+        dataset = next(
+            (
+                split
+                for split in task.dataset_splits()
+                if split.id == request.dataset_id
+            ),
+            None,
+        )
+        if dataset is None:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Dataset split with ID '{request.dataset_id}' not found",
+            )
+
+        if not request.system_message_generator and not request.custom_system_message:
+            raise HTTPException(
+                status_code=400,
+                detail="System message generator or custom system message is required",
+            )
+
+        system_message = request.custom_system_message
+        if (
+            not system_message
+            or len(system_message) == 0
+            and request.system_message_generator is not None
+        ):
+            try:
+                prompt_builder_class = prompt_builder_from_ui_name(
+                    request.system_message_generator  # type: ignore
+                )
+                prompt_builder = prompt_builder_class(task)
+                system_message = prompt_builder.build_prompt()
+            except Exception as e:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Error generating system message using generator: {request.system_message_generator}. Source error: {str(e)}",
+                )
+        if system_message is None or len(system_message) == 0:
+            raise HTTPException(
+                status_code=400,
+                detail="System message is required",
+            )
+
+        _, finetune_model = finetune_adapter_class.create_and_start(
+            dataset=dataset,
+            provider_id=request.provider,
+            provider_base_model_id=request.base_model_id,
+            train_split_name=request.train_split_name,
+            system_message=system_message,
+            parameters=request.parameters,
+            name=request.name,
+            description=request.description,
+            validation_split_name=request.validation_split_name,
+        )
+
+        return finetune_model

@@ -5,9 +5,10 @@ from typing import Literal
 
 from pydantic import BaseModel
 
-from kiln_ai.adapters.ml_model_list import KilnModelProvider
+from kiln_ai.adapters.ml_model_list import built_in_models
 from kiln_ai.datamodel import DatasetSplit
 from kiln_ai.datamodel import Finetune as FinetuneModel
+from kiln_ai.datamodel.basemodel import string_to_valid_name
 
 
 class FineTuneStatusType(str, Enum):
@@ -66,7 +67,8 @@ class BaseFinetuneAdapter(ABC):
     def create_and_start(
         cls,
         dataset: DatasetSplit,
-        model: KilnModelProvider,
+        provider_id: str,
+        provider_base_model_id: str,
         train_split_name: str,
         system_message: str,
         parameters: dict[str, str | int | float | bool] = {},
@@ -78,16 +80,25 @@ class BaseFinetuneAdapter(ABC):
         Create and start a fine-tune.
         """
 
-        # Default name
-        if name is None:
-            name = f"{model.provider_finetune_id} - {time.strftime('%Y-%m-%d %Hh %Mm %Ss')}"
+        cls.check_valid_provider_model(provider_id, provider_base_model_id)
 
-        if not model.provider_finetune_id:
-            raise ValueError(
-                "Model must be fine-tuneable (have a provider_finetune_id)"
-            )
         if not dataset.id:
             raise ValueError("Dataset must have an id")
+
+        if train_split_name not in dataset.split_contents:
+            raise ValueError(f"Train split {train_split_name} not found in dataset")
+
+        if (
+            validation_split_name
+            and validation_split_name not in dataset.split_contents
+        ):
+            raise ValueError(
+                f"Validation split {validation_split_name} not found in dataset"
+            )
+
+        # Default name if not provided
+        if name is None:
+            name = f"{string_to_valid_name(provider_base_model_id)} - {time.strftime('%Y-%m-%d %Hh%Mm%Ss')}"
 
         cls.validate_parameters(parameters)
         parent_task = dataset.parent_task()
@@ -97,8 +108,8 @@ class BaseFinetuneAdapter(ABC):
         datamodel = FinetuneModel(
             name=name,
             description=description,
-            provider=model.name,
-            base_model_id=model.provider_finetune_id,
+            provider=provider_id,
+            base_model_id=provider_base_model_id,
             dataset_split_id=dataset.id,
             train_split_name=train_split_name,
             validation_split_name=validation_split_name,
@@ -170,3 +181,21 @@ class BaseFinetuneAdapter(ABC):
         for parameter_key in parameters:
             if parameter_key not in allowed_parameters:
                 raise ValueError(f"Parameter {parameter_key} is not available")
+
+    @classmethod
+    def check_valid_provider_model(
+        cls, provider_id: str, provider_base_model_id: str
+    ) -> None:
+        """
+        Check if the provider and base model are valid.
+        """
+        for model in built_in_models:
+            for provider in model.providers:
+                if (
+                    provider.name == provider_id
+                    and provider.provider_finetune_id == provider_base_model_id
+                ):
+                    return
+        raise ValueError(
+            f"Provider {provider_id} with base model {provider_base_model_id} is not available"
+        )

@@ -1,4 +1,3 @@
-import time
 from unittest.mock import Mock
 
 import pytest
@@ -9,7 +8,6 @@ from kiln_ai.adapters.fine_tune.base_finetune import (
     FineTuneStatus,
     FineTuneStatusType,
 )
-from kiln_ai.adapters.ml_model_list import KilnModelProvider
 from kiln_ai.datamodel import DatasetSplit, Task
 from kiln_ai.datamodel import Finetune as FinetuneModel
 
@@ -138,27 +136,20 @@ def test_validate_parameters_unknown_parameter():
 
 
 @pytest.fixture
-def mock_model():
-    return KilnModelProvider(
-        name="openai",
-        friendly_name="OpenAI Mock Model",
-        provider_finetune_id="base_model_123",
-    )
-
-
-@pytest.fixture
 def mock_dataset(sample_task):
     dataset = Mock(spec=DatasetSplit)
     dataset.id = "dataset_123"
     dataset.parent_task.return_value = sample_task
+    dataset.split_contents = {"train": [], "validation": [], "test": []}
     return dataset
 
 
-def test_create_and_start_success(mock_dataset, mock_model):
+def test_create_and_start_success(mock_dataset):
     # Test successful creation with minimal parameters
     adapter, datamodel = MockFinetune.create_and_start(
         dataset=mock_dataset,
-        model=mock_model,
+        provider_id="openai",
+        provider_base_model_id="gpt-4o-mini-2024-07-18",
         train_split_name="train",
         parameters={"epochs": 10},  # Required parameter
         system_message="Test system message",
@@ -166,11 +157,9 @@ def test_create_and_start_success(mock_dataset, mock_model):
 
     assert isinstance(adapter, MockFinetune)
     assert isinstance(datamodel, FinetuneModel)
-    assert datamodel.name.startswith(
-        f"{mock_model.provider_finetune_id} - "
-    )  # Default name format
-    assert datamodel.provider == mock_model.name
-    assert datamodel.base_model_id == mock_model.provider_finetune_id
+    assert datamodel.name.startswith("gpt-4o-mini-2024-07-18 - ")  # Default name format
+    assert datamodel.provider == "openai"
+    assert datamodel.base_model_id == "gpt-4o-mini-2024-07-18"
     assert datamodel.dataset_split_id == mock_dataset.id
     assert datamodel.train_split_name == "train"
     assert datamodel.parameters == {"epochs": 10}
@@ -178,11 +167,12 @@ def test_create_and_start_success(mock_dataset, mock_model):
     assert datamodel.path.exists()
 
 
-def test_create_and_start_with_all_params(mock_dataset, mock_model):
+def test_create_and_start_with_all_params(mock_dataset):
     # Test creation with all optional parameters
     adapter, datamodel = MockFinetune.create_and_start(
         dataset=mock_dataset,
-        model=mock_model,
+        provider_id="openai",
+        provider_base_model_id="gpt-4o-mini-2024-07-18",
         train_split_name="train",
         parameters={"epochs": 10, "learning_rate": 0.001},
         name="Custom Name",
@@ -203,35 +193,38 @@ def test_create_and_start_with_all_params(mock_dataset, mock_model):
     assert loaded_datamodel.model_dump_json() == datamodel.model_dump_json()
 
 
-def test_create_and_start_invalid_parameters(mock_dataset, mock_model):
+def test_create_and_start_invalid_parameters(mock_dataset):
     # Test with invalid parameters
     with pytest.raises(ValueError, match="Parameter epochs is required"):
         MockFinetune.create_and_start(
             dataset=mock_dataset,
-            model=mock_model,
+            provider_id="openai",
+            provider_base_model_id="gpt-4o-mini-2024-07-18",
             train_split_name="train",
             parameters={"learning_rate": 0.001},  # Missing required 'epochs'
             system_message="Test system message",
         )
 
 
-def test_create_and_start_no_parent_task(mock_model):
+def test_create_and_start_no_parent_task():
     # Test with dataset that has no parent task
     dataset = Mock(spec=DatasetSplit)
     dataset.id = "dataset_123"
     dataset.parent_task.return_value = None
+    dataset.split_contents = {"train": [], "validation": [], "test": []}
 
     with pytest.raises(ValueError, match="Dataset must have a parent task with a path"):
         MockFinetune.create_and_start(
             dataset=dataset,
-            model=mock_model,
+            provider_id="openai",
+            provider_base_model_id="gpt-4o-mini-2024-07-18",
             train_split_name="train",
             parameters={"epochs": 10},
             system_message="Test system message",
         )
 
 
-def test_create_and_start_no_parent_task_path(mock_model):
+def test_create_and_start_no_parent_task_path():
     # Test with dataset that has parent task but no path
     task = Mock(spec=Task)
     task.path = None
@@ -239,12 +232,58 @@ def test_create_and_start_no_parent_task_path(mock_model):
     dataset = Mock(spec=DatasetSplit)
     dataset.id = "dataset_123"
     dataset.parent_task.return_value = task
+    dataset.split_contents = {"train": [], "validation": [], "test": []}
 
     with pytest.raises(ValueError, match="Dataset must have a parent task with a path"):
         MockFinetune.create_and_start(
             dataset=dataset,
-            model=mock_model,
+            provider_id="openai",
+            provider_base_model_id="gpt-4o-mini-2024-07-18",
             train_split_name="train",
+            parameters={"epochs": 10},
+            system_message="Test system message",
+        )
+
+
+def test_check_valid_provider_model():
+    MockFinetune.check_valid_provider_model("openai", "gpt-4o-mini-2024-07-18")
+
+    with pytest.raises(
+        ValueError, match="Provider openai with base model gpt-99 is not available"
+    ):
+        MockFinetune.check_valid_provider_model("openai", "gpt-99")
+
+
+def test_create_and_start_invalid_train_split(mock_dataset):
+    # Test with an invalid train split name
+    mock_dataset.split_contents = {"valid_train": [], "valid_test": []}
+
+    with pytest.raises(
+        ValueError, match="Train split invalid_train not found in dataset"
+    ):
+        MockFinetune.create_and_start(
+            dataset=mock_dataset,
+            provider_id="openai",
+            provider_base_model_id="gpt-4o-mini-2024-07-18",
+            train_split_name="invalid_train",  # Invalid train split
+            parameters={"epochs": 10},
+            system_message="Test system message",
+        )
+
+
+def test_create_and_start_invalid_validation_split(mock_dataset):
+    # Test with an invalid validation split name
+    mock_dataset.split_contents = {"valid_train": [], "valid_test": []}
+
+    with pytest.raises(
+        ValueError, match="Validation split invalid_test not found in dataset"
+    ):
+        MockFinetune.create_and_start(
+            dataset=mock_dataset,
+            provider_id="openai",
+            provider_base_model_id="gpt-4o-mini-2024-07-18",
+            train_split_name="valid_train",
+            validation_split_name="invalid_test",  # Invalid validation split
             parameters={"epochs": 10},
             system_message="Test system message",
         )

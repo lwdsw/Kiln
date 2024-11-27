@@ -461,7 +461,8 @@ export interface paths {
         /** Finetunes */
         get: operations["finetunes_api_projects__project_id__tasks__task_id__finetunes_get"];
         put?: never;
-        post?: never;
+        /** Create Finetune */
+        post: operations["create_finetune_api_projects__project_id__tasks__task_id__finetunes_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -523,6 +524,31 @@ export interface components {
             name?: string | null;
             /** Description */
             description?: string | null;
+        };
+        /** CreateFinetuneRequest */
+        CreateFinetuneRequest: {
+            /** Name */
+            name?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Dataset Id */
+            dataset_id: string;
+            /** Train Split Name */
+            train_split_name: string;
+            /** Validation Split Name */
+            validation_split_name?: string | null;
+            /** Parameters */
+            parameters: {
+                [key: string]: string | number | boolean;
+            };
+            /** Provider */
+            provider: string;
+            /** Base Model Id */
+            base_model_id: string;
+            /** System Message Generator */
+            system_message_generator?: string | null;
+            /** Custom System Message */
+            custom_system_message?: string | null;
         };
         /** DataGenCategoriesApiInput */
         DataGenCategoriesApiInput: {
@@ -2351,6 +2377,42 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Finetune"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_finetune_api_projects__project_id__tasks__task_id__finetunes_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateFinetuneRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Finetune"];
                 };
             };
             /** @description Validation Error */

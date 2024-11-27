@@ -55,7 +55,7 @@ def generate_chat_message_toolcall(
                         "type": "function",
                         "function": {
                             "name": "task_response",
-                            "arguments": arguments,
+                            "arguments": json.dumps(arguments),
                         },
                     }
                 ],
