@@ -1,4 +1,5 @@
 import unittest.mock
+from datetime import datetime
 from unittest.mock import Mock
 
 import pytest
@@ -6,9 +7,22 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from kiln_ai.adapters.fine_tune.base_finetune import FineTuneParameter
 from kiln_ai.adapters.ml_model_list import KilnModel, KilnModelProvider
-from kiln_ai.datamodel import AllSplitDefinition, DatasetSplit, Finetune
+from kiln_ai.datamodel import (
+    AllDatasetFilter,
+    AllSplitDefinition,
+    DatasetSplit,
+    Finetune,
+    HighRatingDatasetFilter,
+    Train60Test20Val20SplitDefinition,
+    Train80Test20SplitDefinition,
+)
 
-from app.desktop.studio_server.finetune_api import connect_fine_tune_api
+from app.desktop.studio_server.finetune_api import (
+    CreateDatasetSplitRequest,
+    DatasetFilterType,
+    DatasetSplitType,
+    connect_fine_tune_api,
+)
 
 
 @pytest.fixture
@@ -226,3 +240,141 @@ def test_get_finetune_hyperparameters_invalid_provider(client, mock_finetune_reg
     assert (
         response.json()["detail"] == "Fine tune provider 'invalid_provider' not found"
     )
+
+
+def test_dataset_split_type_enum():
+    assert DatasetSplitType.TRAIN_TEST.value == "train_test"
+    assert DatasetSplitType.TRAIN_TEST_VAL.value == "train_test_val"
+    assert DatasetSplitType.ALL.value == "all"
+
+
+def test_dataset_filter_type_enum():
+    assert DatasetFilterType.ALL.value == "all"
+    assert DatasetFilterType.HIGH_RATING.value == "high_rating"
+
+
+def test_api_split_types_mapping():
+    from app.desktop.studio_server.finetune_api import api_split_types
+
+    assert api_split_types[DatasetSplitType.TRAIN_TEST] == Train80Test20SplitDefinition
+    assert (
+        api_split_types[DatasetSplitType.TRAIN_TEST_VAL]
+        == Train60Test20Val20SplitDefinition
+    )
+    assert api_split_types[DatasetSplitType.ALL] == AllSplitDefinition
+    for split_type in DatasetSplitType:
+        assert split_type in api_split_types
+
+
+def test_api_filter_types_mapping():
+    from app.desktop.studio_server.finetune_api import api_filter_types
+
+    assert api_filter_types[DatasetFilterType.ALL] == AllDatasetFilter
+    assert api_filter_types[DatasetFilterType.HIGH_RATING] == HighRatingDatasetFilter
+    for filter_type in DatasetFilterType:
+        assert filter_type in api_filter_types
+
+
+@pytest.fixture
+def mock_dataset_split():
+    split = DatasetSplit(
+        id="new_split",
+        name="Test Split",
+        split_contents={"train": ["1", "2"], "test": ["3"]},
+        splits=AllSplitDefinition,
+    )
+    return split
+
+
+def test_create_dataset_split(client, mock_task_from_id, mock_dataset_split):
+    # Mock DatasetSplit.from_task and save_to_file
+    mock_from_task = unittest.mock.patch.object(
+        DatasetSplit, "from_task", return_value=mock_dataset_split
+    )
+    mock_save = unittest.mock.patch.object(DatasetSplit, "save_to_file")
+
+    with mock_from_task as from_task_mock, mock_save as save_mock:
+        request_data = {
+            "dataset_split_type": "train_test",
+            "filter_type": "all",
+            "name": "Test Split",
+            "description": "Test description",
+        }
+
+        response = client.post(
+            "/api/projects/project1/tasks/task1/dataset_splits", json=request_data
+        )
+
+        assert response.status_code == 200
+        result = response.json()
+        assert result["id"] == "new_split"
+        assert result["name"] == "Test Split"
+
+        # Verify the mocks were called correctly
+        mock_task_from_id.assert_called_once_with("project1", "task1")
+        from_task_mock.assert_called_once()
+        save_mock.assert_called_once()
+
+
+def test_create_dataset_split_auto_name(client, mock_task_from_id, mock_dataset_split):
+    # Mock DatasetSplit.from_task and save_to_file
+    mock_from_task = unittest.mock.patch.object(
+        DatasetSplit, "from_task", return_value=mock_dataset_split
+    )
+    mock_save = unittest.mock.patch.object(DatasetSplit, "save_to_file")
+    mock_datetime = unittest.mock.patch(
+        "app.desktop.studio_server.finetune_api.datetime"
+    )
+
+    with mock_from_task as from_task_mock, mock_save as save_mock, mock_datetime as dt:
+        # Mock datetime to have a consistent test
+        mock_now = datetime(2024, 1, 1, 12, 0, 0)
+        dt.now.return_value = mock_now
+
+        request_data = {"dataset_split_type": "train_test", "filter_type": "all"}
+
+        response = client.post(
+            "/api/projects/project1/tasks/task1/dataset_splits", json=request_data
+        )
+
+        assert response.status_code == 200
+
+        # Verify auto-generated name format
+        from_task_mock.assert_called_once()
+        args = from_task_mock.call_args[0]
+        assert args[0] == "2024-01-01 12:00:00 filter_all split_train_test"
+        save_mock.assert_called_once()
+
+
+def test_create_dataset_split_request_validation():
+    # Test valid request
+    request = CreateDatasetSplitRequest(
+        dataset_split_type=DatasetSplitType.TRAIN_TEST,
+        filter_type=DatasetFilterType.ALL,
+        name="Test Split",
+        description="Test description",
+    )
+    assert request.dataset_split_type == DatasetSplitType.TRAIN_TEST
+    assert request.filter_type == DatasetFilterType.ALL
+    assert request.name == "Test Split"
+    assert request.description == "Test description"
+
+    # Test optional fields
+    request = CreateDatasetSplitRequest(
+        dataset_split_type=DatasetSplitType.TRAIN_TEST,
+        filter_type=DatasetFilterType.ALL,
+    )
+    assert request.name is None
+    assert request.description is None
+
+    # Test invalid dataset split type
+    with pytest.raises(ValueError):
+        CreateDatasetSplitRequest(
+            dataset_split_type="invalid_type", filter_type=DatasetFilterType.ALL
+        )
+
+    # Test invalid filter type
+    with pytest.raises(ValueError):
+        CreateDatasetSplitRequest(
+            dataset_split_type=DatasetSplitType.TRAIN_TEST, filter_type="invalid_type"
+        )

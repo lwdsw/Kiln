@@ -1,3 +1,6 @@
+from datetime import datetime
+from enum import Enum
+
 from fastapi import FastAPI, HTTPException
 from kiln_ai.adapters.fine_tune.base_finetune import FineTuneParameter
 from kiln_ai.adapters.fine_tune.finetune_registry import finetune_registry
@@ -7,7 +10,15 @@ from kiln_ai.adapters.ml_model_list import (
     provider_enabled,
     provider_name_from_id,
 )
-from kiln_ai.datamodel import DatasetSplit, Finetune
+from kiln_ai.datamodel import (
+    AllDatasetFilter,
+    AllSplitDefinition,
+    DatasetSplit,
+    Finetune,
+    HighRatingDatasetFilter,
+    Train60Test20Val20SplitDefinition,
+    Train80Test20SplitDefinition,
+)
 from kiln_server.task_api import task_from_id
 from pydantic import BaseModel
 
@@ -22,6 +33,37 @@ class FinetuneProvider(BaseModel):
     id: str
     enabled: bool
     models: list[FinetuneProviderModel]
+
+
+class DatasetSplitType(Enum):
+    TRAIN_TEST = "train_test"
+    TRAIN_TEST_VAL = "train_test_val"
+    ALL = "all"
+
+
+api_split_types = {
+    DatasetSplitType.TRAIN_TEST: Train80Test20SplitDefinition,
+    DatasetSplitType.TRAIN_TEST_VAL: Train60Test20Val20SplitDefinition,
+    DatasetSplitType.ALL: AllSplitDefinition,
+}
+
+
+class DatasetFilterType(Enum):
+    ALL = "all"
+    HIGH_RATING = "high_rating"
+
+
+api_filter_types = {
+    DatasetFilterType.ALL: AllDatasetFilter,
+    DatasetFilterType.HIGH_RATING: HighRatingDatasetFilter,
+}
+
+
+class CreateDatasetSplitRequest(BaseModel):
+    dataset_split_type: DatasetSplitType
+    filter_type: DatasetFilterType
+    name: str | None = None
+    description: str | None = None
 
 
 def connect_fine_tune_api(app: FastAPI):
@@ -75,3 +117,21 @@ def connect_fine_tune_api(app: FastAPI):
             )
         finetune_adapter_class = finetune_registry[provider_id]
         return finetune_adapter_class.available_parameters()
+
+    @app.post("/api/projects/{project_id}/tasks/{task_id}/dataset_splits")
+    async def create_dataset_split(
+        project_id: str, task_id: str, request: CreateDatasetSplitRequest
+    ) -> DatasetSplit:
+        task = task_from_id(project_id, task_id)
+        split_definitions = api_split_types[request.dataset_split_type]
+        filter = api_filter_types[request.filter_type]
+
+        name = request.name
+        if not name:
+            name = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} filter_{request.filter_type.value} split_{request.dataset_split_type.value}"
+
+        dataset_split = DatasetSplit.from_task(
+            name, task, split_definitions, filter, request.description
+        )
+        dataset_split.save_to_file()
+        return dataset_split
