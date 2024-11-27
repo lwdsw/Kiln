@@ -49,7 +49,9 @@
   $: step_3_visible =
     model_provider !== disabled_header &&
     !!selected_dataset &&
-    (!selected_dataset_has_val || automatic_validation !== disabled_header)
+    (is_download ||
+      !selected_dataset_has_val ||
+      automatic_validation !== disabled_header)
   $: is_download = model_provider.startsWith("download_")
   $: step_4_download_visible = step_3_visible && is_download
   $: submit_visible = step_3_visible && !is_download
@@ -526,7 +528,9 @@
                       split_name.slice(1)}:{" "}
                     {split_contents.length} examples
                     <span class="text-xs text-gray-500 pl-2">
-                      {#if split_name === "val" && automatic_validation === disabled_header}
+                      {#if is_download}
+                        <!-- Nothing -->
+                      {:else if split_name === "val" && automatic_validation === disabled_header}
                         May be used for validation during fine-tuning
                       {:else if split_name === "val" && automatic_validation === "yes"}
                         Will be used for validation during fine-tuning
@@ -541,7 +545,7 @@
               </ul>
             </div>
           {/if}
-          {#if selected_dataset && selected_dataset_has_val}
+          {#if selected_dataset && selected_dataset_has_val && !is_download}
             <FormElement
               label="Automatic Validation"
               description="The selected dataset has a validation set. Should we use this for validation during fine-tuning? Select 'Yes' if your task is completely deterministic (classification), and 'No' if the task is not deterministic (e.g. generation)."
@@ -634,12 +638,26 @@
       <div>
         <div class="text-xl font-bold">Step 4: Download JSONL</div>
         <div class="text-sm">
-          Download JSONL files to fine-tune using any infrastructure.
+          Download JSONL files to fine-tune using any infrastructure, such as
+          <a
+            href="https://github.com/stef/libsaxolotl"
+            class="link"
+            target="_blank">Axolotl</a
+          >
+          or
+          <a
+            href="https://github.com/unslothai/unsloth"
+            class="link"
+            target="_blank">Unsloth</a
+          >.
         </div>
         <div class="flex flex-col gap-4 mt-6">
           {#each Object.keys(selected_dataset?.split_contents || {}) as split_name}
             <button
-              class="btn btn-secondary max-w-[400px]"
+              class="btn {Object.keys(selected_dataset?.split_contents || {})
+                .length > 1
+                ? 'btn-secondary btn-outline'
+                : 'btn-primary'} max-w-[400px]"
               on:click={() => download_dataset_jsonl(split_name)}
             >
               Download Split: {split_name} ({selected_dataset?.split_contents[
