@@ -503,6 +503,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/download_dataset_jsonl": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Download Dataset Jsonl */
+        get: operations["download_dataset_jsonl_api_download_dataset_jsonl_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -516,7 +533,10 @@ export interface components {
             /** Models */
             models: components["schemas"]["ModelDetails"][];
         };
-        /** CreateDatasetSplitRequest */
+        /**
+         * CreateDatasetSplitRequest
+         * @description Request to create a dataset split
+         */
         CreateDatasetSplitRequest: {
             dataset_split_type: components["schemas"]["DatasetSplitType"];
             filter_type: components["schemas"]["DatasetFilterType"];
@@ -525,7 +545,10 @@ export interface components {
             /** Description */
             description?: string | null;
         };
-        /** CreateFinetuneRequest */
+        /**
+         * CreateFinetuneRequest
+         * @description Request to create a finetune
+         */
         CreateFinetuneRequest: {
             /** Name */
             name?: string | null;
@@ -756,6 +779,7 @@ export interface components {
         };
         /**
          * DatasetSplitType
+         * @description Dataset split types
          * @enum {string}
          */
         DatasetSplitType: "train_test" | "train_test_val" | "all";
@@ -854,7 +878,10 @@ export interface components {
             /** Model Type */
             readonly model_type: string;
         };
-        /** FinetuneProvider */
+        /**
+         * FinetuneProvider
+         * @description Finetune provider: list of models a provider supports for fine-tuning
+         */
         FinetuneProvider: {
             /** Name */
             name: string;
@@ -865,7 +892,10 @@ export interface components {
             /** Models */
             models: components["schemas"]["FinetuneProviderModel"][];
         };
-        /** FinetuneProviderModel */
+        /**
+         * FinetuneProviderModel
+         * @description Finetune provider model: a model a provider supports for fine-tuning
+         */
         FinetuneProviderModel: {
             /** Name */
             name: string;
@@ -2464,6 +2494,43 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FineTuneParameter"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    download_dataset_jsonl_api_download_dataset_jsonl_get: {
+        parameters: {
+            query: {
+                project_id: string;
+                task_id: string;
+                dataset_id: string;
+                split_name: string;
+                format_type: string;
+                system_message_generator?: string | null;
+                custom_system_message?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */

@@ -27,10 +27,6 @@
   let finetune_custom_system_prompt = ""
   let system_prompt_method = "basic"
 
-  // TODO
-  model_provider = "openai/gpt-4o"
-  //dataset_id = "new"
-
   $: project_id = $page.params.project_id
   $: task_id = $page.params.task_id
 
@@ -54,11 +50,9 @@
     model_provider !== disabled_header &&
     !!selected_dataset &&
     (!selected_dataset_has_val || automatic_validation !== disabled_header)
-  $: step_3_run_visible =
-    !!step_3_visible && !model_provider.startsWith("download_")
-  $: step_3_download_visible =
-    step_3_visible && model_provider.startsWith("download_")
-  $: submit_visible = step_3_run_visible
+  $: is_download = model_provider.startsWith("download_")
+  $: step_4_download_visible = step_3_visible && is_download
+  $: submit_visible = step_3_visible && !is_download
 
   onMount(async () => {
     get_available_models()
@@ -190,7 +184,7 @@
       hyperparameters_loading = true
       hyperparameters = null
       hyperparameter_values = {}
-      if (provider_id.startsWith("download_")) {
+      if (is_download) {
         // No hyperparameters for download options
         return
       }
@@ -249,6 +243,7 @@
   async function create_dataset() {
     try {
       create_dataset_split_loading = true
+      create_dataset_split_error = null
       const { data: create_dataset_split_response, error: post_error } =
         await client.POST(
           "/api/projects/{project_id}/tasks/{task_id}/dataset_splits",
@@ -298,6 +293,15 @@
     }
   }
 
+  function get_system_prompt_method_param(): string | undefined {
+    return system_prompt_method === "custom" ? undefined : system_prompt_method
+  }
+  function get_custom_system_prompt_param(): string | undefined {
+    return system_prompt_method === "custom"
+      ? finetune_custom_system_prompt
+      : undefined
+  }
+
   let create_finetune_error: KilnError | null = null
   let create_finetune_loading = false
   let created_finetune: Finetune | null = null
@@ -306,20 +310,8 @@
       create_finetune_loading = true
       created_finetune = null
 
-      // Filter out empty strings from hyperparameter_values
-      const filtered_hyperparameter_values = Object.fromEntries(
-        Object.entries(hyperparameter_values).filter(
-          ([_, value]) => value !== "",
-        ),
-      )
-
-      // Generate the system prompt params
-      const system_prompt_method_param =
-        system_prompt_method === "custom" ? undefined : system_prompt_method
-      let custom_system_message_param = undefined
-      if (system_prompt_method === "custom") {
-        custom_system_message_param = finetune_custom_system_prompt
-      }
+      // Filter out empty strings from hyperparameter_values, and parse/validate types
+      const hyperparameter_values = build_parsed_hyperparameters()
 
       const { data: create_finetune_response, error: post_error } =
         await client.POST(
@@ -340,9 +332,9 @@
               description: finetune_description
                 ? finetune_description
                 : undefined,
-              system_message_generator: system_prompt_method_param,
-              custom_system_message: custom_system_message_param,
-              parameters: filtered_hyperparameter_values, // Use filtered values
+              system_message_generator: get_system_prompt_method_param(),
+              custom_system_message: get_custom_system_prompt_param(),
+              parameters: hyperparameter_values,
               validation_split_name:
                 automatic_validation === "yes" ? "val" : undefined,
             },
@@ -368,197 +360,299 @@
       create_finetune_loading = false
     }
   }
+
+  function build_parsed_hyperparameters() {
+    let parsed_hyperparameters: Record<string, string | number | boolean> = {}
+    for (const hyperparameter of hyperparameters || []) {
+      let raw_value = hyperparameter_values[hyperparameter.name]
+      // remove empty strings
+      if (!raw_value) {
+        continue
+      }
+      let value = undefined
+      if (hyperparameter.type === "int") {
+        const parsed = parseInt(raw_value)
+        if (
+          isNaN(parsed) ||
+          !Number.isInteger(parsed) ||
+          parsed.toString() !== raw_value // checks it didn't parse 1.1 to 1
+        ) {
+          throw new Error(
+            `Invalid integer value for ${hyperparameter.name}: ${raw_value}`,
+          )
+        }
+        value = parsed
+      } else if (hyperparameter.type === "float") {
+        const parsed = parseFloat(raw_value)
+        if (isNaN(parsed)) {
+          throw new Error(
+            `Invalid float value for ${hyperparameter.name}: ${raw_value}`,
+          )
+        }
+        value = parsed
+      } else if (hyperparameter.type === "bool") {
+        if (raw_value !== "true" && raw_value !== "false") {
+          throw new Error("Invalid boolean value: " + raw_value)
+        }
+        value = raw_value === "true"
+      } else if (hyperparameter.type === "string") {
+        value = raw_value
+      } else {
+        throw new Error("Invalid hyperparameter type: " + hyperparameter.type)
+      }
+      parsed_hyperparameters[hyperparameter.name] = value
+    }
+    return parsed_hyperparameters
+  }
+
+  async function download_dataset_jsonl(split_name: string) {
+    const params = {
+      dataset_id: dataset_id,
+      project_id: project_id,
+      task_id: task_id,
+      split_name: split_name,
+      format_type:
+        model_provider === "download_jsonl_toolcall"
+          ? "chat_message_toolcall_jsonl"
+          : "chat_message_response_jsonl",
+      system_message_generator: get_system_prompt_method_param(),
+      custom_system_message: get_custom_system_prompt_param(),
+    }
+
+    // Format params as query string, including escaping values and filtering undefined
+    const query_string = Object.entries(params)
+      .filter(([_, value]) => value !== undefined)
+      .map(([key, value]) => `${key}=${encodeURIComponent(value || "")}`)
+      .join("&")
+
+    window.open(
+      "http://localhost:8757/api/download_dataset_jsonl?" + query_string,
+    )
+  }
 </script>
 
-<AppPage
-  title="Create a New Fine Tune"
-  subtitle="Fine-tuned models learn on your dataset."
->
-  {#if available_models_loading || datasets_loading}
-    <div class="w-full min-h-[50vh] flex justify-center items-center">
-      <div class="loading loading-spinner loading-lg"></div>
-    </div>
-  {:else if created_finetune}
-    <div
-      class="w-full min-h-[50vh] flex flex-col justify-center items-center gap-2"
-    >
-      <!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
-      <svg
-        fill="currentColor"
-        class="size-10 text-success mb-2"
-        viewBox="0 0 56 56"
-        xmlns="http://www.w3.org/2000/svg"
-        ><path
-          d="M 27.9999 51.9063 C 41.0546 51.9063 51.9063 41.0781 51.9063 28 C 51.9063 14.9453 41.0312 4.0937 27.9765 4.0937 C 14.8983 4.0937 4.0937 14.9453 4.0937 28 C 4.0937 41.0781 14.9218 51.9063 27.9999 51.9063 Z M 27.9999 47.9219 C 16.9374 47.9219 8.1014 39.0625 8.1014 28 C 8.1014 16.9609 16.9140 8.0781 27.9765 8.0781 C 39.0155 8.0781 47.8983 16.9609 47.9219 28 C 47.9454 39.0625 39.0390 47.9219 27.9999 47.9219 Z M 25.0468 39.7188 C 25.8202 39.7188 26.4530 39.3437 26.9452 38.6172 L 38.5234 20.4063 C 38.8046 19.9375 39.0858 19.3984 39.0858 18.8828 C 39.0858 17.8047 38.1483 17.1484 37.1640 17.1484 C 36.5312 17.1484 35.9452 17.5 35.5234 18.2031 L 24.9296 35.1484 L 19.4921 28.1172 C 18.9765 27.4141 18.4140 27.1563 17.7812 27.1563 C 16.7499 27.1563 15.9296 28 15.9296 29.0547 C 15.9296 29.5703 16.1405 30.0625 16.4687 30.5078 L 23.0312 38.6172 C 23.6640 39.3906 24.2733 39.7188 25.0468 39.7188 Z"
-        /></svg
+<div class="max-w-[1400px]">
+  <AppPage
+    title="Create a New Fine Tune"
+    subtitle="Fine-tuned models learn on your dataset."
+  >
+    {#if available_models_loading || datasets_loading}
+      <div class="w-full min-h-[50vh] flex justify-center items-center">
+        <div class="loading loading-spinner loading-lg"></div>
+      </div>
+    {:else if created_finetune}
+      <div
+        class="w-full min-h-[50vh] flex flex-col justify-center items-center gap-2"
       >
-      <div class="font-medium mb-2">Fine-Tune Created</div>
-      <div class="max-w-96 text-center font-light">
-        It will take a while to finish training. You can view it's status in the <a
-          href={`/fine_tune/${project_id}/${task_id}`}
-          class="link">Fine Tune tab</a
-        >.
+        <!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
+        <svg
+          fill="currentColor"
+          class="size-10 text-success mb-2"
+          viewBox="0 0 56 56"
+          xmlns="http://www.w3.org/2000/svg"
+          ><path
+            d="M 27.9999 51.9063 C 41.0546 51.9063 51.9063 41.0781 51.9063 28 C 51.9063 14.9453 41.0312 4.0937 27.9765 4.0937 C 14.8983 4.0937 4.0937 14.9453 4.0937 28 C 4.0937 41.0781 14.9218 51.9063 27.9999 51.9063 Z M 27.9999 47.9219 C 16.9374 47.9219 8.1014 39.0625 8.1014 28 C 8.1014 16.9609 16.9140 8.0781 27.9765 8.0781 C 39.0155 8.0781 47.8983 16.9609 47.9219 28 C 47.9454 39.0625 39.0390 47.9219 27.9999 47.9219 Z M 25.0468 39.7188 C 25.8202 39.7188 26.4530 39.3437 26.9452 38.6172 L 38.5234 20.4063 C 38.8046 19.9375 39.0858 19.3984 39.0858 18.8828 C 39.0858 17.8047 38.1483 17.1484 37.1640 17.1484 C 36.5312 17.1484 35.9452 17.5 35.5234 18.2031 L 24.9296 35.1484 L 19.4921 28.1172 C 18.9765 27.4141 18.4140 27.1563 17.7812 27.1563 C 16.7499 27.1563 15.9296 28 15.9296 29.0547 C 15.9296 29.5703 16.1405 30.0625 16.4687 30.5078 L 23.0312 38.6172 C 23.6640 39.3906 24.2733 39.7188 25.0468 39.7188 Z"
+          /></svg
+        >
+        <div class="font-medium mb-2">Fine-Tune Created</div>
+        <div class="max-w-96 text-center font-light">
+          It will take a while to finish training. You can view it's status in
+          the <a href={`/fine_tune/${project_id}/${task_id}`} class="link"
+            >Fine Tune tab</a
+          >.
+        </div>
       </div>
-    </div>
-  {:else if available_models_error || datasets_error}
-    <div
-      class="w-full min-h-[50vh] flex flex-col justify-center items-center gap-2"
-    >
-      <div class="font-medium">Error Loading Available Models and Datasets</div>
-      <div class="text-error text-sm">
-        {available_models_error?.getMessage() ||
-          datasets_error?.getMessage() ||
-          "An unknown error occurred"}
+    {:else if available_models_error || datasets_error}
+      <div
+        class="w-full min-h-[50vh] flex flex-col justify-center items-center gap-2"
+      >
+        <div class="font-medium">
+          Error Loading Available Models and Datasets
+        </div>
+        <div class="text-error text-sm">
+          {available_models_error?.getMessage() ||
+            datasets_error?.getMessage() ||
+            "An unknown error occurred"}
+        </div>
       </div>
-    </div>
-  {:else}
-    <FormContainer
-      {submit_visible}
-      submit_label="Start Fine-Tune Job"
-      on:submit={create_finetune}
-      bind:error={create_finetune_error}
-      bind:submitting={create_finetune_loading}
-    >
-      <div class="text-xl font-bold">Step 1: Select Model</div>
-      <FormElement
-        label="Model & Provider"
-        description="Select which model to fine-tune, and which provider to use. Optionally, download a JSONL file to fine-tune using any infrastructure."
-        info_description="Fine-tuning requires a lot of compute. Generally we suggest you use a hosted cloud option, but if you have enough compute and expertise you can fine-tune on your own using tools like Unsloth, Axolotl, and others."
-        inputType="select"
-        id="provider"
-        select_options={available_model_select}
-        bind:value={model_provider}
-      />
-      {#if model_provider !== disabled_header}
-        <div class="text-xl font-bold">Step 2: Select a Dataset</div>
+    {:else}
+      <FormContainer
+        {submit_visible}
+        submit_label="Start Fine-Tune Job"
+        on:submit={create_finetune}
+        bind:error={create_finetune_error}
+        bind:submitting={create_finetune_loading}
+      >
+        <div class="text-xl font-bold">Step 1: Select Model</div>
         <FormElement
-          label="Dataset"
-          description="Select a dataset to fine-tune with."
-          info_description="These datasets are subsets of the current task's data. We freeze a copy when you create a fine-tune so that you can create multiple fine-tunes from the same dataset for consistent evaluation."
+          label="Model & Provider"
+          description="Select which model to fine-tune, and which provider to use. Optionally, download a JSONL file to fine-tune using any infrastructure."
+          info_description="Fine-tuning requires a lot of compute. Generally we suggest you use a hosted cloud option, but if you have enough compute and expertise you can fine-tune on your own using tools like Unsloth, Axolotl, and others."
           inputType="select"
-          id="dataset"
-          select_options={dataset_select}
-          bind:value={dataset_id}
+          id="provider"
+          select_options={available_model_select}
+          bind:value={model_provider}
         />
-        {#if selected_dataset}
-          {#if selected_dataset_training_set_name && selected_dataset.split_contents[selected_dataset_training_set_name]?.length < 100}
-            <div class="text-error text-sm mt-2">
-              Warning: Your selected dataset has less than 100 examples for
-              training. We strongly recommend creating a larger dataset before
-              fine-tuning. Try our
-              <a href={`/generate/${project_id}/${task_id}`} class="link">
-                generation tool
-              </a>
-              to expand your dataset.
+        {#if model_provider !== disabled_header}
+          <div class="text-xl font-bold">Step 2: Select a Dataset</div>
+          <FormElement
+            label="Dataset"
+            description="Select a dataset to fine-tune with."
+            info_description="These datasets are subsets of the current task's data. We freeze a copy when you create a fine-tune so that you can create multiple fine-tunes from the same dataset for consistent evaluation."
+            inputType="select"
+            id="dataset"
+            select_options={dataset_select}
+            bind:value={dataset_id}
+          />
+          {#if selected_dataset}
+            {#if selected_dataset_training_set_name && selected_dataset.split_contents[selected_dataset_training_set_name]?.length < 100}
+              <div class="text-error text-sm mt-2">
+                Warning: Your selected dataset has less than 100 examples for
+                training. We strongly recommend creating a larger dataset before
+                fine-tuning. Try our
+                <a href={`/generate/${project_id}/${task_id}`} class="link">
+                  generation tool
+                </a>
+                to expand your dataset.
+              </div>
+            {/if}
+            <div class="text-sm">
+              The selected dataset has {selected_dataset.splits?.length}
+              {selected_dataset.splits?.length === 1 ? "split" : "splits"}:
+              <ul class="list-disc list-inside pt-2">
+                {#each Object.entries(selected_dataset.split_contents) as [split_name, split_contents]}
+                  <li>
+                    {split_name.charAt(0).toUpperCase() +
+                      split_name.slice(1)}:{" "}
+                    {split_contents.length} examples
+                    <span class="text-xs text-gray-500 pl-2">
+                      {#if split_name === "val" && automatic_validation === disabled_header}
+                        May be used for validation during fine-tuning
+                      {:else if split_name === "val" && automatic_validation === "yes"}
+                        Will be used for validation during fine-tuning
+                      {:else if split_name === "test"}
+                        Will not be used, reserved for later evaluation
+                      {:else if split_name === selected_dataset_training_set_name}
+                        Will be used for training
+                      {/if}
+                    </span>
+                  </li>
+                {/each}
+              </ul>
             </div>
           {/if}
-          <div class="text-sm">
-            The selected dataset has {selected_dataset.splits?.length}
-            {selected_dataset.splits?.length === 1 ? "split" : "splits"}:
-            <ul class="list-disc list-inside pt-2">
-              {#each Object.entries(selected_dataset.split_contents) as [split_name, split_contents]}
-                <li>
-                  {split_name.charAt(0).toUpperCase() +
-                    split_name.slice(1)}:{" "}
-                  {split_contents.length} examples
-                  <span class="text-xs text-gray-500 pl-2">
-                    {#if split_name === "val" && automatic_validation === disabled_header}
-                      May be used for validation during fine-tuning
-                    {:else if split_name === "val" && automatic_validation === "yes"}
-                      Will be used for validation during fine-tuning
-                    {:else if split_name === "test"}
-                      Will not be used, reserved for later evaluation
-                    {:else if split_name === selected_dataset_training_set_name}
-                      Will be used for training
-                    {/if}
-                  </span>
-                </li>
-              {/each}
-            </ul>
-          </div>
-        {/if}
-        {#if selected_dataset && selected_dataset_has_val}
-          <FormElement
-            label="Automatic Validation"
-            description="The selected dataset has a validation set. Should we use this for validation during fine-tuning? Select 'Yes' if your task is completely deterministic (classification), and 'No' if the task is not deterministic (e.g. generation)."
-            inputType="select"
-            id="automatic_validation"
-            select_options={[
-              [disabled_header, "Select if your task is deterministic"],
-              ["yes", "Yes - My task is deterministic (classification)"],
-              ["no", "No - My task is not deterministic (generation)"],
-            ]}
-            bind:value={automatic_validation}
-          />
-        {/if}
-      {/if}
-      {#if step_3_download_visible}
-        <div class="text-xl font-bold">Step 3: Download JSONL</div>
-        <div>Download JSONL files to fine-tune using any infrastructure.</div>
-        <!-- TODO: download options -->
-      {:else if step_3_run_visible}
-        <div class="text-xl font-bold">Step 3: Options</div>
-        <PromptTypeSelector
-          bind:prompt_method={system_prompt_method}
-          description="The system message to use for fine-tuning. Choose the prompt you want to use with your fine-tuned model."
-          info_description="There are tradeoffs to consider when choosing a system prompt for fine-tuning. Read more: https://platform.openai.com/docs/guides/fine-tuning/#crafting-prompts"
-          exclude_cot={true}
-          show_custom={true}
-        />
-        {#if system_prompt_method === "custom"}
-          <FormElement
-            label="Custom System Message"
-            description="Enter a custom system message to use during fine-tuning."
-            info_description="There are tradeoffs to consider when choosing a system prompt for fine-tuning. Read more: https://platform.openai.com/docs/guides/fine-tuning/#crafting-prompts"
-            inputType="textarea"
-            id="finetune_custom_system_prompt"
-            bind:value={finetune_custom_system_prompt}
-          />
-        {/if}
-        <FormElement
-          label="Fine-Tune Name"
-          description="An optional name to help identify this fine-tune."
-          optional={true}
-          inputType="input"
-          id="finetune_name"
-          bind:value={finetune_name}
-        />
-        <FormElement
-          label="Description"
-          description="An optional description of this fine-tune."
-          optional={true}
-          inputType="textarea"
-          id="finetune_description"
-          bind:value={finetune_description}
-        />
-        {#if hyperparameters_loading}
-          <div class="w-full min-h-[50vh] flex justify-center items-center">
-            <div class="loading loading-spinner loading-lg"></div>
-          </div>
-        {:else if hyperparameters_error || !hyperparameters}
-          <div class="text-error text-sm">
-            {hyperparameters_error?.getMessage() || "An unknown error occurred"}
-          </div>
-        {:else}
-          {#each hyperparameters as hyperparameter}
+          {#if selected_dataset && selected_dataset_has_val}
             <FormElement
-              label={hyperparameter.name +
-                " (" +
-                type_strings[hyperparameter.type] +
-                ")"}
-              description={hyperparameter.description}
-              info_description="If you aren't sure, leave blank for default/recommended value. Ensure your value is valid for the type (e.g. an integer can't have decimals)."
-              inputType="input"
-              optional={hyperparameter.optional}
-              id={hyperparameter.name}
-              bind:value={hyperparameter_values[hyperparameter.name]}
+              label="Automatic Validation"
+              description="The selected dataset has a validation set. Should we use this for validation during fine-tuning? Select 'Yes' if your task is completely deterministic (classification), and 'No' if the task is not deterministic (e.g. generation)."
+              inputType="select"
+              id="automatic_validation"
+              select_options={[
+                [disabled_header, "Select if your task is deterministic"],
+                ["yes", "Yes - My task is deterministic (classification)"],
+                ["no", "No - My task is not deterministic (generation)"],
+              ]}
+              bind:value={automatic_validation}
             />
-          {/each}
+          {/if}
         {/if}
-      {/if}
-    </FormContainer>
-  {/if}
-</AppPage>
+
+        {#if step_3_visible}
+          <div class="text-xl font-bold">Step 3: Options</div>
+          <PromptTypeSelector
+            bind:prompt_method={system_prompt_method}
+            description="The system message to use for fine-tuning. Choose the prompt you want to use with your fine-tuned model."
+            info_description="There are tradeoffs to consider when choosing a system prompt for fine-tuning. Read more: https://platform.openai.com/docs/guides/fine-tuning/#crafting-prompts"
+            exclude_cot={true}
+            show_custom={true}
+          />
+          {#if system_prompt_method === "custom"}
+            <FormElement
+              label="Custom System Message"
+              description="Enter a custom system message to use during fine-tuning."
+              info_description="There are tradeoffs to consider when choosing a system prompt for fine-tuning. Read more: https://platform.openai.com/docs/guides/fine-tuning/#crafting-prompts"
+              inputType="textarea"
+              id="finetune_custom_system_prompt"
+              bind:value={finetune_custom_system_prompt}
+            />
+          {/if}
+          {#if !is_download}
+            <FormElement
+              label="Fine-Tune Name"
+              description="An optional name to help identify this fine-tune."
+              optional={true}
+              inputType="input"
+              id="finetune_name"
+              bind:value={finetune_name}
+            />
+            <FormElement
+              label="Description"
+              description="An optional description of this fine-tune."
+              optional={true}
+              inputType="textarea"
+              id="finetune_description"
+              bind:value={finetune_description}
+            />
+            {#if hyperparameters_loading}
+              <div class="w-full min-h-[50vh] flex justify-center items-center">
+                <div class="loading loading-spinner loading-lg"></div>
+              </div>
+            {:else if hyperparameters_error || !hyperparameters}
+              <div class="text-error text-sm">
+                {hyperparameters_error?.getMessage() ||
+                  "An unknown error occurred"}
+              </div>
+            {:else if hyperparameters.length > 0}
+              <div class="collapse collapse-arrow bg-base-200">
+                <input type="checkbox" class="peer" />
+                <div class="collapse-title text-lg font-medium">
+                  Advanced Options
+                </div>
+                <div class="collapse-content flex flex-col gap-4">
+                  {#each hyperparameters as hyperparameter}
+                    <FormElement
+                      label={hyperparameter.name +
+                        " (" +
+                        type_strings[hyperparameter.type] +
+                        ")"}
+                      description={hyperparameter.description}
+                      info_description="If you aren't sure, leave blank for default/recommended value. Ensure your value is valid for the type (e.g. an integer can't have decimals)."
+                      inputType="input"
+                      optional={hyperparameter.optional}
+                      id={hyperparameter.name}
+                      bind:value={hyperparameter_values[hyperparameter.name]}
+                    />
+                  {/each}
+                </div>
+              </div>
+            {/if}
+          {/if}
+        {/if}
+      </FormContainer>
+    {/if}
+    {#if step_4_download_visible}
+      <div>
+        <div class="text-xl font-bold">Step 4: Download JSONL</div>
+        <div class="text-sm">
+          Download JSONL files to fine-tune using any infrastructure.
+        </div>
+        <div class="flex flex-col gap-4 mt-6">
+          {#each Object.keys(selected_dataset?.split_contents || {}) as split_name}
+            <button
+              class="btn btn-secondary max-w-[400px]"
+              on:click={() => download_dataset_jsonl(split_name)}
+            >
+              Download Split: {split_name} ({selected_dataset?.split_contents[
+                split_name
+              ]?.length} examples)
+            </button>
+          {/each}
+        </div>
+      </div>
+      <!-- TODO: download options -->
+    {/if}
+  </AppPage>
+</div>
 
 <dialog id="create_dataset_modal" class="modal">
   <div class="modal-box">

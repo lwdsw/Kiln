@@ -6,6 +6,7 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from kiln_ai.adapters.fine_tune.base_finetune import FineTuneParameter
+from kiln_ai.adapters.fine_tune.dataset_formatter import DatasetFormat
 from kiln_ai.adapters.ml_model_list import KilnModel, KilnModelProvider
 from kiln_ai.datamodel import (
     AllDatasetFilter,
@@ -628,4 +629,152 @@ def test_create_finetune_prompt_builder_error(
     assert (
         response.json()["detail"]
         == "Error generating system message using generator: test_prompt_builder. Source error: Invalid prompt configuration"
+    )
+
+
+@pytest.fixture
+def mock_dataset_formatter():
+    formatter = Mock()
+    formatter.dump_to_file.return_value = "path/to/dataset.jsonl"
+
+    with unittest.mock.patch(
+        "app.desktop.studio_server.finetune_api.DatasetFormatter",
+        return_value=formatter,
+    ) as mock_class:
+        yield mock_class, formatter
+
+
+def test_download_dataset_jsonl(
+    client,
+    mock_task_from_id,
+    mock_task,
+    mock_dataset_formatter,
+    tmp_path,
+):
+    mock_formatter_class, mock_formatter = mock_dataset_formatter
+
+    # Create a temporary file to simulate the dataset
+    test_file = tmp_path / "dataset.jsonl"
+    test_file.write_text('{"test": "data"}')
+    mock_formatter.dump_to_file.return_value = str(test_file)
+
+    response = client.get(
+        "/api/download_dataset_jsonl",
+        params={
+            "project_id": "project1",
+            "task_id": "task1",
+            "dataset_id": "split1",
+            "split_name": "train",
+            "format_type": "chat_message_response_jsonl",
+            "custom_system_message": "Test system message",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.headers["Content-Type"] == "application/jsonl"
+    assert (
+        response.headers["Content-Disposition"]
+        == 'attachment; filename="dataset_split1_train.jsonl"'
+    )
+    assert response.content == b'{"test": "data"}'
+
+    # Verify the formatter was created and used correctly
+    mock_formatter_class.assert_called_once()
+    mock_formatter.dump_to_file.assert_called_once_with(
+        "train", "chat_message_response_jsonl"
+    )
+
+
+def test_download_dataset_jsonl_invalid_format(client, mock_task_from_id):
+    response = client.get(
+        "/api/download_dataset_jsonl",
+        params={
+            "project_id": "project1",
+            "task_id": "task1",
+            "dataset_id": "split1",
+            "split_name": "train",
+            "format_type": "invalid_format",
+            "custom_system_message": "Test system message",
+        },
+    )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Dataset format 'invalid_format' not found"
+
+
+def test_download_dataset_jsonl_invalid_dataset(client, mock_task_from_id):
+    response = client.get(
+        "/api/download_dataset_jsonl",
+        params={
+            "project_id": "project1",
+            "task_id": "task1",
+            "dataset_id": "invalid_split",
+            "split_name": "train",
+            "format_type": "chat_message_response_jsonl",
+            "custom_system_message": "Test system message",
+        },
+    )
+
+    assert response.status_code == 404
+    assert (
+        response.json()["detail"] == "Dataset split with ID 'invalid_split' not found"
+    )
+
+
+def test_download_dataset_jsonl_invalid_split(client, mock_task_from_id, mock_task):
+    response = client.get(
+        "/api/download_dataset_jsonl",
+        params={
+            "project_id": "project1",
+            "task_id": "task1",
+            "dataset_id": "split1",
+            "split_name": "invalid_split",
+            "format_type": "chat_message_response_jsonl",
+            "custom_system_message": "Test system message",
+        },
+    )
+
+    assert response.status_code == 404
+    assert (
+        response.json()["detail"] == "Dataset split with name 'invalid_split' not found"
+    )
+
+
+def test_download_dataset_jsonl_with_prompt_builder(
+    client,
+    mock_task_from_id,
+    mock_task,
+    mock_dataset_formatter,
+    mock_prompt_builder,
+    tmp_path,
+):
+    mock_formatter_class, mock_formatter = mock_dataset_formatter
+    prompt_builder_mock, builder = mock_prompt_builder
+
+    # Create a temporary file to simulate the dataset
+    test_file = tmp_path / "dataset.jsonl"
+    test_file.write_text('{"test": "data"}')
+    mock_formatter.dump_to_file.return_value = str(test_file)
+
+    response = client.get(
+        "/api/download_dataset_jsonl",
+        params={
+            "project_id": "project1",
+            "task_id": "task1",
+            "dataset_id": "split1",
+            "split_name": "train",
+            "format_type": "chat_message_response_jsonl",
+            "system_message_generator": "test_prompt_builder",
+        },
+    )
+
+    assert response.status_code == 200
+
+    # Verify prompt builder was used
+    prompt_builder_mock.assert_called_once_with("test_prompt_builder")
+    builder.build_prompt.assert_called_once()
+
+    # Verify formatter was created with generated system message
+    mock_formatter_class.assert_called_once_with(
+        mock_task.dataset_splits.return_value[0], "Generated system message"
     )

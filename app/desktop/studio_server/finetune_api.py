@@ -2,7 +2,9 @@ from datetime import datetime
 from enum import Enum
 
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import StreamingResponse
 from kiln_ai.adapters.fine_tune.base_finetune import FineTuneParameter
+from kiln_ai.adapters.fine_tune.dataset_formatter import DatasetFormat, DatasetFormatter
 from kiln_ai.adapters.fine_tune.finetune_registry import finetune_registry
 from kiln_ai.adapters.ml_model_list import (
     ModelProviderName,
@@ -17,6 +19,7 @@ from kiln_ai.datamodel import (
     DatasetSplit,
     Finetune,
     HighRatingDatasetFilter,
+    Task,
     Train60Test20Val20SplitDefinition,
     Train80Test20SplitDefinition,
 )
@@ -26,11 +29,15 @@ from pydantic import BaseModel
 
 
 class FinetuneProviderModel(BaseModel):
+    """Finetune provider model: a model a provider supports for fine-tuning"""
+
     name: str
     id: str
 
 
 class FinetuneProvider(BaseModel):
+    """Finetune provider: list of models a provider supports for fine-tuning"""
+
     name: str
     id: str
     enabled: bool
@@ -38,6 +45,8 @@ class FinetuneProvider(BaseModel):
 
 
 class DatasetSplitType(Enum):
+    """Dataset split types"""
+
     TRAIN_TEST = "train_test"
     TRAIN_TEST_VAL = "train_test_val"
     ALL = "all"
@@ -62,6 +71,8 @@ api_filter_types = {
 
 
 class CreateDatasetSplitRequest(BaseModel):
+    """Request to create a dataset split"""
+
     dataset_split_type: DatasetSplitType
     filter_type: DatasetFilterType
     name: str | None = None
@@ -69,6 +80,8 @@ class CreateDatasetSplitRequest(BaseModel):
 
 
 class CreateFinetuneRequest(BaseModel):
+    """Request to create a finetune"""
+
     name: str | None = None
     description: str | None = None
     dataset_id: str
@@ -183,28 +196,9 @@ def connect_fine_tune_api(app: FastAPI):
                 detail="System message generator or custom system message is required",
             )
 
-        system_message = request.custom_system_message
-        if (
-            not system_message
-            or len(system_message) == 0
-            and request.system_message_generator is not None
-        ):
-            try:
-                prompt_builder_class = prompt_builder_from_ui_name(
-                    request.system_message_generator  # type: ignore
-                )
-                prompt_builder = prompt_builder_class(task)
-                system_message = prompt_builder.build_prompt()
-            except Exception as e:
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"Error generating system message using generator: {request.system_message_generator}. Source error: {str(e)}",
-                )
-        if system_message is None or len(system_message) == 0:
-            raise HTTPException(
-                status_code=400,
-                detail="System message is required",
-            )
+        system_message = system_message_from_request(
+            task, request.custom_system_message, request.system_message_generator
+        )
 
         _, finetune_model = finetune_adapter_class.create_and_start(
             dataset=dataset,
@@ -219,3 +213,80 @@ def connect_fine_tune_api(app: FastAPI):
         )
 
         return finetune_model
+
+    @app.get("/api/download_dataset_jsonl")
+    async def download_dataset_jsonl(
+        project_id: str,
+        task_id: str,
+        dataset_id: str,
+        split_name: str,
+        format_type: str,
+        system_message_generator: str | None = None,
+        custom_system_message: str | None = None,
+    ) -> StreamingResponse:
+        if format_type not in DatasetFormat:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Dataset format '{format_type}' not found",
+            )
+        task = task_from_id(project_id, task_id)
+        dataset = next(
+            (split for split in task.dataset_splits() if split.id == dataset_id),
+            None,
+        )
+        if dataset is None:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Dataset split with ID '{dataset_id}' not found",
+            )
+        if split_name not in dataset.split_contents:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Dataset split with name '{split_name}' not found",
+            )
+
+        system_message = system_message_from_request(
+            task, custom_system_message, system_message_generator
+        )
+
+        # set headers to force download in a browser
+        headers = {
+            "Content-Disposition": f'attachment; filename="dataset_{dataset_id}_{split_name}.jsonl"',
+            "Content-Type": "application/jsonl",
+        }
+
+        dataset_formatter = DatasetFormatter(dataset, system_message)
+        path = dataset_formatter.dump_to_file(split_name, format_type)  # type: ignore
+        return StreamingResponse(open(path, "rb"), headers=headers)
+
+
+def system_message_from_request(
+    task: Task, custom_system_message: str | None, system_message_generator: str | None
+) -> str:
+    system_message = custom_system_message
+    if (
+        not system_message
+        or len(system_message) == 0
+        and system_message_generator is not None
+    ):
+        if system_message_generator is None:
+            raise HTTPException(
+                status_code=400,
+                detail="System message generator is required when custom system message is not provided",
+            )
+        try:
+            prompt_builder_class = prompt_builder_from_ui_name(system_message_generator)
+            prompt_builder = prompt_builder_class(task)
+            system_message = prompt_builder.build_prompt()
+        except Exception as e:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Error generating system message using generator: {system_message_generator}. Source error: {str(e)}",
+            )
+    if system_message is None or len(system_message) == 0:
+        raise HTTPException(
+            status_code=400,
+            detail="System message is required",
+        )
+
+    return system_message
