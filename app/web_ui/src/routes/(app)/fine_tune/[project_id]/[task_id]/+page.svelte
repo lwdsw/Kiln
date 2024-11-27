@@ -8,6 +8,7 @@
   import { goto } from "$app/navigation"
   import { page } from "$app/stores"
   import { formatDate } from "$lib/utils/formatters"
+  import { provider_name_from_id } from "$lib/stores"
 
   $: project_id = $page.params.project_id
   $: task_id = $page.params.task_id
@@ -57,12 +58,13 @@
 </script>
 
 <AppPage
-  title="Fine-Tune"
-  subtitle="Create fine-tuned models for this task."
+  title="Fine Tunes"
+  subtitle="Fine tuned models for the current task."
   action_buttons={[
     {
-      label: "Create Finetune",
+      label: "Create Fine Tune",
       href: `/fine_tune/${project_id}/${task_id}/create_finetune`,
+      primary: true,
     },
   ]}
 >
@@ -79,9 +81,10 @@
       <table class="table">
         <thead>
           <tr>
+            <th> ID </th>
             <th> Name </th>
-            <th> Description </th>
-            <th> Splits </th>
+            <th> Provider</th>
+            <th> Base Model</th>
             <th> Created At </th>
           </tr>
         </thead>
@@ -95,9 +98,10 @@
                 )
               }}
             >
+              <td> {finetune.id} </td>
               <td> {finetune.name} </td>
-              <td> {finetune.description} </td>
-              <td> TODO </td>
+              <td> {provider_name_from_id(finetune.provider)} </td>
+              <td> {finetune.base_model_id} </td>
               <td> {formatDate(finetune.created_at)} </td>
             </tr>
           {/each}
