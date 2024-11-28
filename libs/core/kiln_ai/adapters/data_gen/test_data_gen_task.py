@@ -251,17 +251,25 @@ async def test_data_gen_sample_all_models_providers(
 @pytest.mark.ollama
 @pytest.mark.parametrize("model_name,provider_name", get_all_models_and_providers())
 async def test_data_gen_sample_all_models_providers_with_structured_output(
-    tmp_path, model_name, provider_name, base_task
+    tmp_path, model_name, provider_name
 ):
-    base_task.output_json_schema = json.dumps(
-        {
-            "type": "object",
-            "properties": {
-                "opening": {"type": "string"},
-                "closing": {"type": "string"},
-            },
-            "required": ["opening", "closing"],
-        }
+    project = Project(name="TestProject")
+    task = Task(
+        name="Summarize",
+        parent=project,
+        description="Explain if the username matches the tweet",
+        instruction="Explain if the username matches the tweet",
+        requirements=[],
+        input_json_schema=json.dumps(
+            {
+                "type": "object",
+                "properties": {
+                    "username": {"type": "string"},
+                    "tweet": {"type": "string"},
+                },
+                "required": ["username", "tweet"],
+            }
+        ),
     )
 
     _, provider = get_model_and_provider(model_name, provider_name)
@@ -269,9 +277,9 @@ async def test_data_gen_sample_all_models_providers_with_structured_output(
         # pass if the model doesn't support data gen (testing the support flag is part of this)
         return
 
-    data_gen_task = DataGenSampleTask(target_task=base_task)
+    data_gen_task = DataGenSampleTask(target_task=task)
     data_gen_input = DataGenSampleTaskInput.from_task(
-        base_task, topic=["riding horses"], num_samples=4
+        task, topic=["Food"], num_samples=4
     )
 
     adapter = adapter_for_task(
@@ -287,7 +295,7 @@ async def test_data_gen_sample_all_models_providers_with_structured_output(
     assert len(samples) == 4
     for sample in samples:
         assert isinstance(sample, dict)
-        assert "opening" in sample
-        assert "closing" in sample
-        assert isinstance(sample["opening"], str)
-        assert isinstance(sample["closing"], str)
+        assert "username" in sample
+        assert "tweet" in sample
+        assert isinstance(sample["username"], str)
+        assert isinstance(sample["tweet"], str)

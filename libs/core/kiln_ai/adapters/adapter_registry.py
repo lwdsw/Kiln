@@ -6,7 +6,6 @@ from kiln_ai.adapters.prompt_builders import BasePromptBuilder
 
 def adapter_for_task(
     kiln_task: datamodel.Task,
-    # TODO custom_model: BaseChatModel | None = None,
     model_name: str | None = None,
     provider: str | None = None,
     prompt_builder: BasePromptBuilder | None = None,
