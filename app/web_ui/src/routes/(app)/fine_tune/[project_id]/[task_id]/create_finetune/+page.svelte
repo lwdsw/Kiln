@@ -609,9 +609,7 @@
             {:else if hyperparameters.length > 0}
               <div class="collapse collapse-arrow bg-base-200">
                 <input type="checkbox" class="peer" />
-                <div class="collapse-title text-lg font-medium">
-                  Advanced Options
-                </div>
+                <div class="collapse-title font-medium">Advanced Options</div>
                 <div class="collapse-content flex flex-col gap-4">
                   {#each hyperparameters as hyperparameter}
                     <FormElement

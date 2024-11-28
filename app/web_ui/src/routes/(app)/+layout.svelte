@@ -84,7 +84,7 @@
 <div class="drawer lg:drawer-open">
   <input id="main-drawer" type="checkbox" class="drawer-toggle" />
   <div class="drawer-content flex flex-col lg:mr-4 min-h-screen">
-    <div class="flex-none h-12">
+    <div class="flex-none h-12 lg:h-6">
       <div class="flex flex-row h-full items-center">
         <label for="main-drawer" class="drawer-button lg:hidden">
           <svg
@@ -104,7 +104,9 @@
       </div>
     </div>
 
-    <div class="flex-grow rounded-3xl bg-base-100 shadow-lg px-12 py-8 mb-4">
+    <div
+      class="flex-grow rounded-3xl bg-base-100 shadow-md px-12 py-8 mb-4 border"
+    >
       <slot />
     </div>
   </div>
