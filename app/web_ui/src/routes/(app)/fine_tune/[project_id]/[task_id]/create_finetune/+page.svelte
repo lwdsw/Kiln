@@ -640,7 +640,7 @@
         <div class="text-sm">
           Download JSONL files to fine-tune using any infrastructure, such as
           <a
-            href="https://github.com/stef/libsaxolotl"
+            href="https://github.com/axolotl-ai-cloud/axolotl"
             class="link"
             target="_blank">Axolotl</a
           >
