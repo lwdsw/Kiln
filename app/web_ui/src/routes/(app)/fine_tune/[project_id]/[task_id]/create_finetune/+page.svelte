@@ -6,6 +6,7 @@
   import { client } from "$lib/api_client"
   import { KilnError, createKilnError } from "$lib/utils/error_handlers"
   import { onMount } from "svelte"
+  import { formatDate } from "$lib/utils/formatters"
 
   import PromptTypeSelector from "../../../../run/prompt_type_selector.svelte"
 
@@ -167,7 +168,7 @@
     for (const dataset of datasets) {
       dataset_select.push([
         "" + dataset.id,
-        "[ID:" + dataset.id + "] " + dataset.name,
+        `${dataset.name} — Created ${formatDate(dataset.created_at)}`,
       ])
     }
     dataset_select.push(["new", "New Dataset"])

@@ -46,7 +46,7 @@ class FinetuneProvider(BaseModel):
 
 
 class DatasetSplitType(Enum):
-    """Dataset split types"""
+    """Dataset split types used in the API. Any split type can be created in code."""
 
     TRAIN_TEST = "train_test"
     TRAIN_TEST_VAL = "train_test_val"
@@ -61,6 +61,8 @@ api_split_types = {
 
 
 class DatasetFilterType(Enum):
+    """Dataset filter types used in the API. Any filter style can be created in code."""
+
     ALL = "all"
     HIGH_RATING = "high_rating"
 
