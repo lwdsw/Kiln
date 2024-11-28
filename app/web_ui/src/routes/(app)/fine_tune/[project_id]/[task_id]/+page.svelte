@@ -12,6 +12,7 @@
 
   $: project_id = $page.params.project_id
   $: task_id = $page.params.task_id
+  $: is_empty = !!finetunes && finetunes.length == 0
 
   let finetunes: Finetune[] | null = null
   let finetunes_error: KilnError | null = null
@@ -66,20 +67,22 @@
 
 <AppPage
   title="Fine Tunes"
-  subtitle="Tuned models for the current task."
-  action_buttons={[
-    {
-      label: "Create Fine Tune",
-      href: `/fine_tune/${project_id}/${task_id}/create_finetune`,
-      primary: true,
-    },
-  ]}
+  subtitle="Tune models for the current task."
+  action_buttons={is_empty
+    ? []
+    : [
+        {
+          label: "Create Fine Tune",
+          href: `/fine_tune/${project_id}/${task_id}/create_finetune`,
+          primary: true,
+        },
+      ]}
 >
   {#if finetunes_loading}
     <div class="w-full min-h-[50vh] flex justify-center items-center">
       <div class="loading loading-spinner loading-lg"></div>
     </div>
-  {:else if finetunes && finetunes.length == 0}
+  {:else if is_empty}
     <div class="flex flex-col items-center justify-center min-h-[60vh]">
       <EmptyFinetune {project_id} {task_id} />
     </div>
