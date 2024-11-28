@@ -2,6 +2,7 @@ import json
 
 import pytest
 
+from kiln_ai.adapters.adapter_registry import adapter_for_task
 from kiln_ai.adapters.data_gen.data_gen_task import (
     DataGenCategoriesTask,
     DataGenCategoriesTaskInput,
@@ -10,7 +11,6 @@ from kiln_ai.adapters.data_gen.data_gen_task import (
     DataGenSampleTaskInput,
     list_json_schema_for_task,
 )
-from kiln_ai.adapters.langchain_adapters import LangChainPromptAdapter
 from kiln_ai.adapters.ml_model_list import get_model_and_provider
 from kiln_ai.adapters.test_prompt_adaptors import get_all_models_and_providers
 from kiln_ai.datamodel import Project, Task
@@ -108,7 +108,7 @@ async def test_data_gen_all_models_providers(
     data_gen_task = DataGenCategoriesTask()
     data_gen_input = DataGenCategoriesTaskInput.from_task(base_task, num_subtopics=6)
 
-    adapter = LangChainPromptAdapter(
+    adapter = adapter_for_task(
         data_gen_task,
         model_name=model_name,
         provider=provider_name,
@@ -232,7 +232,7 @@ async def test_data_gen_sample_all_models_providers(
         base_task, topic=["riding horses"], num_samples=4
     )
 
-    adapter = LangChainPromptAdapter(
+    adapter = adapter_for_task(
         data_gen_task,
         model_name=model_name,
         provider=provider_name,
@@ -274,7 +274,7 @@ async def test_data_gen_sample_all_models_providers_with_structured_output(
         base_task, topic=["riding horses"], num_samples=4
     )
 
-    adapter = LangChainPromptAdapter(
+    adapter = adapter_for_task(
         data_gen_task,
         model_name=model_name,
         provider=provider_name,
