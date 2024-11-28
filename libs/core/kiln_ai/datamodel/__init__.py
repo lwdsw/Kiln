@@ -418,7 +418,11 @@ Train60Test20Val20SplitDefinition: list[DatasetSplitDefinition] = [
 
 class DatasetSplit(KilnParentedModel):
     """
-    A collection of task runs, with optional splits (train, test, validation)
+    A collection of task runs, with optional splits (train, test, validation).
+
+    Used to freeze a dataset into train/test/validation splits for repeatable fine-tuning or other tasks.
+
+    Maintains a list of IDs for each split, to avoid data duplication.
     """
 
     name: str = NAME_FIELD
@@ -450,6 +454,9 @@ class DatasetSplit(KilnParentedModel):
         filter: DatasetFilter = AllDatasetFilter,
         description: str | None = None,
     ):
+        """
+        Build a dataset split from a task.
+        """
         split_contents = cls.build_split_contents(task, splits, filter)
         return cls(
             parent=task,
