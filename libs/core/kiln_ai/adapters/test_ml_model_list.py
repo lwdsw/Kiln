@@ -1,5 +1,5 @@
 import json
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -11,6 +11,7 @@ from kiln_ai.adapters.ml_model_list import (
     get_model_and_provider,
     ollama_model_supported,
     parse_ollama_tags,
+    provider_enabled,
     provider_name_from_id,
     provider_warnings,
 )
@@ -179,3 +180,70 @@ def test_get_model_and_provider_multiple_providers():
     assert model.name == ModelName.llama_3_1_70b
     assert provider.name == ModelProviderName.groq
     assert provider.provider_options["model"] == "llama-3.1-70b-versatile"
+
+
+@pytest.mark.asyncio
+async def test_provider_enabled_ollama_success():
+    with patch(
+        "kiln_ai.adapters.ml_model_list.get_ollama_connection", new_callable=AsyncMock
+    ) as mock_get_ollama:
+        # Mock successful Ollama connection with models
+        mock_get_ollama.return_value = OllamaConnection(
+            message="Connected", models=["phi3.5:latest"]
+        )
+
+        result = await provider_enabled(ModelProviderName.ollama)
+        assert result is True
+
+
+@pytest.mark.asyncio
+async def test_provider_enabled_ollama_no_models():
+    with patch(
+        "kiln_ai.adapters.ml_model_list.get_ollama_connection", new_callable=AsyncMock
+    ) as mock_get_ollama:
+        # Mock Ollama connection but with no models
+        mock_get_ollama.return_value = OllamaConnection(
+            message="Connected but no models", models=[]
+        )
+
+        result = await provider_enabled(ModelProviderName.ollama)
+        assert result is False
+
+
+@pytest.mark.asyncio
+async def test_provider_enabled_ollama_connection_error():
+    with patch(
+        "kiln_ai.adapters.ml_model_list.get_ollama_connection", new_callable=AsyncMock
+    ) as mock_get_ollama:
+        # Mock Ollama connection failure
+        mock_get_ollama.side_effect = Exception("Connection failed")
+
+        result = await provider_enabled(ModelProviderName.ollama)
+        assert result is False
+
+
+@pytest.mark.asyncio
+async def test_provider_enabled_openai_with_key(mock_config):
+    # Mock config to return API key
+    mock_config.return_value = "fake-api-key"
+
+    result = await provider_enabled(ModelProviderName.openai)
+    assert result is True
+    mock_config.assert_called_with("open_ai_api_key")
+
+
+@pytest.mark.asyncio
+async def test_provider_enabled_openai_without_key(mock_config):
+    # Mock config to return None for API key
+    mock_config.return_value = None
+
+    result = await provider_enabled(ModelProviderName.openai)
+    assert result is False
+    mock_config.assert_called_with("open_ai_api_key")
+
+
+@pytest.mark.asyncio
+async def test_provider_enabled_unknown_provider():
+    # Test with a provider that isn't in provider_warnings
+    result = await provider_enabled("unknown_provider")
+    assert result is False

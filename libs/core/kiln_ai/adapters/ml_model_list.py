@@ -90,6 +90,7 @@ class KilnModelProvider(BaseModel):
     name: ModelProviderName
     supports_structured_output: bool = True
     supports_data_gen: bool = True
+    provider_finetune_id: str | None = None
     provider_options: Dict = {}
 
 
@@ -122,6 +123,7 @@ built_in_models: List[KilnModel] = [
             KilnModelProvider(
                 name=ModelProviderName.openai,
                 provider_options={"model": "gpt-4o-mini"},
+                provider_finetune_id="gpt-4o-mini-2024-07-18",
             ),
             KilnModelProvider(
                 name=ModelProviderName.openrouter,
@@ -138,6 +140,7 @@ built_in_models: List[KilnModel] = [
             KilnModelProvider(
                 name=ModelProviderName.openai,
                 provider_options={"model": "gpt-4o"},
+                provider_finetune_id="gpt-4o-2024-08-06",
             ),
             KilnModelProvider(
                 name=ModelProviderName.openrouter,
@@ -565,6 +568,23 @@ provider_warnings: Dict[ModelProviderName, ModelProviderWarning] = {
         message="Attempted to use OpenAI without an API key set. \nGet your API key from https://platform.openai.com/account/api-keys",
     ),
 }
+
+
+async def provider_enabled(provider_name: ModelProviderName) -> bool:
+    if provider_name == ModelProviderName.ollama:
+        try:
+            tags = await get_ollama_connection()
+            return tags is not None and len(tags.models) > 0
+        except Exception:
+            return False
+
+    provider_warning = provider_warnings.get(provider_name)
+    if provider_warning is None:
+        return False
+    for required_key in provider_warning.required_config_keys:
+        if get_config_value(required_key) is None:
+            return False
+    return True
 
 
 def get_config_value(key: str):

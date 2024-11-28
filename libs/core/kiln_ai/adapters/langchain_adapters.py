@@ -52,7 +52,6 @@ class LangChainPromptAdapter(BaseAdapter):
             )
 
     def adapter_specific_instructions(self) -> str | None:
-        # TODO: would be better to explicitly use bind_tools:tool_choice="task_response" here
         if self.has_structured_output():
             return "Always respond with a tool call. Never respond with a human readable message."
         return None
