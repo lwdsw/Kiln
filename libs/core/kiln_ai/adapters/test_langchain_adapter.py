@@ -3,16 +3,14 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langchain_groq import ChatGroq
 
-from kiln_ai.adapters.langchain_adapters import LangChainPromptAdapter
+from kiln_ai.adapters.langchain_adapters import LangchainAdapter
 from kiln_ai.adapters.prompt_builders import SimpleChainOfThoughtPromptBuilder
 from kiln_ai.adapters.test_prompt_adaptors import build_test_task
 
 
 def test_langchain_adapter_munge_response(tmp_path):
     task = build_test_task(tmp_path)
-    lca = LangChainPromptAdapter(
-        kiln_task=task, model_name="llama_3_1_8b", provider="ollama"
-    )
+    lca = LangchainAdapter(kiln_task=task, model_name="llama_3_1_8b", provider="ollama")
     # Mistral Large tool calling format is a bit different
     response = {
         "name": "task_response",
@@ -35,7 +33,7 @@ def test_langchain_adapter_infer_model_name(tmp_path):
     task = build_test_task(tmp_path)
     custom = ChatGroq(model="llama-3.1-8b-instant", groq_api_key="test")
 
-    lca = LangChainPromptAdapter(kiln_task=task, custom_model=custom)
+    lca = LangchainAdapter(kiln_task=task, custom_model=custom)
 
     model_info = lca.adapter_info()
     assert model_info.model_name == "custom.langchain:llama-3.1-8b-instant"
@@ -45,9 +43,7 @@ def test_langchain_adapter_infer_model_name(tmp_path):
 def test_langchain_adapter_info(tmp_path):
     task = build_test_task(tmp_path)
 
-    lca = LangChainPromptAdapter(
-        kiln_task=task, model_name="llama_3_1_8b", provider="ollama"
-    )
+    lca = LangchainAdapter(kiln_task=task, model_name="llama_3_1_8b", provider="ollama")
 
     model_info = lca.adapter_info()
     assert model_info.adapter_name == "kiln_langchain_adapter"
@@ -60,7 +56,7 @@ async def test_langchain_adapter_with_cot(tmp_path):
     task.output_json_schema = (
         '{"type": "object", "properties": {"count": {"type": "integer"}}}'
     )
-    lca = LangChainPromptAdapter(
+    lca = LangchainAdapter(
         kiln_task=task,
         model_name="llama_3_1_8b",
         provider="ollama",
@@ -85,7 +81,7 @@ async def test_langchain_adapter_with_cot(tmp_path):
         patch(
             "kiln_ai.adapters.langchain_adapters.langchain_model_from", mock_model_from
         ),
-        patch.object(LangChainPromptAdapter, "model", return_value=mock_model_instance),
+        patch.object(LangchainAdapter, "model", return_value=mock_model_instance),
     ):
         response = await lca._run("test input")
 

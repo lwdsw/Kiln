@@ -6,8 +6,8 @@ import jsonschema.exceptions
 import pytest
 
 import kiln_ai.datamodel as datamodel
+from kiln_ai.adapters.adapter_registry import adapter_for_task
 from kiln_ai.adapters.base_adapter import AdapterInfo, BaseAdapter, RunOutput
-from kiln_ai.adapters.langchain_adapters import LangChainPromptAdapter
 from kiln_ai.adapters.ml_model_list import (
     built_in_models,
     ollama_online,
@@ -157,7 +157,7 @@ def build_structured_output_test_task(tmp_path: Path):
 
 async def run_structured_output_test(tmp_path: Path, model_name: str, provider: str):
     task = build_structured_output_test_task(tmp_path)
-    a = LangChainPromptAdapter(task, model_name=model_name, provider=provider)
+    a = adapter_for_task(task, model_name=model_name, provider=provider)
     parsed = await a.invoke_returning_raw("Cows")  # a joke about cows
     if parsed is None or not isinstance(parsed, Dict):
         raise RuntimeError(f"structured response is not a dict: {parsed}")
@@ -204,7 +204,7 @@ async def run_structured_input_task(
     provider: str,
     pb: BasePromptBuilder | None = None,
 ):
-    a = LangChainPromptAdapter(
+    a = adapter_for_task(
         task, model_name=model_name, provider=provider, prompt_builder=pb
     )
     with pytest.raises(ValueError):

@@ -15,7 +15,7 @@ from .ml_model_list import langchain_model_from
 LangChainModelType = BaseChatModel | Runnable[LanguageModelInput, Dict | BaseModel]
 
 
-class LangChainPromptAdapter(BaseAdapter):
+class LangchainAdapter(BaseAdapter):
     _model: LangChainModelType | None = None
 
     def __init__(
