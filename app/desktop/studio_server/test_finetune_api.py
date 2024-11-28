@@ -1,12 +1,10 @@
 import unittest.mock
-from datetime import datetime
 from unittest.mock import Mock
 
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from kiln_ai.adapters.fine_tune.base_finetune import FineTuneParameter
-from kiln_ai.adapters.fine_tune.dataset_formatter import DatasetFormat
 from kiln_ai.adapters.ml_model_list import KilnModel, KilnModelProvider
 from kiln_ai.datamodel import (
     AllDatasetFilter,
@@ -324,11 +322,8 @@ def test_create_dataset_split_auto_name(client, mock_task_from_id, mock_dataset_
         DatasetSplit, "from_task", return_value=mock_dataset_split
     )
     mock_save = unittest.mock.patch.object(DatasetSplit, "save_to_file")
-    mock_datetime = unittest.mock.patch(
-        "app.desktop.studio_server.finetune_api.datetime"
-    )
 
-    with mock_from_task as from_task_mock, mock_save as save_mock, mock_datetime as dt:
+    with mock_from_task as from_task_mock, mock_save as save_mock:
         request_data = {"dataset_split_type": "train_test", "filter_type": "all"}
 
         response = client.post(

@@ -104,6 +104,7 @@ class OpenAIFinetune(BaseFinetuneAdapter):
                 dataset, self.datamodel.validation_split_name, task
             )
 
+        # Filter to hyperparameters which are set via the hyperparameters field (some like seed are set via the API)
         hyperparameters = {
             k: v
             for k, v in self.datamodel.parameters.items()
@@ -119,7 +120,7 @@ class OpenAIFinetune(BaseFinetuneAdapter):
             suffix=f"kiln_ai.{self.datamodel.id}",
         )
         self.datamodel.provider_id = ft.id
-        # Model can get more specific after fine-tune call (gpt-4o-mini to gpt-4o-mini-2024-07-18)
+        # Model can get more specific after fine-tune call (gpt-4o-mini to gpt-4o-mini-2024-07-18) so we update it in the datamodel
         self.datamodel.base_model_id = ft.model
 
         return None
