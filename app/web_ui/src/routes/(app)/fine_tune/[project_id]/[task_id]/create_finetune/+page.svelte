@@ -206,7 +206,6 @@
         throw new Error("Invalid response from server")
       }
       hyperparameters = hyperparameters_response
-      // build_available_hyperparameter_select(hyperparameters)
     } catch (e) {
       if (e instanceof Error && e.message.includes("Load failed")) {
         hyperparameters_error = new KilnError(
@@ -582,22 +581,6 @@
             />
           {/if}
           {#if !is_download}
-            <FormElement
-              label="Fine-Tune Name"
-              description="An optional name for this fine-tune. Leave blank and we'll generate one for you."
-              optional={true}
-              inputType="input"
-              id="finetune_name"
-              bind:value={finetune_name}
-            />
-            <FormElement
-              label="Description"
-              description="An optional description of this fine-tune."
-              optional={true}
-              inputType="textarea"
-              id="finetune_description"
-              bind:value={finetune_description}
-            />
             {#if hyperparameters_loading}
               <div class="w-full min-h-[50vh] flex justify-center items-center">
                 <div class="loading loading-spinner loading-lg"></div>
@@ -612,6 +595,22 @@
                 <input type="checkbox" class="peer" />
                 <div class="collapse-title font-medium">Advanced Options</div>
                 <div class="collapse-content flex flex-col gap-4">
+                  <FormElement
+                    label="Name"
+                    description="A name to identify this fine-tune. Leave blank and we'll generate one for you."
+                    optional={true}
+                    inputType="input"
+                    id="finetune_name"
+                    bind:value={finetune_name}
+                  />
+                  <FormElement
+                    label="Description"
+                    description="An optional description of this fine-tune."
+                    optional={true}
+                    inputType="textarea"
+                    id="finetune_description"
+                    bind:value={finetune_description}
+                  />
                   {#each hyperparameters as hyperparameter}
                     <FormElement
                       label={hyperparameter.name +
@@ -666,7 +665,6 @@
           {/each}
         </div>
       </div>
-      <!-- TODO: download options -->
     {/if}
   </AppPage>
 </div>

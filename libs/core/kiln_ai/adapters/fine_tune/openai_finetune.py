@@ -79,7 +79,7 @@ class OpenAIFinetune(BaseFinetuneAdapter):
                 time_to_finish_msg = f"Estimated finish time: {int(response.estimated_finish - time.time())} seconds."
             return FineTuneStatus(
                 status=FineTuneStatusType.running,
-                message=f"Job is still running [{status}]. {time_to_finish_msg or ''}",
+                message=f"Fine tune job is running [{status}]. {time_to_finish_msg or ''}",
             )
         if status == "succeeded":
             return FineTuneStatus(
