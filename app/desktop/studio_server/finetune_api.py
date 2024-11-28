@@ -255,7 +255,7 @@ def connect_fine_tune_api(app: FastAPI):
         system_message_generator: str | None = None,
         custom_system_message: str | None = None,
     ) -> StreamingResponse:
-        if format_type not in DatasetFormat:
+        if format_type not in [format.value for format in DatasetFormat]:
             raise HTTPException(
                 status_code=400,
                 detail=f"Dataset format '{format_type}' not found",
