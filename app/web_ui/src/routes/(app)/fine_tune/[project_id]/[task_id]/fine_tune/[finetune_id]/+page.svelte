@@ -91,91 +91,95 @@
   }
 </script>
 
-<AppPage
-  title="Fine Tune"
-  action_buttons={[
-    {
-      label: "Reload Status",
-      handler: () => {
-        get_fine_tune()
+<div class="max-w-[1400px]">
+  <AppPage
+    title="Fine Tune"
+    action_buttons={[
+      {
+        label: "Reload Status",
+        handler: () => {
+          get_fine_tune()
+        },
       },
-    },
-  ]}
->
-  {#if finetune_loading}
-    <div class="w-full min-h-[50vh] flex justify-center items-center">
-      <div class="loading loading-spinner loading-lg"></div>
-    </div>
-  {:else if finetune_error || !finetune}
-    <div
-      class="w-full min-h-[50vh] flex flex-col justify-center items-center gap-2"
-    >
-      <div class="font-medium">Error Loading Available Models and Datasets</div>
-      <div class="text-error text-sm">
-        {finetune_error?.getMessage() || "An unknown error occurred"}
+    ]}
+  >
+    {#if finetune_loading}
+      <div class="w-full min-h-[50vh] flex justify-center items-center">
+        <div class="loading loading-spinner loading-lg"></div>
       </div>
-    </div>
-  {:else}
-    <div class="flex flex-col xl:flex-row gap-8 xl:gap-16 mb-10">
-      <div class="flex flex-col gap-4">
-        <div class="text-xl font-bold">Details</div>
-        <div
-          class="grid grid-cols-[auto,1fr] gap-y-4 gap-x-4 text-sm 2xl:text-base"
-        >
-          {#each properties as property}
-            <div class="flex items-center">{property.name}</div>
-            <div class="flex items-center text-gray-500">
-              {#if property.link}
-                <a href={property.link} target="_blank" class="link">
+    {:else if finetune_error || !finetune}
+      <div
+        class="w-full min-h-[50vh] flex flex-col justify-center items-center gap-2"
+      >
+        <div class="font-medium">
+          Error Loading Available Models and Datasets
+        </div>
+        <div class="text-error text-sm">
+          {finetune_error?.getMessage() || "An unknown error occurred"}
+        </div>
+      </div>
+    {:else}
+      <div class="flex flex-col xl:flex-row gap-8 xl:gap-16 mb-10">
+        <div class="grow flex flex-col gap-4">
+          <div class="text-xl font-bold">Details</div>
+          <div
+            class="grid grid-cols-[auto,1fr] gap-y-4 gap-x-4 text-sm 2xl:text-base"
+          >
+            {#each properties as property}
+              <div class="flex items-center">{property.name}</div>
+              <div class="flex items-center text-gray-500">
+                {#if property.link}
+                  <a href={property.link} target="_blank" class="link">
+                    {property.value}
+                  </a>
+                {:else}
                   {property.value}
-                </a>
-              {:else}
-                {property.value}
+                {/if}
+              </div>
+            {/each}
+          </div>
+        </div>
+
+        <div class="grow flex flex-col gap-4">
+          <div class="text-xl font-bold">Status</div>
+          <div
+            class="grid grid-cols-[auto,1fr] gap-y-4 gap-x-4 text-sm 2xl:text-base"
+          >
+            <div class="flex items-center">Status</div>
+            <div class="flex items-center text-gray-500">
+              {#if running}
+                <span class="loading loading-spinner loading-sm mr-2"></span>
+              {/if}
+              {finetune.status.status.charAt(0).toUpperCase() +
+                finetune.status.status.slice(1)}
+              {#if running}
+                <button
+                  class="link ml-2 text-xs font-medium"
+                  on:click={get_fine_tune}
+                >
+                  Reload Status
+                </button>
               {/if}
             </div>
-          {/each}
-        </div>
-      </div>
 
-      <div class="flex flex-col gap-4">
-        <div class="text-xl font-bold">Provider Status</div>
-        <div
-          class="grid grid-cols-[auto,1fr] gap-y-4 gap-x-4 text-sm 2xl:text-base"
-        >
-          <div class="flex items-center">Status</div>
-          <div class="flex items-center text-gray-500">
-            {#if running}
-              <span class="loading loading-spinner loading-sm mr-2"></span>
+            {#if finetune.status.message}
+              <div class="flex items-center">Status Message</div>
+              <div class="flex items-center text-gray-500">
+                {finetune.status.message}
+              </div>
             {/if}
-            {finetune.status.status.charAt(0).toUpperCase() +
-              finetune.status.status.slice(1)}
-            {#if running}
-              <button
-                class="link ml-2 text-xs font-medium"
-                on:click={get_fine_tune}
-              >
-                Reload Status
-              </button>
+
+            {#if provider_link()}
+              <div class="flex items-center">Provider Details</div>
+              <div class="flex items-center text-gray-500">
+                <a href={provider_link()} target="_blank" class="btn btn-sm">
+                  {provider_name_from_id(finetune.finetune.provider)} Dashboard
+                </a>
+              </div>
             {/if}
           </div>
-
-          {#if finetune.status.message}
-            <div class="flex items-center">Status Message</div>
-            <div class="flex items-center text-gray-500">
-              {finetune.status.message}
-            </div>
-          {/if}
-
-          {#if provider_link()}
-            <div class="flex items-center">Provider Details</div>
-            <div class="flex items-center text-gray-500">
-              <a href={provider_link()} target="_blank" class="btn btn-sm">
-                {provider_name_from_id(finetune.finetune.provider)} Dashboard
-              </a>
-            </div>
-          {/if}
         </div>
       </div>
-    </div>
-  {/if}
-</AppPage>
+    {/if}
+  </AppPage>
+</div>
