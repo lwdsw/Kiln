@@ -93,16 +93,14 @@
 
 <AppPage
   title="Fine Tune"
-  action_buttons={running
-    ? [
-        {
-          label: "Reload Status",
-          handler: () => {
-            get_fine_tune()
-          },
-        },
-      ]
-    : []}
+  action_buttons={[
+    {
+      label: "Reload Status",
+      handler: () => {
+        get_fine_tune()
+      },
+    },
+  ]}
 >
   {#if finetune_loading}
     <div class="w-full min-h-[50vh] flex justify-center items-center">
