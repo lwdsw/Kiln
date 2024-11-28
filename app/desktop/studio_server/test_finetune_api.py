@@ -778,3 +778,36 @@ def test_download_dataset_jsonl_with_prompt_builder(
     mock_formatter_class.assert_called_once_with(
         mock_task.dataset_splits.return_value[0], "Generated system message"
     )
+
+
+def test_get_finetune(client, mock_task_from_id, mock_task):
+    response = client.get("/api/projects/project1/tasks/task1/finetunes/ft1")
+
+    assert response.status_code == 200
+    finetune = response.json()["finetune"]
+    assert finetune["id"] == "ft1"
+    assert finetune["name"] == "Finetune 1"
+    assert finetune["provider"] == "openai"
+    assert finetune["base_model_id"] == "model1"
+    assert finetune["dataset_split_id"] == "split1"
+    assert finetune["system_message"] == "System prompt 1"
+
+    status = response.json()["status"]
+    assert status["status"] == "pending"
+    assert (
+        status["message"]
+        == "This fine-tune has not been started or has not been assigned a provider ID."
+    )
+
+    mock_task_from_id.assert_called_once_with("project1", "task1")
+    mock_task.finetunes.assert_called_once()
+
+
+def test_get_finetune_not_found(client, mock_task_from_id, mock_task):
+    response = client.get("/api/projects/project1/tasks/task1/finetunes/nonexistent")
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Finetune with ID 'nonexistent' not found"
+
+    mock_task_from_id.assert_called_once_with("project1", "task1")
+    mock_task.finetunes.assert_called_once()

@@ -469,6 +469,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/projects/{project_id}/tasks/{task_id}/finetunes/{finetune_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Finetune */
+        get: operations["finetune_api_projects__project_id__tasks__task_id__finetunes__finetune_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/finetune_providers": {
         parameters: {
             query?: never;
@@ -803,6 +820,21 @@ export interface components {
              */
             optional: boolean;
         };
+        /**
+         * FineTuneStatus
+         * @description The status of a fine-tune, including a user friendly message.
+         */
+        FineTuneStatus: {
+            status: components["schemas"]["FineTuneStatusType"];
+            /** Message */
+            message?: string | null;
+        };
+        /**
+         * FineTuneStatusType
+         * @description The status type of a fine-tune (running, completed, failed, etc).
+         * @enum {string}
+         */
+        FineTuneStatusType: "unknown" | "pending" | "running" | "completed" | "failed";
         /** Finetune */
         Finetune: {
             /**
@@ -901,6 +933,14 @@ export interface components {
             name: string;
             /** Id */
             id: string;
+        };
+        /**
+         * FinetuneWithStatus
+         * @description Finetune with status
+         */
+        FinetuneWithStatus: {
+            finetune: components["schemas"]["Finetune"];
+            status: components["schemas"]["FineTuneStatus"];
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -2443,6 +2483,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Finetune"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    finetune_api_projects__project_id__tasks__task_id__finetunes__finetune_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+                task_id: string;
+                finetune_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FinetuneWithStatus"];
                 };
             };
             /** @description Validation Error */

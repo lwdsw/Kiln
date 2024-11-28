@@ -126,7 +126,7 @@ def test_status_api_errors(
     [
         ("failed", FineTuneStatusType.failed, "Job failed"),
         ("cancelled", FineTuneStatusType.failed, "Job cancelled"),
-        ("succeeded", FineTuneStatusType.completed, "Job completed"),
+        ("succeeded", FineTuneStatusType.completed, "Training job completed"),
         ("running", FineTuneStatusType.running, "Job is still running"),
         ("queued", FineTuneStatusType.running, "Job is still running"),
         (
@@ -165,7 +165,7 @@ def test_status_with_error_response(openai_finetune, mock_response):
     ):
         status = openai_finetune.status()
         assert status.status == FineTuneStatusType.failed
-        assert status.message == "Something went wrong"
+        assert status.message.startswith("Something went wrong [Code:")
 
 
 def test_status_with_estimated_finish_time(openai_finetune, mock_response):

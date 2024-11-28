@@ -3,7 +3,7 @@ from enum import Enum
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
-from kiln_ai.adapters.fine_tune.base_finetune import FineTuneParameter
+from kiln_ai.adapters.fine_tune.base_finetune import FineTuneParameter, FineTuneStatus
 from kiln_ai.adapters.fine_tune.dataset_formatter import DatasetFormat, DatasetFormatter
 from kiln_ai.adapters.fine_tune.finetune_registry import finetune_registry
 from kiln_ai.adapters.ml_model_list import (
@@ -94,6 +94,13 @@ class CreateFinetuneRequest(BaseModel):
     custom_system_message: str | None = None
 
 
+class FinetuneWithStatus(BaseModel):
+    """Finetune with status"""
+
+    finetune: Finetune
+    status: FineTuneStatus
+
+
 def connect_fine_tune_api(app: FastAPI):
     @app.get("/api/projects/{project_id}/tasks/{task_id}/dataset_splits")
     async def dataset_splits(project_id: str, task_id: str) -> list[DatasetSplit]:
@@ -104,6 +111,29 @@ def connect_fine_tune_api(app: FastAPI):
     async def finetunes(project_id: str, task_id: str) -> list[Finetune]:
         task = task_from_id(project_id, task_id)
         return task.finetunes()
+
+    @app.get("/api/projects/{project_id}/tasks/{task_id}/finetunes/{finetune_id}")
+    async def finetune(
+        project_id: str, task_id: str, finetune_id: str
+    ) -> FinetuneWithStatus:
+        task = task_from_id(project_id, task_id)
+        finetune = next(
+            (finetune for finetune in task.finetunes() if finetune.id == finetune_id),
+            None,
+        )
+        if finetune is None:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Finetune with ID '{finetune_id}' not found",
+            )
+        if finetune.provider not in finetune_registry:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Fine tune provider '{finetune.provider}' not found",
+            )
+        finetune_adapter = finetune_registry[finetune.provider]
+        status = finetune_adapter(finetune).status()
+        return FinetuneWithStatus(finetune=finetune, status=status)
 
     @app.get("/api/finetune_providers")
     async def finetune_providers() -> list[FinetuneProvider]:

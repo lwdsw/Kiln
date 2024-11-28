@@ -8,7 +8,7 @@
   import { goto } from "$app/navigation"
   import { page } from "$app/stores"
   import { formatDate } from "$lib/utils/formatters"
-  import { provider_name_from_id } from "$lib/stores"
+  import { provider_name_from_id, load_available_models } from "$lib/stores"
 
   $: project_id = $page.params.project_id
   $: task_id = $page.params.task_id
@@ -18,6 +18,7 @@
   let finetunes_loading = true
 
   onMount(async () => {
+    await load_available_models()
     get_finetunes()
   })
 
@@ -59,7 +60,7 @@
 
 <AppPage
   title="Fine Tunes"
-  subtitle="Fine tuned models for the current task."
+  subtitle="Tuned models for the current task."
   action_buttons={[
     {
       label: "Create Fine Tune",
@@ -94,7 +95,7 @@
               class="hover cursor-pointer"
               on:click={() => {
                 goto(
-                  `/fine_tune/${project_id}/${task_id}/finetune/${finetune.id}`,
+                  `/fine_tune/${project_id}/${task_id}/fine_tune/${finetune.id}`,
                 )
               }}
             >

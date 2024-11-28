@@ -58,10 +58,10 @@ class OpenAIFinetune(BaseFinetuneAdapter):
                 status=FineTuneStatusType.unknown,
                 message="Invalid response from OpenAI",
             )
-        if response.error is not None:
+        if response.error and response.error.code:
             return FineTuneStatus(
                 status=FineTuneStatusType.failed,
-                message=response.error.message,
+                message=f"{response.error.message} [Code: {response.error.code}]",
             )
         status = response.status
         if status == "failed":
@@ -83,7 +83,7 @@ class OpenAIFinetune(BaseFinetuneAdapter):
             )
         if status == "succeeded":
             return FineTuneStatus(
-                status=FineTuneStatusType.completed, message="Job completed"
+                status=FineTuneStatusType.completed, message="Training job completed"
             )
         return FineTuneStatus(
             status=FineTuneStatusType.unknown,
