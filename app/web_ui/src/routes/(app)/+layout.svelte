@@ -125,13 +125,13 @@
           &#x2715;
         </label>
       </li>
-      <div class="mb-4 ml-4 mt-4">
+      <div class="mb-4 ml-4 mt-2">
         <div class="flex flex-row items-center mx-[-5px] p-0">
           <img src="/images/animated_logo.svg" alt="logo" class="w-8 h-8" />
           <div class="text-lg font-bold ml-1">Kiln AI</div>
         </div>
       </div>
-      <li class="mb-4 xl:mb-6">
+      <li class="mb-4">
         <details id="task-menu">
           <summary>
             <div class="grid grid-cols-[auto,1fr] gap-x-3 gap-y-1 text-sm">
