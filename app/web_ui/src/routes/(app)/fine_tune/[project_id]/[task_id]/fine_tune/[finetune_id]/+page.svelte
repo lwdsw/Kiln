@@ -94,6 +94,7 @@
 <div class="max-w-[1400px]">
   <AppPage
     title="Fine Tune"
+    subtitle={finetune_loading ? undefined : `Name: ${finetune?.finetune.name}`}
     action_buttons={[
       {
         label: "Reload Status",
