@@ -8,9 +8,12 @@ from kiln_ai.datamodel import DatasetSplit, TaskRun
 
 
 class DatasetFormat(str, Enum):
-    """Format types for dataset generation"""
+    """Formats for dataset generation. Both for file format (like JSONL), and internal structure (like chat/toolcall)"""
 
+    """OpenAI chat format with plaintext response"""
     CHAT_MESSAGE_RESPONSE_JSONL = "chat_message_response_jsonl"
+
+    """OpenAI chat format with tool call response"""
     CHAT_MESSAGE_TOOLCALL_JSONL = "chat_message_toolcall_jsonl"
 
 
@@ -55,6 +58,7 @@ def generate_chat_message_toolcall(
                         "type": "function",
                         "function": {
                             "name": "task_response",
+                            # Yes we parse then dump again. This ensures it's valid JSON, and ensures it goes to 1 line
                             "arguments": json.dumps(arguments),
                         },
                     }

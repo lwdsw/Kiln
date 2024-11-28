@@ -42,7 +42,6 @@ class FineTuneParameter(BaseModel):
     optional: bool = True
 
 
-# Add type mapping
 TYPE_MAP = {
     "string": str,
     "int": int,
@@ -141,7 +140,7 @@ class BaseFinetuneAdapter(ABC):
     @classmethod
     def available_parameters(cls) -> list[FineTuneParameter]:
         """
-        Returns a list of parameters that can be provided for this fine-tune.
+        Returns a list of parameters that can be provided for this fine-tune. Includes hyperparameters, etc.
         """
         return []
 
