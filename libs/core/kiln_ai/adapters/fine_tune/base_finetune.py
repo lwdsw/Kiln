@@ -1,4 +1,3 @@
-import time
 from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Literal
@@ -8,7 +7,7 @@ from pydantic import BaseModel
 from kiln_ai.adapters.ml_model_list import built_in_models
 from kiln_ai.datamodel import DatasetSplit
 from kiln_ai.datamodel import Finetune as FinetuneModel
-from kiln_ai.datamodel.basemodel import string_to_valid_name
+from kiln_ai.utils.name_generator import generate_memorable_name
 
 
 class FineTuneStatusType(str, Enum):
@@ -98,7 +97,7 @@ class BaseFinetuneAdapter(ABC):
 
         # Default name if not provided
         if name is None:
-            name = f"{string_to_valid_name(provider_base_model_id)} - {time.strftime('%Y-%m-%d %Hh%Mm%Ss')}"
+            name = generate_memorable_name()
 
         cls.validate_parameters(parameters)
         parent_task = dataset.parent_task()

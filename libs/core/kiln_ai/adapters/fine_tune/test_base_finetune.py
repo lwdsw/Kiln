@@ -157,7 +157,7 @@ def test_create_and_start_success(mock_dataset):
 
     assert isinstance(adapter, MockFinetune)
     assert isinstance(datamodel, FinetuneModel)
-    assert datamodel.name.startswith("gpt-4o-mini-2024-07-18 - ")  # Default name format
+    assert len(datamodel.name.split()) == 2  # 2 word memorable name
     assert datamodel.provider == "openai"
     assert datamodel.base_model_id == "gpt-4o-mini-2024-07-18"
     assert datamodel.dataset_split_id == mock_dataset.id

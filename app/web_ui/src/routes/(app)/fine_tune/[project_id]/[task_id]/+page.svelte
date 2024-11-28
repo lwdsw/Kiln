@@ -42,7 +42,13 @@
       if (get_error) {
         throw get_error
       }
-      finetunes = finetunes_response
+      const sorted_finetunes = finetunes_response.sort((a, b) => {
+        return (
+          new Date(b.created_at || "").getTime() -
+          new Date(a.created_at || "").getTime()
+        )
+      })
+      finetunes = sorted_finetunes
     } catch (e) {
       if (e instanceof Error && e.message.includes("Load failed")) {
         finetunes_error = new KilnError(

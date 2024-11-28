@@ -24,6 +24,7 @@ from kiln_ai.datamodel import (
     Train80Test20SplitDefinition,
 )
 from kiln_ai.datamodel.basemodel import string_to_valid_name
+from kiln_ai.utils.name_generator import generate_memorable_name
 from kiln_server.task_api import task_from_id
 from pydantic import BaseModel
 
@@ -186,7 +187,7 @@ def connect_fine_tune_api(app: FastAPI):
 
         name = request.name
         if not name:
-            name = f"{datetime.now().strftime('%Y-%m-%d %H-%M-%S')} filter-{string_to_valid_name(request.filter_type.value)} split-{string_to_valid_name(request.dataset_split_type.value)}"
+            name = generate_memorable_name()
 
         dataset_split = DatasetSplit.from_task(
             name, task, split_definitions, filter, request.description

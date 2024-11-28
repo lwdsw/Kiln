@@ -329,10 +329,6 @@ def test_create_dataset_split_auto_name(client, mock_task_from_id, mock_dataset_
     )
 
     with mock_from_task as from_task_mock, mock_save as save_mock, mock_datetime as dt:
-        # Mock datetime to have a consistent test
-        mock_now = datetime(2024, 1, 1, 12, 0, 0)
-        dt.now.return_value = mock_now
-
         request_data = {"dataset_split_type": "train_test", "filter_type": "all"}
 
         response = client.post(
@@ -344,7 +340,9 @@ def test_create_dataset_split_auto_name(client, mock_task_from_id, mock_dataset_
         # Verify auto-generated name format
         from_task_mock.assert_called_once()
         args = from_task_mock.call_args[0]
-        assert args[0] == "2024-01-01 12-00-00 filter-all split-train_test"
+        name = args[0]
+        assert len(name.split()) == 2  # 2 word memorable name
+        assert len(name) > 5  # Not too short
         save_mock.assert_called_once()
 
 

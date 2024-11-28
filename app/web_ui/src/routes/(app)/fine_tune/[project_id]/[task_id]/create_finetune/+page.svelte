@@ -583,7 +583,7 @@
           {#if !is_download}
             <FormElement
               label="Fine-Tune Name"
-              description="An optional name to help identify this fine-tune."
+              description="An optional name for this fine-tune. Leave blank and we'll generate one for you."
               optional={true}
               inputType="input"
               id="finetune_name"
