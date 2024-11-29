@@ -967,6 +967,8 @@ export interface components {
             supports_structured_output: boolean;
             /** Supports Data Gen */
             supports_data_gen: boolean;
+            /** Task Filter */
+            task_filter: string[] | null;
         };
         /**
          * ModelName

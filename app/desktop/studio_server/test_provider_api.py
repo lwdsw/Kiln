@@ -388,6 +388,7 @@ async def test_get_available_models(app, client):
                     "name": "Model 2",
                     "supports_structured_output": True,
                     "supports_data_gen": True,
+                    "task_filter": None,
                 }
             ],
         },
@@ -400,6 +401,7 @@ async def test_get_available_models(app, client):
                     "name": "Model 1",
                     "supports_structured_output": True,
                     "supports_data_gen": True,
+                    "task_filter": None,
                 }
             ],
         },
@@ -412,6 +414,7 @@ async def test_get_available_models(app, client):
                     "name": "Model 2",
                     "supports_structured_output": False,
                     "supports_data_gen": False,
+                    "task_filter": None,
                 }
             ],
         },
@@ -461,7 +464,8 @@ async def test_get_available_models_ollama_exception(app, client):
         response = client.get("/api/available_models")
 
     assert response.status_code == 200
-    assert response.json() == [
+    json = response.json()
+    assert json == [
         {
             "provider_id": "openai",
             "provider_name": "OpenAI",
@@ -471,6 +475,7 @@ async def test_get_available_models_ollama_exception(app, client):
                     "name": "Model 1",
                     "supports_structured_output": True,
                     "supports_data_gen": True,
+                    "task_filter": None,
                 }
             ],
         },
