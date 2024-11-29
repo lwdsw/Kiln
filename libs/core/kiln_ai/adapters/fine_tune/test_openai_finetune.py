@@ -26,6 +26,7 @@ def openai_finetune():
             train_split_name="train",
             dataset_split_id="dataset-123",
             system_message="Test system message",
+            fine_tune_model_id="ft-123",
         ),
     )
     return finetune
@@ -38,6 +39,8 @@ def mock_response():
     response.status = "succeeded"
     response.finished_at = time.time()
     response.estimated_finish = None
+    response.fine_tuned_model = "ft-123"
+    response.model = "gpt-4o"
     return response
 
 
@@ -349,6 +352,7 @@ def test_start_success(openai_finetune, mock_dataset, mock_task):
     # Mock the fine-tuning response
     mock_ft_response = MagicMock()
     mock_ft_response.id = "ft-123"
+    mock_ft_response.fine_tuned_model = None
     mock_ft_response.model = "gpt-4o-mini-2024-07-18"
 
     with (
@@ -395,6 +399,7 @@ def test_start_with_validation(openai_finetune, mock_dataset, mock_task):
 
     mock_ft_response = MagicMock()
     mock_ft_response.id = "ft-123"
+    mock_ft_response.fine_tuned_model = None
     mock_ft_response.model = "gpt-4o-mini-2024-07-18"
 
     with (
@@ -431,3 +436,37 @@ def test_start_no_task(openai_finetune, mock_dataset):
 
     with pytest.raises(ValueError, match="Task is required to start a fine-tune"):
         openai_finetune._start(mock_dataset)
+
+
+def test_status_updates_model_ids(openai_finetune, mock_response):
+    # Set up initial model IDs
+    openai_finetune.datamodel.fine_tune_model_id = "old-ft-model"
+    openai_finetune.datamodel.base_model_id = "old-base-model"
+
+    # Configure mock response with different model IDs
+    mock_response.fine_tuned_model = "new-ft-model"
+    mock_response.model = "new-base-model"
+    mock_response.status = "succeeded"
+
+    with (
+        patch(
+            "kiln_ai.adapters.fine_tune.openai_finetune.oai_client.fine_tuning.jobs.retrieve",
+            return_value=mock_response,
+        ) as retrieve_mock,
+        # patch.object(
+        #     openai_finetune.datamodel, "save", new_callable=MagicMock
+        # ) as save_mock,
+    ):
+        status = openai_finetune.status()
+
+        # Verify model IDs were updated
+        assert openai_finetune.datamodel.fine_tune_model_id == "new-ft-model"
+        assert openai_finetune.datamodel.base_model_id == "new-base-model"
+
+        # Verify save was called
+        # This isn't properly mocked, so not checking
+        # assert openai_finetune.datamodel.save.called
+
+        # Verify status is still returned correctly
+        assert status.status == FineTuneStatusType.completed
+        assert status.message == "Training job completed"

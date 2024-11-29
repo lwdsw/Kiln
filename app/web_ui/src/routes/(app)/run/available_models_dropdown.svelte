@@ -17,6 +17,7 @@
     $available_models || {},
     requires_structured_output,
     requires_data_gen,
+    $ui_state.current_task_id,
   )
 
   onMount(async () => {
@@ -27,11 +28,22 @@
     providers: AvailableModels[],
     structured_output: boolean,
     requires_data_gen: boolean,
+    current_task_id: string | null,
   ): [string, [unknown, string][]][] {
     let options = []
     for (const provider of providers) {
       let model_list = []
       for (const model of provider.models) {
+        // Exclude models that are not available for the current task
+        if (
+          model &&
+          model.task_filter &&
+          current_task_id &&
+          !model.task_filter.includes(current_task_id)
+        ) {
+          continue
+        }
+
         let id = provider.provider_id + "/" + model.id
         if (requires_data_gen && !model.supports_data_gen) {
           continue
@@ -45,6 +57,7 @@
         options.push([provider.provider_name, model_list])
       }
     }
+
     // @ts-expect-error this is the correct format, but TS isn't finding it
     return options
   }

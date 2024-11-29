@@ -13,6 +13,8 @@ from langchain_ollama import ChatOllama
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel
 
+from kiln_ai.datamodel.registry import project_from_id
+
 from ..utils.config import Config
 
 """
@@ -32,6 +34,7 @@ class ModelProviderName(str, Enum):
     amazon_bedrock = "amazon_bedrock"
     ollama = "ollama"
     openrouter = "openrouter"
+    kiln_fine_tune = "kiln_fine_tune"
 
 
 class ModelFamily(str, Enum):
@@ -533,6 +536,8 @@ def provider_name_from_id(id: str) -> str:
                 return "Ollama"
             case ModelProviderName.openai:
                 return "OpenAI"
+            case ModelProviderName.kiln_fine_tune:
+                return "Fine Tuned Models"
             case _:
                 # triggers pyright warning if I miss a case
                 raise_exhaustive_error(enum_id)
@@ -612,21 +617,21 @@ def check_provider_warnings(provider_name: ModelProviderName):
             raise ValueError(warning_check.message)
 
 
-async def langchain_model_from(
+async def builtin_model_from(
     name: str, provider_name: str | None = None
-) -> BaseChatModel:
+) -> KilnModelProvider:
     """
-    Creates a LangChain chat model instance for the specified model and provider.
+    Gets a model and provider from the built-in list of models.
 
     Args:
-        name: The name of the model to instantiate
+        name: The name of the model to get
         provider_name: Optional specific provider to use (defaults to first available)
 
     Returns:
-        A configured LangChain chat model instance
+        A tuple of (provider, model)
 
     Raises:
-        ValueError: If the model/provider combination is invalid or misconfigured
+        ValueError: If the model or provider is not found, or if the provider is misconfigured
     """
     if name not in ModelName.__members__:
         raise ValueError(f"Invalid name: {name}")
@@ -651,7 +656,22 @@ async def langchain_model_from(
         raise ValueError(f"Provider {provider_name} not found for model {name}")
 
     check_provider_warnings(provider.name)
+    return provider
 
+
+async def langchain_model_from(
+    name: str, provider_name: str | None = None
+) -> BaseChatModel:
+    if provider_name == ModelProviderName.kiln_fine_tune:
+        provider = finetune_provider_model(name)
+    else:
+        provider = await builtin_model_from(name, provider_name)
+    return await langchain_model_from_provider(provider, name)
+
+
+async def langchain_model_from_provider(
+    provider: KilnModelProvider, model_name: str
+) -> BaseChatModel:
     if provider.name == ModelProviderName.openai:
         api_key = Config.shared().open_ai_api_key
         return ChatOpenAI(**provider.provider_options, openai_api_key=api_key)  # type: ignore[arg-type]
@@ -689,7 +709,7 @@ async def langchain_model_from(
             if ollama_model_supported(ollama_connection, model_name):
                 return ChatOllama(model=model_name, base_url=ollama_base_url())
 
-        raise ValueError(f"Model {name} not installed on Ollama")
+        raise ValueError(f"Model {model_name} not installed on Ollama")
     elif provider.name == ModelProviderName.openrouter:
         api_key = Config.shared().open_router_api_key
         base_url = getenv("OPENROUTER_BASE_URL") or "https://openrouter.ai/api/v1"
@@ -703,7 +723,7 @@ async def langchain_model_from(
             },
         )
     else:
-        raise ValueError(f"Invalid model or provider: {name} - {provider_name}")
+        raise ValueError(f"Invalid model or provider: {model_name} - {provider.name}")
 
 
 def ollama_base_url() -> str:
@@ -795,3 +815,42 @@ async def get_ollama_connection() -> OllamaConnection | None:
 
 def ollama_model_supported(conn: OllamaConnection, model_name: str) -> bool:
     return model_name in conn.models or f"{model_name}:latest" in conn.models
+
+
+finetune_cache: dict[str, KilnModelProvider] = {}
+
+
+def finetune_provider_model(
+    model_id: str,
+) -> KilnModelProvider:
+    if model_id in finetune_cache:
+        return finetune_cache[model_id]
+
+    try:
+        project_id, task_id, fine_tune_id = model_id.split("::")
+    except Exception:
+        raise ValueError(f"Invalid fine tune ID: {model_id}")
+    project = project_from_id(project_id)
+    if project is None:
+        raise ValueError(f"Project {project_id} not found")
+    task = next((t for t in project.tasks() if t.id == task_id), None)
+    if task is None:
+        raise ValueError(f"Task {task_id} not found")
+    fine_tune = next((f for f in task.finetunes() if f.id == fine_tune_id), None)
+    if fine_tune is None:
+        raise ValueError(f"Fine tune {fine_tune_id} not found")
+    if fine_tune.fine_tune_model_id is None:
+        raise ValueError(
+            f"Fine tune {fine_tune_id} not completed. Refresh it's status in the fine-tune tab."
+        )
+
+    provider = ModelProviderName[fine_tune.provider]
+    model_provider = KilnModelProvider(
+        name=provider,
+        provider_options={
+            "model": fine_tune.fine_tune_model_id,
+        },
+    )
+
+    finetune_cache[model_id] = model_provider
+    return model_provider

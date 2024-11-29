@@ -154,7 +154,11 @@ class Finetune(KilnParentedModel):
     )
     provider_id: str | None = Field(
         default=None,
-        description="The ID of the fine-tuned model on the provider's side.",
+        description="The ID of the fine-tune job on the provider's side. May not be the same as the fine_tune_model_id.",
+    )
+    fine_tune_model_id: str | None = Field(
+        default=None,
+        description="The ID of the fine-tuned model on the provider's side. May not be the same as the provider_id.",
     )
     dataset_split_id: str = Field(
         description="The ID of the dataset split to use for this fine-tune.",

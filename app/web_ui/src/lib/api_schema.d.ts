@@ -722,12 +722,17 @@ export interface components {
         DataSourceType: "human" | "synthetic";
         /**
          * DatasetFilterType
+         * @description Dataset filter types used in the API. Any filter style can be created in code.
          * @enum {string}
          */
         DatasetFilterType: "all" | "high_rating";
         /**
          * DatasetSplit
-         * @description A collection of task runs, with optional splits (train, test, validation)
+         * @description A collection of task runs, with optional splits (train, test, validation).
+         *
+         *     Used to freeze a dataset into train/test/validation splits for repeatable fine-tuning or other tasks.
+         *
+         *     Maintains a list of IDs for each split, to avoid data duplication.
          */
         DatasetSplit: {
             /**
@@ -796,7 +801,7 @@ export interface components {
         };
         /**
          * DatasetSplitType
-         * @description Dataset split types
+         * @description Dataset split types used in the API. Any split type can be created in code.
          * @enum {string}
          */
         DatasetSplitType: "train_test" | "train_test_val" | "all";
@@ -875,9 +880,14 @@ export interface components {
             base_model_id: string;
             /**
              * Provider Id
-             * @description The ID of the fine-tuned model on the provider's side.
+             * @description The ID of the fine-tune job on the provider's side. May not be the same as the fine_tune_model_id.
              */
             provider_id?: string | null;
+            /**
+             * Fine Tune Model Id
+             * @description The ID of the fine-tuned model on the provider's side. May not be the same as the provider_id.
+             */
+            fine_tune_model_id?: string | null;
             /**
              * Dataset Split Id
              * @description The ID of the dataset split to use for this fine-tune.
@@ -957,6 +967,8 @@ export interface components {
             supports_structured_output: boolean;
             /** Supports Data Gen */
             supports_data_gen: boolean;
+            /** Task Filter */
+            task_filter: string[] | null;
         };
         /**
          * ModelName

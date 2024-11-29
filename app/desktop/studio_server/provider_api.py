@@ -16,9 +16,10 @@ from kiln_ai.adapters.ml_model_list import (
     provider_name_from_id,
     provider_warnings,
 )
+from kiln_ai.datamodel.registry import all_projects
 from kiln_ai.utils.config import Config
 from langchain_aws import ChatBedrockConverse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 async def connect_ollama() -> OllamaConnection:
@@ -51,6 +52,7 @@ class ModelDetails(BaseModel):
     name: str
     supports_structured_output: bool
     supports_data_gen: bool
+    task_filter: List[str] | None = Field(default=None)
 
 
 class AvailableModels(BaseModel):
@@ -119,6 +121,11 @@ def connect_provider_api(app: FastAPI):
         ollama_models = await available_ollama_models()
         if ollama_models:
             models.insert(0, ollama_models)
+
+        # Add any fine tuned models
+        fine_tuned_models = all_fine_tuned_models()
+        if fine_tuned_models:
+            models.append(fine_tuned_models)
 
         return models
 
@@ -363,3 +370,32 @@ def model_from_ollama_tag(
                     return model, ollama_provider
 
     return None, None
+
+
+def all_fine_tuned_models() -> AvailableModels | None:
+    # Add any fine tuned models
+    models: List[ModelDetails] = []
+
+    for project in all_projects():
+        for task in project.tasks():
+            for fine_tune in task.finetunes():
+                # check if the fine tune is completed
+                if fine_tune.fine_tune_model_id:
+                    models.append(
+                        ModelDetails(
+                            id=f"{project.id}::{task.id}::{fine_tune.id}",
+                            name=fine_tune.name,
+                            # YMMV, but we'll assume all fine tuned models support structured output and data gen
+                            supports_structured_output=True,
+                            supports_data_gen=True,
+                            task_filter=[str(task.id)],
+                        )
+                    )
+
+    if len(models) > 0:
+        return AvailableModels(
+            provider_name="Fine Tuned Models",
+            provider_id=ModelProviderName.kiln_fine_tune,
+            models=models,
+        )
+    return None
