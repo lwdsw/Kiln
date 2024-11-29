@@ -1,5 +1,5 @@
 import json
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 from fastapi import FastAPI, HTTPException
@@ -16,6 +16,7 @@ from kiln_ai.utils.config import Config
 
 from app.desktop.studio_server.provider_api import (
     OllamaConnection,
+    all_fine_tuned_models,
     available_ollama_models,
     connect_bedrock,
     connect_groq,
@@ -671,3 +672,78 @@ async def test_available_ollama_models():
     ):
         result = await available_ollama_models()
         assert result is None
+
+
+@patch("app.desktop.studio_server.provider_api.all_projects")
+def test_all_fine_tuned_models(mock_all_projects):
+    # Create mock projects, tasks, and fine-tunes
+    mock_fine_tune1 = Mock()
+    mock_fine_tune1.id = "ft1"
+    mock_fine_tune1.name = "Fine Tune 1"
+    mock_fine_tune1.fine_tune_model_id = "model1"
+
+    mock_fine_tune2 = Mock()
+    mock_fine_tune2.id = "ft2"
+    mock_fine_tune2.name = "Fine Tune 2"
+    mock_fine_tune2.fine_tune_model_id = "model2"
+
+    mock_fine_tune3 = Mock()
+    mock_fine_tune3.id = "ft3"
+    mock_fine_tune3.name = "Incomplete Fine Tune"
+    mock_fine_tune3.fine_tune_model_id = None  # Incomplete fine-tune
+
+    mock_task1 = Mock()
+    mock_task1.id = "task1"
+    mock_task1.finetunes.return_value = [mock_fine_tune1]
+
+    mock_task2 = Mock()
+    mock_task2.id = "task2"
+    mock_task2.finetunes.return_value = [mock_fine_tune2, mock_fine_tune3]
+
+    mock_project1 = Mock()
+    mock_project1.id = "proj1"
+    mock_project1.tasks.return_value = [mock_task1]
+
+    mock_project2 = Mock()
+    mock_project2.id = "proj2"
+    mock_project2.tasks.return_value = [mock_task2]
+
+    # Test case 1: Projects with fine-tuned models
+    mock_all_projects.return_value = [mock_project1, mock_project2]
+
+    result = all_fine_tuned_models()
+
+    assert result is not None
+    assert result.provider_name == "Fine Tuned Models"
+    assert result.provider_id == "kiln_fine_tune"
+    assert len(result.models) == 2  # Only completed fine-tunes should be included
+
+    # Verify first model details
+    assert result.models[0].id == "proj1::task1::ft1"
+    assert result.models[0].name == "Fine Tune 1"
+    assert result.models[0].supports_structured_output is True
+    assert result.models[0].supports_data_gen is True
+    assert result.models[0].task_filter == ["task1"]
+
+    # Verify second model details
+    assert result.models[1].id == "proj2::task2::ft2"
+    assert result.models[1].name == "Fine Tune 2"
+    assert result.models[1].supports_structured_output is True
+    assert result.models[1].supports_data_gen is True
+    assert result.models[1].task_filter == ["task2"]
+
+    # Test case 2: No projects
+    mock_all_projects.return_value = []
+
+    result = all_fine_tuned_models()
+    assert result is None
+
+    # Test case 3: Projects with no fine-tuned models
+    mock_task_empty = Mock()
+    mock_task_empty.finetunes.return_value = []
+    mock_project_empty = Mock()
+    mock_project_empty.tasks.return_value = [mock_task_empty]
+    mock_all_projects.return_value = [mock_project_empty]
+
+    result = all_fine_tuned_models()
+    assert result is None

@@ -385,6 +385,7 @@ def all_fine_tuned_models() -> AvailableModels | None:
                         ModelDetails(
                             id=f"{project.id}::{task.id}::{fine_tune.id}",
                             name=fine_tune.name,
+                            # YMMV, but we'll assume all fine tuned models support structured output and data gen
                             supports_structured_output=True,
                             supports_data_gen=True,
                             task_filter=[str(task.id)],
