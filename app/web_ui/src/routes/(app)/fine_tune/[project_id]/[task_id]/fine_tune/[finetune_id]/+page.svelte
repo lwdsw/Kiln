@@ -67,13 +67,17 @@
     let finetune_data = finetune.finetune
     const provider_name = provider_name_from_id(finetune_data.provider)
     properties = [
-      { name: "ID", value: finetune_data.id },
+      { name: "Kiln ID", value: finetune_data.id },
       { name: "Name", value: finetune_data.name },
       { name: "Description", value: finetune_data.description },
       { name: "Provider", value: provider_name },
       { name: "Base Model", value: finetune_data.base_model_id },
       {
-        name: provider_name + " ID",
+        name: provider_name + " Model ID",
+        value: finetune_data.fine_tune_model_id || "Not completed",
+      },
+      {
+        name: provider_name + " Job ID",
         value: finetune_data.provider_id,
         link: provider_link(),
       },

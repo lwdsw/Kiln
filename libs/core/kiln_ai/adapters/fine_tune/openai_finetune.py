@@ -33,6 +33,20 @@ class OpenAIFinetune(BaseFinetuneAdapter):
         try:
             # Will raise an error if the job is not found, or for other issues
             response = oai_client.fine_tuning.jobs.retrieve(self.datamodel.provider_id)
+
+            # If the fine-tuned model has been updated, update the datamodel
+            try:
+                if (
+                    self.datamodel.fine_tune_model_id != response.fine_tuned_model
+                    or self.datamodel.base_model_id != response.model
+                ):
+                    self.datamodel.fine_tune_model_id = response.fine_tuned_model
+                    self.datamodel.base_model_id = response.model
+                    self.datamodel.save_to_file()
+            except Exception:
+                # Don't let this error crash the status call
+                pass
+
         except openai.APIConnectionError:
             return FineTuneStatus(
                 status=FineTuneStatusType.unknown, message="Server connection error"
@@ -120,6 +134,7 @@ class OpenAIFinetune(BaseFinetuneAdapter):
             suffix=f"kiln_ai.{self.datamodel.id}",
         )
         self.datamodel.provider_id = ft.id
+        self.datamodel.fine_tune_model_id = ft.fine_tuned_model
         # Model can get more specific after fine-tune call (gpt-4o-mini to gpt-4o-mini-2024-07-18) so we update it in the datamodel
         self.datamodel.base_model_id = ft.model
 

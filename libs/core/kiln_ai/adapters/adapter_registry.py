@@ -10,6 +10,7 @@ def adapter_for_task(
     provider: str | None = None,
     prompt_builder: BasePromptBuilder | None = None,
 ) -> BaseAdapter:
+    # We use langchain for everything right now, but can add any others here
     return LangchainAdapter(
         kiln_task,
         model_name=model_name,
