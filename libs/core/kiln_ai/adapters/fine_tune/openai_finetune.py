@@ -24,6 +24,19 @@ class OpenAIFinetune(BaseFinetuneAdapter):
     """
 
     def status(self) -> FineTuneStatus:
+        """
+        Get the status of the fine-tune.
+        """
+
+        # Update the datamodel with the latest status if it has changed
+        status = self._status()
+        if status.status != self.datamodel.latest_status:
+            self.datamodel.latest_status = status.status
+            if self.datamodel.path:
+                self.datamodel.save_to_file()
+        return status
+
+    def _status(self) -> FineTuneStatus:
         if not self.datamodel or not self.datamodel.provider_id:
             return FineTuneStatus(
                 status=FineTuneStatusType.pending,

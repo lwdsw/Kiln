@@ -16,7 +16,8 @@ from kiln_ai.utils.config import Config
 
 
 @pytest.fixture
-def openai_finetune():
+def openai_finetune(tmp_path):
+    tmp_file = tmp_path / "test-finetune.kiln"
     finetune = OpenAIFinetune(
         datamodel=FinetuneModel(
             name="test-finetune",
@@ -27,6 +28,7 @@ def openai_finetune():
             dataset_split_id="dataset-123",
             system_message="Test system message",
             fine_tune_model_id="ft-123",
+            path=tmp_file,
         ),
     )
     return finetune
@@ -433,6 +435,7 @@ def test_start_with_validation(openai_finetune, mock_dataset, mock_task):
 
 def test_start_no_task(openai_finetune, mock_dataset):
     openai_finetune.datamodel.parent = None
+    openai_finetune.datamodel.path = None
 
     with pytest.raises(ValueError, match="Task is required to start a fine-tune"):
         openai_finetune._start(mock_dataset)
@@ -453,9 +456,6 @@ def test_status_updates_model_ids(openai_finetune, mock_response):
             "kiln_ai.adapters.fine_tune.openai_finetune.oai_client.fine_tuning.jobs.retrieve",
             return_value=mock_response,
         ) as retrieve_mock,
-        # patch.object(
-        #     openai_finetune.datamodel, "save", new_callable=MagicMock
-        # ) as save_mock,
     ):
         status = openai_finetune.status()
 
@@ -470,3 +470,26 @@ def test_status_updates_model_ids(openai_finetune, mock_response):
         # Verify status is still returned correctly
         assert status.status == FineTuneStatusType.completed
         assert status.message == "Training job completed"
+
+
+def test_status_updates_latest_status(openai_finetune, mock_response):
+    # Set initial status
+    openai_finetune.datamodel.latest_status = FineTuneStatusType.running
+    assert openai_finetune.datamodel.latest_status == FineTuneStatusType.running
+    mock_response.status = "succeeded"
+
+    with (
+        patch(
+            "kiln_ai.adapters.fine_tune.openai_finetune.oai_client.fine_tuning.jobs.retrieve",
+            return_value=mock_response,
+        ),
+    ):
+        status = openai_finetune.status()
+
+        # Verify status was updated in datamodel
+        assert openai_finetune.datamodel.latest_status == FineTuneStatusType.completed
+        assert status.status == FineTuneStatusType.completed
+        assert status.message == "Training job completed"
+
+        # Verify file was saved
+        assert openai_finetune.datamodel.path.exists()

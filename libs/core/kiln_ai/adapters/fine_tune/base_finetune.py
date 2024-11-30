@@ -5,21 +5,9 @@ from typing import Literal
 from pydantic import BaseModel
 
 from kiln_ai.adapters.ml_model_list import built_in_models
-from kiln_ai.datamodel import DatasetSplit
+from kiln_ai.datamodel import DatasetSplit, FineTuneStatusType
 from kiln_ai.datamodel import Finetune as FinetuneModel
 from kiln_ai.utils.name_generator import generate_memorable_name
-
-
-class FineTuneStatusType(str, Enum):
-    """
-    The status type of a fine-tune (running, completed, failed, etc).
-    """
-
-    unknown = "unknown"  # server error
-    pending = "pending"
-    running = "running"
-    completed = "completed"
-    failed = "failed"
 
 
 class FineTuneStatus(BaseModel):
