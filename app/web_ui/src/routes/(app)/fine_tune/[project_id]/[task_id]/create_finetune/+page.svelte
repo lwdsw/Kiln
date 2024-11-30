@@ -111,12 +111,28 @@
     }
     available_model_select.push([
       "download_jsonl_msg",
-      "Download: Chat format with message (JSONL)",
+      "Download: OpenAI chat format (JSONL)",
     ])
     available_model_select.push([
       "download_jsonl_toolcall",
-      "Download: Chat format with tool calls (JSONL)",
+      "Download: OpenAI chat format with tool calls (JSONL)",
     ])
+    available_model_select.push([
+      "download_huggingface_chat_template",
+      "Download: HuggingFace chat template (JSONL)",
+    ])
+    available_model_select.push([
+      "download_huggingface_chat_template_toolcall",
+      "Download: HuggingFace chat template with tool calls (JSONL)",
+    ])
+  }
+
+  const download_model_select_options: Record<string, string> = {
+    download_jsonl_msg: "openai_chat_jsonl",
+    download_jsonl_toolcall: "openai_chat_toolcall_jsonl",
+    download_huggingface_chat_template: "huggingface_chat_template_jsonl",
+    download_huggingface_chat_template_toolcall:
+      "huggingface_chat_template_toolcall_jsonl",
   }
 
   let datasets: DatasetSplit[] | null = null
@@ -413,10 +429,7 @@
       project_id: project_id,
       task_id: task_id,
       split_name: split_name,
-      format_type:
-        model_provider === "download_jsonl_toolcall"
-          ? "chat_message_toolcall_jsonl"
-          : "chat_message_response_jsonl",
+      format_type: download_model_select_options[model_provider],
       system_message_generator: get_system_prompt_method_param(),
       custom_system_message: get_custom_system_prompt_param(),
     }

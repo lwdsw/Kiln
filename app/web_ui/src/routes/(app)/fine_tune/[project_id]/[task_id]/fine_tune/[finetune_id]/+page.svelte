@@ -153,7 +153,8 @@
             <div class="flex items-center">Status</div>
             <div class="flex items-center text-gray-500">
               {#if running}
-                <span class="loading loading-spinner loading-sm mr-2"></span>
+                <span class="loading loading-spinner mr-2 h-[14px] w-[14px]"
+                ></span>
               {/if}
               {finetune.status.status.charAt(0).toUpperCase() +
                 finetune.status.status.slice(1)}

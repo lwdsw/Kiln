@@ -17,6 +17,7 @@ from kiln_ai.datamodel import (
     AllSplitDefinition,
     DatasetSplit,
     Finetune,
+    FineTuneStatusType,
     HighRatingDatasetFilter,
     Task,
     Train60Test20Val20SplitDefinition,
@@ -109,9 +110,25 @@ def connect_fine_tune_api(app: FastAPI):
         return task.dataset_splits()
 
     @app.get("/api/projects/{project_id}/tasks/{task_id}/finetunes")
-    async def finetunes(project_id: str, task_id: str) -> list[Finetune]:
+    async def finetunes(
+        project_id: str, task_id: str, update_status: bool = False
+    ) -> list[Finetune]:
         task = task_from_id(project_id, task_id)
-        return task.finetunes()
+        finetunes = task.finetunes()
+
+        # Update the status of each finetune
+        if update_status:
+            for finetune in finetunes:
+                # Skip "final" status states, as they are not updated
+                if finetune.latest_status not in [
+                    FineTuneStatusType.completed,
+                    FineTuneStatusType.failed,
+                ]:
+                    provider_name = ModelProviderName[finetune.provider]
+                    # fetching status updates the datamodel
+                    finetune_registry[provider_name](finetune).status()
+
+        return finetunes
 
     @app.get("/api/projects/{project_id}/tasks/{task_id}/finetunes/{finetune_id}")
     async def finetune(
@@ -282,7 +299,7 @@ def connect_fine_tune_api(app: FastAPI):
 
         # set headers to force download in a browser
         headers = {
-            "Content-Disposition": f'attachment; filename="dataset_{dataset_id}_{split_name}.jsonl"',
+            "Content-Disposition": f'attachment; filename="dataset_{dataset_id}_{split_name}_{format_type}.jsonl"',
             "Content-Type": "application/jsonl",
         }
 

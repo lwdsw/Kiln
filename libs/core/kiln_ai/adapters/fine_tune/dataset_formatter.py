@@ -3,6 +3,7 @@ import tempfile
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, Protocol
+from uuid import uuid4
 
 from kiln_ai.datamodel import DatasetSplit, TaskRun
 
@@ -11,10 +12,18 @@ class DatasetFormat(str, Enum):
     """Formats for dataset generation. Both for file format (like JSONL), and internal structure (like chat/toolcall)"""
 
     """OpenAI chat format with plaintext response"""
-    CHAT_MESSAGE_RESPONSE_JSONL = "chat_message_response_jsonl"
+    OPENAI_CHAT_JSONL = "openai_chat_jsonl"
 
     """OpenAI chat format with tool call response"""
-    CHAT_MESSAGE_TOOLCALL_JSONL = "chat_message_toolcall_jsonl"
+    OPENAI_CHAT_TOOLCALL_JSONL = "openai_chat_toolcall_jsonl"
+
+    """HuggingFace chat template in JSONL"""
+    HUGGINGFACE_CHAT_TEMPLATE_JSONL = "huggingface_chat_template_jsonl"
+
+    """HuggingFace chat template with tool calls in JSONL"""
+    HUGGINGFACE_CHAT_TEMPLATE_TOOLCALL_JSONL = (
+        "huggingface_chat_template_toolcall_jsonl"
+    )
 
 
 class FormatGenerator(Protocol):
@@ -43,7 +52,7 @@ def generate_chat_message_toolcall(
     try:
         arguments = json.loads(task_run.output.output)
     except json.JSONDecodeError as e:
-        raise ValueError(f"Invalid JSON in task run output: {e}") from e
+        raise ValueError(f"Invalid JSON in for tool call: {e}") from e
 
     return {
         "messages": [
@@ -68,9 +77,55 @@ def generate_chat_message_toolcall(
     }
 
 
+def generate_huggingface_chat_template(
+    task_run: TaskRun, system_message: str
+) -> Dict[str, Any]:
+    """Generate HuggingFace chat template"""
+    return {
+        "conversations": [
+            {"role": "system", "content": system_message},
+            {"role": "user", "content": task_run.input},
+            {"role": "assistant", "content": task_run.output.output},
+        ]
+    }
+
+
+def generate_huggingface_chat_template_toolcall(
+    task_run: TaskRun, system_message: str
+) -> Dict[str, Any]:
+    """Generate HuggingFace chat template with tool calls"""
+    try:
+        arguments = json.loads(task_run.output.output)
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Invalid JSON in for tool call: {e}") from e
+
+    # See https://huggingface.co/docs/transformers/en/chat_templating
+    return {
+        "conversations": [
+            {"role": "system", "content": system_message},
+            {"role": "user", "content": task_run.input},
+            {
+                "role": "assistant",
+                "tool_calls": [
+                    {
+                        "type": "function",
+                        "function": {
+                            "name": "task_response",
+                            "id": str(uuid4()).replace("-", "")[:9],
+                            "arguments": arguments,
+                        },
+                    }
+                ],
+            },
+        ]
+    }
+
+
 FORMAT_GENERATORS: Dict[DatasetFormat, FormatGenerator] = {
-    DatasetFormat.CHAT_MESSAGE_RESPONSE_JSONL: generate_chat_message_response,
-    DatasetFormat.CHAT_MESSAGE_TOOLCALL_JSONL: generate_chat_message_toolcall,
+    DatasetFormat.OPENAI_CHAT_JSONL: generate_chat_message_response,
+    DatasetFormat.OPENAI_CHAT_TOOLCALL_JSONL: generate_chat_message_toolcall,
+    DatasetFormat.HUGGINGFACE_CHAT_TEMPLATE_JSONL: generate_huggingface_chat_template,
+    DatasetFormat.HUGGINGFACE_CHAT_TEMPLATE_TOOLCALL_JSONL: generate_huggingface_chat_template_toolcall,
 }
 
 

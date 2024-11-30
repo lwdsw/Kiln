@@ -37,6 +37,9 @@
               project_id,
               task_id,
             },
+            query: {
+              update_status: true,
+            },
           },
         },
       )
@@ -62,6 +65,17 @@
     } finally {
       finetunes_loading = false
     }
+  }
+
+  const status_map: Record<string, string> = {
+    pending: "Pending",
+    running: "Running",
+    completed: "Completed",
+    failed: "Failed",
+    unknown: "Unknown",
+  }
+  function format_status(status: string) {
+    return status_map[status] || status
   }
 </script>
 
@@ -95,6 +109,7 @@
             <th> Name </th>
             <th> Provider</th>
             <th> Base Model</th>
+            <th> Status </th>
             <th> Created At </th>
           </tr>
         </thead>
@@ -112,6 +127,7 @@
               <td> {finetune.name} </td>
               <td> {provider_name_from_id(finetune.provider)} </td>
               <td> {finetune.base_model_id} </td>
+              <td> {format_status(finetune.latest_status)} </td>
               <td> {formatDate(finetune.created_at)} </td>
             </tr>
           {/each}
