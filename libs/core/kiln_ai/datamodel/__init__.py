@@ -140,6 +140,18 @@ class TaskOutput(KilnBaseModel):
         return self
 
 
+class FineTuneStatusType(str, Enum):
+    """
+    The status type of a fine-tune (running, completed, failed, etc).
+    """
+
+    unknown = "unknown"  # server error
+    pending = "pending"
+    running = "running"
+    completed = "completed"
+    failed = "failed"
+
+
 class Finetune(KilnParentedModel):
     name: str = NAME_FIELD
     description: str | None = Field(
@@ -177,6 +189,10 @@ class Finetune(KilnParentedModel):
     )
     system_message: str = Field(
         description="The system message to use for this fine-tune.",
+    )
+    latest_status: FineTuneStatusType = Field(
+        default=FineTuneStatusType.unknown,
+        description="The latest known status of this fine-tune. Not updated in real time.",
     )
 
     def parent_task(self) -> Task | None:
