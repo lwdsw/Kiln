@@ -111,15 +111,19 @@
     }
     available_model_select.push([
       "download_jsonl_msg",
-      "Download: OpenAI Chat format (JSONL)",
+      "Download: OpenAI chat format (JSONL)",
     ])
     available_model_select.push([
       "download_jsonl_toolcall",
-      "Download: OpenAI Chat format with tool calls (JSONL)",
+      "Download: OpenAI chat format with tool calls (JSONL)",
     ])
     available_model_select.push([
       "download_huggingface_chat_template",
-      "Download: HuggingFace Chat Template (JSONL)",
+      "Download: HuggingFace chat template (JSONL)",
+    ])
+    available_model_select.push([
+      "download_huggingface_chat_template_toolcall",
+      "Download: HuggingFace chat template with tool calls (JSONL)",
     ])
   }
 
@@ -127,6 +131,8 @@
     download_jsonl_msg: "openai_chat_jsonl",
     download_jsonl_toolcall: "openai_chat_toolcall_jsonl",
     download_huggingface_chat_template: "huggingface_chat_template_jsonl",
+    download_huggingface_chat_template_toolcall:
+      "huggingface_chat_template_toolcall_jsonl",
   }
 
   let datasets: DatasetSplit[] | null = null
