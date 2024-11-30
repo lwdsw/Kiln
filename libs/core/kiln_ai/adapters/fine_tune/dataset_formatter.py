@@ -11,10 +11,13 @@ class DatasetFormat(str, Enum):
     """Formats for dataset generation. Both for file format (like JSONL), and internal structure (like chat/toolcall)"""
 
     """OpenAI chat format with plaintext response"""
-    CHAT_MESSAGE_RESPONSE_JSONL = "chat_message_response_jsonl"
+    OPENAI_CHAT_JSONL = "openai_chat_jsonl"
 
     """OpenAI chat format with tool call response"""
-    CHAT_MESSAGE_TOOLCALL_JSONL = "chat_message_toolcall_jsonl"
+    OPENAI_CHAT_TOOLCALL_JSONL = "openai_chat_toolcall_jsonl"
+
+    """HuggingFace chat template in JSONL"""
+    HUGGINGFACE_CHAT_TEMPLATE_JSONL = "huggingface_chat_template_jsonl"
 
 
 class FormatGenerator(Protocol):
@@ -68,9 +71,23 @@ def generate_chat_message_toolcall(
     }
 
 
+def generate_huggingface_chat_template(
+    task_run: TaskRun, system_message: str
+) -> Dict[str, Any]:
+    """Generate HuggingFace chat template"""
+    return {
+        "conversations": [
+            {"role": "system", "content": system_message},
+            {"role": "user", "content": task_run.input},
+            {"role": "assistant", "content": task_run.output.output},
+        ]
+    }
+
+
 FORMAT_GENERATORS: Dict[DatasetFormat, FormatGenerator] = {
-    DatasetFormat.CHAT_MESSAGE_RESPONSE_JSONL: generate_chat_message_response,
-    DatasetFormat.CHAT_MESSAGE_TOOLCALL_JSONL: generate_chat_message_toolcall,
+    DatasetFormat.OPENAI_CHAT_JSONL: generate_chat_message_response,
+    DatasetFormat.OPENAI_CHAT_TOOLCALL_JSONL: generate_chat_message_toolcall,
+    DatasetFormat.HUGGINGFACE_CHAT_TEMPLATE_JSONL: generate_huggingface_chat_template,
 }
 
 

@@ -233,7 +233,7 @@ def test_generate_and_upload_jsonl_success(openai_finetune, mock_dataset, mock_t
 
         # Verify correct format was used
         mock_formatter.dump_to_file.assert_called_once_with(
-            "train", DatasetFormat.CHAT_MESSAGE_RESPONSE_JSONL
+            "train", DatasetFormat.OPENAI_CHAT_JSONL
         )
 
         # Verify file was opened and uploaded
@@ -280,7 +280,7 @@ def test_generate_and_upload_jsonl_toolcall_success(
 
         # Verify correct format was used
         mock_formatter.dump_to_file.assert_called_once_with(
-            "train", DatasetFormat.CHAT_MESSAGE_TOOLCALL_JSONL
+            "train", DatasetFormat.OPENAI_CHAT_TOOLCALL_JSONL
         )
 
         # Verify file was opened and uploaded

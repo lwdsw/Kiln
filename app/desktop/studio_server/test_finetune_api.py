@@ -658,7 +658,7 @@ def test_download_dataset_jsonl(
             "task_id": "task1",
             "dataset_id": "split1",
             "split_name": "train",
-            "format_type": "chat_message_response_jsonl",
+            "format_type": "openai_chat_jsonl",
             "custom_system_message": "Test system message",
         },
     )
@@ -667,15 +667,13 @@ def test_download_dataset_jsonl(
     assert response.headers["Content-Type"] == "application/jsonl"
     assert (
         response.headers["Content-Disposition"]
-        == 'attachment; filename="dataset_split1_train.jsonl"'
+        == 'attachment; filename="dataset_split1_train_openai_chat_jsonl.jsonl"'
     )
     assert response.content == b'{"test": "data"}'
 
     # Verify the formatter was created and used correctly
     mock_formatter_class.assert_called_once()
-    mock_formatter.dump_to_file.assert_called_once_with(
-        "train", "chat_message_response_jsonl"
-    )
+    mock_formatter.dump_to_file.assert_called_once_with("train", "openai_chat_jsonl")
 
 
 def test_download_dataset_jsonl_invalid_format(client, mock_task_from_id):
@@ -703,7 +701,7 @@ def test_download_dataset_jsonl_invalid_dataset(client, mock_task_from_id):
             "task_id": "task1",
             "dataset_id": "invalid_split",
             "split_name": "train",
-            "format_type": "chat_message_response_jsonl",
+            "format_type": "openai_chat_jsonl",
             "custom_system_message": "Test system message",
         },
     )
@@ -722,7 +720,7 @@ def test_download_dataset_jsonl_invalid_split(client, mock_task_from_id, mock_ta
             "task_id": "task1",
             "dataset_id": "split1",
             "split_name": "invalid_split",
-            "format_type": "chat_message_response_jsonl",
+            "format_type": "openai_chat_jsonl",
             "custom_system_message": "Test system message",
         },
     )
@@ -756,7 +754,7 @@ def test_download_dataset_jsonl_with_prompt_builder(
             "task_id": "task1",
             "dataset_id": "split1",
             "split_name": "train",
-            "format_type": "chat_message_response_jsonl",
+            "format_type": "openai_chat_jsonl",
             "system_message_generator": "test_prompt_builder",
         },
     )

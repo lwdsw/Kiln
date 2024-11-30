@@ -299,7 +299,7 @@ def connect_fine_tune_api(app: FastAPI):
 
         # set headers to force download in a browser
         headers = {
-            "Content-Disposition": f'attachment; filename="dataset_{dataset_id}_{split_name}.jsonl"',
+            "Content-Disposition": f'attachment; filename="dataset_{dataset_id}_{split_name}_{format_type}.jsonl"',
             "Content-Type": "application/jsonl",
         }
 
