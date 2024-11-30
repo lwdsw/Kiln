@@ -804,3 +804,39 @@ def test_get_finetune_not_found(client, mock_task_from_id, mock_task):
 
     mock_task_from_id.assert_called_once_with("project1", "task1")
     mock_task.finetunes.assert_called_once()
+
+
+def test_get_finetunes_with_status_update(
+    client, mock_task_from_id, mock_task, mock_finetune_registry, monkeypatch
+):
+    # Create a mock enum class
+    class MockModelProviderName:
+        def __class_getitem__(cls, key):
+            return "test_provider"
+
+    monkeypatch.setattr(
+        "app.desktop.studio_server.finetune_api.ModelProviderName",
+        MockModelProviderName,
+    )
+
+    # Create mock adapter with status method
+    mock_adapter = Mock()
+    mock_adapter.status.return_value = {"status": "running", "message": "Training..."}
+    mock_adapter_class = Mock(return_value=mock_adapter)
+    mock_finetune_registry["test_provider"] = mock_adapter_class
+
+    # Add latest_status to mock finetunes
+    mock_task.finetunes.return_value[0].latest_status = "pending"  # Should be updated
+    mock_task.finetunes.return_value[1].latest_status = "completed"  # Should be skipped
+
+    response = client.get(
+        "/api/projects/project1/tasks/task1/finetunes?update_status=true"
+    )
+
+    assert response.status_code == 200
+    finetunes = response.json()
+    assert len(finetunes) == 2
+
+    # Verify that status was only checked for the pending finetune
+    mock_adapter_class.assert_called_once_with(mock_task.finetunes.return_value[0])
+    mock_adapter.status.assert_called_once()

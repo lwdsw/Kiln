@@ -917,6 +917,11 @@ export interface components {
              * @description The system message to use for this fine-tune.
              */
             system_message: string;
+            /**
+             * @description The latest known status of this fine-tune. Not updated in real time.
+             * @default unknown
+             */
+            latest_status: components["schemas"]["FineTuneStatusType"];
             /** Model Type */
             readonly model_type: string;
         };
@@ -968,7 +973,7 @@ export interface components {
             /** Supports Data Gen */
             supports_data_gen: boolean;
             /** Task Filter */
-            task_filter: string[] | null;
+            task_filter?: string[] | null;
         };
         /**
          * ModelName
@@ -2442,7 +2447,9 @@ export interface operations {
     };
     finetunes_api_projects__project_id__tasks__task_id__finetunes_get: {
         parameters: {
-            query?: never;
+            query?: {
+                update_status?: boolean;
+            };
             header?: never;
             path: {
                 project_id: string;
