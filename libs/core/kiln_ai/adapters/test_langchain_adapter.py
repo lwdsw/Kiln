@@ -65,13 +65,13 @@ async def test_langchain_adapter_with_cot(tmp_path):
 
     # Mock the base model and its invoke method
     mock_base_model = MagicMock()
-    mock_base_model.invoke.return_value = AIMessage(
-        content="Chain of thought reasoning..."
+    mock_base_model.ainvoke = AsyncMock(
+        return_value=AIMessage(content="Chain of thought reasoning...")
     )
 
     # Create a separate mock for self.model()
     mock_model_instance = MagicMock()
-    mock_model_instance.invoke.return_value = {"parsed": {"count": 1}}
+    mock_model_instance.ainvoke = AsyncMock(return_value={"parsed": {"count": 1}})
 
     # Mock the langchain_model_from function to return the base model
     mock_model_from = AsyncMock(return_value=mock_base_model)
@@ -87,8 +87,8 @@ async def test_langchain_adapter_with_cot(tmp_path):
 
     # First 3 messages are the same for both calls
     for invoke_args in [
-        mock_base_model.invoke.call_args[0][0],
-        mock_model_instance.invoke.call_args[0][0],
+        mock_base_model.ainvoke.call_args[0][0],
+        mock_model_instance.ainvoke.call_args[0][0],
     ]:
         assert isinstance(
             invoke_args[0], SystemMessage
@@ -103,11 +103,11 @@ async def test_langchain_adapter_with_cot(tmp_path):
         assert "step by step" in invoke_args[2].content
 
     # the COT should only have 3 messages
-    assert len(mock_base_model.invoke.call_args[0][0]) == 3
-    assert len(mock_model_instance.invoke.call_args[0][0]) == 5
+    assert len(mock_base_model.ainvoke.call_args[0][0]) == 3
+    assert len(mock_model_instance.ainvoke.call_args[0][0]) == 5
 
     # the final response should have the COT content and the final instructions
-    invoke_args = mock_model_instance.invoke.call_args[0][0]
+    invoke_args = mock_model_instance.ainvoke.call_args[0][0]
     assert isinstance(invoke_args[3], AIMessage)
     assert "Chain of thought reasoning..." in invoke_args[3].content
     assert isinstance(invoke_args[4], SystemMessage)
