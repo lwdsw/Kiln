@@ -53,6 +53,7 @@ def test_check_provider_warnings_unknown_provider():
         ModelProviderName.openrouter,
         ModelProviderName.groq,
         ModelProviderName.openai,
+        ModelProviderName.fireworks_ai,
     ],
 )
 def test_check_provider_warnings_all_providers(mock_config, provider_name):
@@ -100,6 +101,7 @@ def test_provider_name_from_id_case_sensitivity():
         (ModelProviderName.groq, "Groq"),
         (ModelProviderName.ollama, "Ollama"),
         (ModelProviderName.openai, "OpenAI"),
+        (ModelProviderName.fireworks_ai, "Fireworks AI"),
     ],
 )
 def test_provider_name_from_id_parametrized(provider_id, expected_name):

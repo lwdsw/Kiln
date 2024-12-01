@@ -143,7 +143,7 @@ def connect_provider_api(app: FastAPI):
                 content={"message": "Invalid key_data or provider"},
             )
 
-        api_key_providers = ["openai", "groq", "bedrock", "openrouter"]
+        api_key_providers = ["openai", "groq", "bedrock", "openrouter", "fireworks_ai"]
         if provider not in api_key_providers:
             return JSONResponse(
                 status_code=400,
@@ -156,6 +156,12 @@ def connect_provider_api(app: FastAPI):
             return await connect_groq(key_data["API Key"])
         elif provider == "openrouter" and isinstance(key_data["API Key"], str):
             return await connect_openrouter(key_data["API Key"])
+        elif (
+            provider == "fireworks_ai"
+            and isinstance(key_data["API Key"], str)
+            and isinstance(key_data["Account ID"], str)
+        ):
+            return await connect_fireworks(key_data["API Key"], key_data["Account ID"])
         elif (
             provider == "bedrock"
             and isinstance(key_data["Access Key"], str)
@@ -204,6 +210,48 @@ async def connect_openrouter(key: str):
         return JSONResponse(
             status_code=400,
             content={"message": f"Failed to connect to OpenRouter. Error: {str(e)}"},
+        )
+
+
+async def connect_fireworks(key: str, account_id: str):
+    try:
+        headers = {
+            "Authorization": f"Bearer {key}",
+            "Content-Type": "application/json",
+        }
+        # list the shared models (fireworks account)
+        response = requests.get(
+            f"https://api.fireworks.ai/v1/accounts/{account_id}/models",
+            headers=headers,
+        )
+
+        if response.status_code == 403:
+            return JSONResponse(
+                status_code=401,
+                content={
+                    "message": "Failed to connect to Fireworks. Invalid API key or Account ID."
+                },
+            )
+        elif response.status_code == 200:
+            Config.shared().fireworks_api_key = key
+            Config.shared().fireworks_account_id = account_id
+
+            return JSONResponse(
+                status_code=200,
+                content={"message": "Connected to Fireworks"},
+            )
+        else:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "message": f"Failed to connect to Fireworks. Error: [{response.status_code}] {response.text}"
+                },
+            )
+    except Exception as e:
+        # unexpected error
+        return JSONResponse(
+            status_code=400,
+            content={"message": f"Failed to connect to Fireworks. Error: {str(e)}"},
         )
 
 

@@ -29,7 +29,7 @@
     {
       name: "OpenAI",
       id: "openai",
-      description: "The OG home to GPT-4 and more.",
+      description: "The OG home to GPT-4 and more. Supports fine-tuning.",
       image: "/images/openai.svg",
       featured: false,
       api_key_steps: [
@@ -57,6 +57,20 @@
         "Create an API Key",
         "Copy the new key, paste it below and click 'Connect'",
       ],
+    },
+    {
+      name: "Fireworks AI",
+      id: "fireworks_ai",
+      description: "Open models (Llama, Phi), plus the ability to fine-tune.",
+      image: "/images/fireworks.svg",
+      api_key_steps: [
+        "Go to https://fireworks.ai/account/api-keys",
+        "Create a new API Key and paste it below",
+        "Go to https://fireworks.ai/account/profile",
+        "Copy the Account ID, paste it below, and click 'Connect'",
+      ],
+      featured: false,
+      api_key_fields: ["API Key", "Account ID"],
     },
     {
       name: "Amazon Bedrock",
@@ -108,6 +122,12 @@
       custom_description: null,
     },
     bedrock: {
+      connected: false,
+      connecting: false,
+      error: null,
+      custom_description: null,
+    },
+    fireworks_ai: {
       connected: false,
       connecting: false,
       error: null,
@@ -248,6 +268,9 @@
       }
       if (data["open_router_api_key"]) {
         status.openrouter.connected = true
+      }
+      if (data["fireworks_api_key"] && data["fireworks_account_id"]) {
+        status.fireworks_ai.connected = true
       }
     } catch (e) {
       console.error("check_existing_providers error", e)

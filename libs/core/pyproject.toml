@@ -21,6 +21,7 @@ dependencies = [
     "coverage>=7.6.4",
     "jsonschema>=4.23.0",
     "langchain-aws>=0.2.4",
+    "langchain-fireworks>=0.2.5",
     "langchain-groq>=0.2.0",
     "langchain-ollama>=0.2.0",
     "langchain-openai>=0.2.4",

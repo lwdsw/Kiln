@@ -8,6 +8,7 @@ import httpx
 import requests
 from langchain_aws import ChatBedrockConverse
 from langchain_core.language_models.chat_models import BaseChatModel
+from langchain_fireworks import ChatFireworks
 from langchain_groq import ChatGroq
 from langchain_ollama import ChatOllama
 from langchain_openai import ChatOpenAI
@@ -34,6 +35,7 @@ class ModelProviderName(str, Enum):
     amazon_bedrock = "amazon_bedrock"
     ollama = "ollama"
     openrouter = "openrouter"
+    fireworks_ai = "fireworks_ai"
     kiln_fine_tune = "kiln_fine_tune"
 
 
@@ -263,6 +265,14 @@ built_in_models: List[KilnModel] = [
                 supports_data_gen=False,
                 provider_options={"model": "meta-llama/llama-3.1-8b-instruct"},
             ),
+            KilnModelProvider(
+                name=ModelProviderName.fireworks_ai,
+                supports_structured_output=False,
+                supports_data_gen=False,
+                provider_options={
+                    "model": "accounts/fireworks/models/llama-v3p1-8b-instruct"
+                },
+            ),
         ],
     ),
     # Llama 3.1 70b
@@ -293,6 +303,12 @@ built_in_models: List[KilnModel] = [
                 name=ModelProviderName.ollama,
                 provider_options={"model": "llama3.1:70b"},
             ),
+            KilnModelProvider(
+                name=ModelProviderName.fireworks_ai,
+                provider_options={
+                    "model": "accounts/fireworks/models/llama-v3p1-70b-instruct"
+                },
+            ),
         ],
     ),
     # Llama 3.1 405b
@@ -316,6 +332,12 @@ built_in_models: List[KilnModel] = [
             KilnModelProvider(
                 name=ModelProviderName.openrouter,
                 provider_options={"model": "meta-llama/llama-3.1-405b-instruct"},
+            ),
+            KilnModelProvider(
+                name=ModelProviderName.fireworks_ai,
+                provider_options={
+                    "model": "accounts/fireworks/models/llama-v3p1-405b-instruct"
+                },
             ),
         ],
     ),
@@ -372,6 +394,14 @@ built_in_models: List[KilnModel] = [
                 supports_data_gen=False,
                 provider_options={"model": "llama3.2"},
             ),
+            KilnModelProvider(
+                name=ModelProviderName.fireworks_ai,
+                supports_structured_output=False,
+                supports_data_gen=False,
+                provider_options={
+                    "model": "accounts/fireworks/models/llama-v3p2-3b-instruct"
+                },
+            ),
         ],
     ),
     # Llama 3.2 11B
@@ -391,6 +421,14 @@ built_in_models: List[KilnModel] = [
                 supports_structured_output=False,
                 supports_data_gen=False,
                 provider_options={"model": "llama3.2-vision"},
+            ),
+            KilnModelProvider(
+                name=ModelProviderName.fireworks_ai,
+                supports_structured_output=False,
+                supports_data_gen=False,
+                provider_options={
+                    "model": "accounts/fireworks/models/llama-v3p2-11b-vision-instruct"
+                },
             ),
         ],
     ),
@@ -412,6 +450,14 @@ built_in_models: List[KilnModel] = [
                 supports_data_gen=False,
                 provider_options={"model": "llama3.2-vision:90b"},
             ),
+            KilnModelProvider(
+                name=ModelProviderName.fireworks_ai,
+                supports_structured_output=False,
+                supports_data_gen=False,
+                provider_options={
+                    "model": "accounts/fireworks/models/llama-v3p2-90b-vision-instruct"
+                },
+            ),
         ],
     ),
     # Phi 3.5
@@ -432,6 +478,12 @@ built_in_models: List[KilnModel] = [
                 supports_structured_output=False,
                 supports_data_gen=False,
                 provider_options={"model": "microsoft/phi-3.5-mini-128k-instruct"},
+            ),
+            KilnModelProvider(
+                name=ModelProviderName.fireworks_ai,
+                provider_options={
+                    "model": "accounts/fireworks/models/phi-3-vision-128k-instruct"
+                },
             ),
         ],
     ),
@@ -471,6 +523,7 @@ built_in_models: List[KilnModel] = [
                 supports_data_gen=False,
                 provider_options={"model": "google/gemma-2-9b-it"},
             ),
+            # fireworks AI errors - not allowing system role. Exclude until resolved.
         ],
     ),
     # Gemma 2 27b
@@ -538,6 +591,8 @@ def provider_name_from_id(id: str) -> str:
                 return "OpenAI"
             case ModelProviderName.kiln_fine_tune:
                 return "Fine Tuned Models"
+            case ModelProviderName.fireworks_ai:
+                return "Fireworks AI"
             case _:
                 # triggers pyright warning if I miss a case
                 raise_exhaustive_error(enum_id)
@@ -571,6 +626,10 @@ provider_warnings: Dict[ModelProviderName, ModelProviderWarning] = {
     ModelProviderName.openai: ModelProviderWarning(
         required_config_keys=["open_ai_api_key"],
         message="Attempted to use OpenAI without an API key set. \nGet your API key from https://platform.openai.com/account/api-keys",
+    ),
+    ModelProviderName.fireworks_ai: ModelProviderWarning(
+        required_config_keys=["fireworks_api_key", "fireworks_account_id"],
+        message="Attempted to use Fireworks without an API key and account ID set. \nGet your API key from https://fireworks.ai/account/api-keys and your account ID from https://fireworks.ai/account/profile",
     ),
 }
 
@@ -692,6 +751,9 @@ async def langchain_model_from_provider(
         return ChatBedrockConverse(
             **provider.provider_options,
         )
+    elif provider.name == ModelProviderName.fireworks_ai:
+        api_key = Config.shared().fireworks_api_key
+        return ChatFireworks(**provider.provider_options, api_key=api_key)
     elif provider.name == ModelProviderName.ollama:
         # Ollama model naming is pretty flexible. We try a few versions of the model name
         potential_model_names = []
