@@ -269,7 +269,7 @@
       if (data["open_router_api_key"]) {
         status.openrouter.connected = true
       }
-      if (data["fireworks_api_key"]) {
+      if (data["fireworks_api_key"] && data["fireworks_account_id"]) {
         status.fireworks_ai.connected = true
       }
     } catch (e) {

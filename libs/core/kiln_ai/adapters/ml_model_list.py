@@ -628,8 +628,8 @@ provider_warnings: Dict[ModelProviderName, ModelProviderWarning] = {
         message="Attempted to use OpenAI without an API key set. \nGet your API key from https://platform.openai.com/account/api-keys",
     ),
     ModelProviderName.fireworks_ai: ModelProviderWarning(
-        required_config_keys=["fireworks_api_key"],
-        message="Attempted to use Fireworks without an API key set. \nGet your API key from https://fireworks.ai/account/api-keys",
+        required_config_keys=["fireworks_api_key", "fireworks_account_id"],
+        message="Attempted to use Fireworks without an API key and account ID set. \nGet your API key from https://fireworks.ai/account/api-keys and your account ID from https://fireworks.ai/account/profile",
     ),
 }
 
