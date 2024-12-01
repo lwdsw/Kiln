@@ -225,8 +225,6 @@ async def connect_fireworks(key: str, account_id: str):
             headers=headers,
         )
 
-        print(response.json())
-        print(response.status_code)
         if response.status_code == 403:
             return JSONResponse(
                 status_code=401,
