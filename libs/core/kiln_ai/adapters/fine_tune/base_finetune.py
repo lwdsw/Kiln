@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from enum import Enum
 from typing import Literal
 
 from pydantic import BaseModel
@@ -50,7 +49,7 @@ class BaseFinetuneAdapter(ABC):
         self.datamodel = datamodel
 
     @classmethod
-    def create_and_start(
+    async def create_and_start(
         cls,
         dataset: DatasetSplit,
         provider_id: str,
@@ -105,21 +104,21 @@ class BaseFinetuneAdapter(ABC):
         )
 
         adapter = cls(datamodel)
-        adapter._start(dataset)
+        await adapter._start(dataset)
 
         datamodel.save_to_file()
 
         return adapter, datamodel
 
     @abstractmethod
-    def _start(self, dataset: DatasetSplit) -> None:
+    async def _start(self, dataset: DatasetSplit) -> None:
         """
         Start the fine-tune.
         """
         pass
 
     @abstractmethod
-    def status(self) -> FineTuneStatus:
+    async def status(self) -> FineTuneStatus:
         """
         Get the status of the fine-tune.
         """

@@ -66,14 +66,14 @@ def mock_task():
     )
 
 
-def test_setup(openai_finetune):
+async def test_setup(openai_finetune):
     if not Config.shared().open_ai_api_key:
         pytest.skip("OpenAI API key not set")
     openai_finetune.provider_id = "openai-123"
     openai_finetune.provider = "openai"
 
     # Real API call, with fake ID
-    status = openai_finetune.status()
+    status = await openai_finetune.status()
     # fake id fails
     assert status.status == FineTuneStatusType.unknown
     assert "Job with this ID not found. It may have been deleted." == status.message
@@ -114,14 +114,14 @@ def test_setup(openai_finetune):
         ),
     ],
 )
-def test_status_api_errors(
+async def test_status_api_errors(
     openai_finetune, exception, expected_status, expected_message
 ):
     with patch(
         "kiln_ai.adapters.fine_tune.openai_finetune.oai_client.fine_tuning.jobs.retrieve",
         side_effect=exception,
     ):
-        status = openai_finetune.status()
+        status = await openai_finetune.status()
         assert status.status == expected_status
         assert expected_message in status.message
 
@@ -142,7 +142,7 @@ def test_status_api_errors(
         ("unknown_status", FineTuneStatusType.unknown, "Unknown status"),
     ],
 )
-def test_status_job_states(
+async def test_status_job_states(
     openai_finetune,
     mock_response,
     job_status,
@@ -155,12 +155,12 @@ def test_status_job_states(
         "kiln_ai.adapters.fine_tune.openai_finetune.oai_client.fine_tuning.jobs.retrieve",
         return_value=mock_response,
     ):
-        status = openai_finetune.status()
+        status = await openai_finetune.status()
         assert status.status == expected_status
         assert message_contains in status.message
 
 
-def test_status_with_error_response(openai_finetune, mock_response):
+async def test_status_with_error_response(openai_finetune, mock_response):
     mock_response.error = MagicMock()
     mock_response.error.message = "Something went wrong"
 
@@ -168,12 +168,12 @@ def test_status_with_error_response(openai_finetune, mock_response):
         "kiln_ai.adapters.fine_tune.openai_finetune.oai_client.fine_tuning.jobs.retrieve",
         return_value=mock_response,
     ):
-        status = openai_finetune.status()
+        status = await openai_finetune.status()
         assert status.status == FineTuneStatusType.failed
         assert status.message.startswith("Something went wrong [Code:")
 
 
-def test_status_with_estimated_finish_time(openai_finetune, mock_response):
+async def test_status_with_estimated_finish_time(openai_finetune, mock_response):
     current_time = time.time()
     mock_response.status = "running"
     mock_response.estimated_finish = current_time + 300  # 5 minutes from now
@@ -182,24 +182,26 @@ def test_status_with_estimated_finish_time(openai_finetune, mock_response):
         "kiln_ai.adapters.fine_tune.openai_finetune.oai_client.fine_tuning.jobs.retrieve",
         return_value=mock_response,
     ):
-        status = openai_finetune.status()
+        status = await openai_finetune.status()
         assert status.status == FineTuneStatusType.running
         assert (
             "Estimated finish time: 299 seconds" in status.message
         )  # non zero time passes
 
 
-def test_status_empty_response(openai_finetune):
+async def test_status_empty_response(openai_finetune):
     with patch(
         "kiln_ai.adapters.fine_tune.openai_finetune.oai_client.fine_tuning.jobs.retrieve",
         return_value=mock_response,
     ):
-        status = openai_finetune.status()
+        status = await openai_finetune.status()
         assert status.status == FineTuneStatusType.unknown
         assert "Invalid response from OpenAI" in status.message
 
 
-def test_generate_and_upload_jsonl_success(openai_finetune, mock_dataset, mock_task):
+async def test_generate_and_upload_jsonl_success(
+    openai_finetune, mock_dataset, mock_task
+):
     mock_path = Path("mock_path.jsonl")
     mock_file_id = "file-123"
 
@@ -222,7 +224,7 @@ def test_generate_and_upload_jsonl_success(openai_finetune, mock_dataset, mock_t
         ) as mock_create,
         patch("builtins.open") as mock_open,
     ):
-        result = openai_finetune.generate_and_upload_jsonl(
+        result = await openai_finetune.generate_and_upload_jsonl(
             mock_dataset, "train", mock_task
         )
 
@@ -243,7 +245,7 @@ def test_generate_and_upload_jsonl_success(openai_finetune, mock_dataset, mock_t
         assert result == mock_file_id
 
 
-def test_generate_and_upload_jsonl_toolcall_success(
+async def test_generate_and_upload_jsonl_toolcall_success(
     openai_finetune, mock_dataset, mock_task
 ):
     mock_path = Path("mock_path.jsonl")
@@ -269,7 +271,7 @@ def test_generate_and_upload_jsonl_toolcall_success(
         ) as mock_create,
         patch("builtins.open") as mock_open,
     ):
-        result = openai_finetune.generate_and_upload_jsonl(
+        result = await openai_finetune.generate_and_upload_jsonl(
             mock_dataset, "train", mock_task
         )
 
@@ -290,7 +292,7 @@ def test_generate_and_upload_jsonl_toolcall_success(
         assert result == mock_file_id
 
 
-def test_generate_and_upload_jsonl_upload_failure(
+async def test_generate_and_upload_jsonl_upload_failure(
     openai_finetune, mock_dataset, mock_task
 ):
     mock_path = Path("mock_path.jsonl")
@@ -314,10 +316,14 @@ def test_generate_and_upload_jsonl_upload_failure(
         patch("builtins.open"),
     ):
         with pytest.raises(ValueError, match="Failed to upload file to OpenAI"):
-            openai_finetune.generate_and_upload_jsonl(mock_dataset, "train", mock_task)
+            await openai_finetune.generate_and_upload_jsonl(
+                mock_dataset, "train", mock_task
+            )
 
 
-def test_generate_and_upload_jsonl_api_error(openai_finetune, mock_dataset, mock_task):
+async def test_generate_and_upload_jsonl_api_error(
+    openai_finetune, mock_dataset, mock_task
+):
     mock_path = Path("mock_path.jsonl")
 
     mock_formatter = MagicMock(spec=DatasetFormatter)
@@ -337,10 +343,12 @@ def test_generate_and_upload_jsonl_api_error(openai_finetune, mock_dataset, mock
         patch("builtins.open"),
     ):
         with pytest.raises(openai.APIError):
-            openai_finetune.generate_and_upload_jsonl(mock_dataset, "train", mock_task)
+            await openai_finetune.generate_and_upload_jsonl(
+                mock_dataset, "train", mock_task
+            )
 
 
-def test_start_success(openai_finetune, mock_dataset, mock_task):
+async def test_start_success(openai_finetune, mock_dataset, mock_task):
     openai_finetune.datamodel.parent = mock_task
 
     # Mock parameters
@@ -368,7 +376,7 @@ def test_start_success(openai_finetune, mock_dataset, mock_task):
             return_value=mock_ft_response,
         ) as mock_create,
     ):
-        openai_finetune._start(mock_dataset)
+        await openai_finetune._start(mock_dataset)
 
         # Verify file uploads
         assert mock_upload.call_count == 1  # Only training file
@@ -395,7 +403,7 @@ def test_start_success(openai_finetune, mock_dataset, mock_task):
         assert openai_finetune.datamodel.base_model_id == "gpt-4o-mini-2024-07-18"
 
 
-def test_start_with_validation(openai_finetune, mock_dataset, mock_task):
+async def test_start_with_validation(openai_finetune, mock_dataset, mock_task):
     openai_finetune.datamodel.parent = mock_task
     openai_finetune.datamodel.validation_split_name = "validation"
 
@@ -415,7 +423,7 @@ def test_start_with_validation(openai_finetune, mock_dataset, mock_task):
             return_value=mock_ft_response,
         ) as mock_create,
     ):
-        openai_finetune._start(mock_dataset)
+        await openai_finetune._start(mock_dataset)
 
         # Verify both files were uploaded
         assert mock_upload.call_count == 2
@@ -433,15 +441,15 @@ def test_start_with_validation(openai_finetune, mock_dataset, mock_task):
         assert mock_create.call_args[1]["validation_file"] == "val-file-123"
 
 
-def test_start_no_task(openai_finetune, mock_dataset):
+async def test_start_no_task(openai_finetune, mock_dataset):
     openai_finetune.datamodel.parent = None
     openai_finetune.datamodel.path = None
 
     with pytest.raises(ValueError, match="Task is required to start a fine-tune"):
-        openai_finetune._start(mock_dataset)
+        await openai_finetune._start(mock_dataset)
 
 
-def test_status_updates_model_ids(openai_finetune, mock_response):
+async def test_status_updates_model_ids(openai_finetune, mock_response):
     # Set up initial model IDs
     openai_finetune.datamodel.fine_tune_model_id = "old-ft-model"
     openai_finetune.datamodel.base_model_id = "old-base-model"
@@ -455,9 +463,9 @@ def test_status_updates_model_ids(openai_finetune, mock_response):
         patch(
             "kiln_ai.adapters.fine_tune.openai_finetune.oai_client.fine_tuning.jobs.retrieve",
             return_value=mock_response,
-        ) as retrieve_mock,
+        ),
     ):
-        status = openai_finetune.status()
+        status = await openai_finetune.status()
 
         # Verify model IDs were updated
         assert openai_finetune.datamodel.fine_tune_model_id == "new-ft-model"
@@ -472,7 +480,7 @@ def test_status_updates_model_ids(openai_finetune, mock_response):
         assert status.message == "Training job completed"
 
 
-def test_status_updates_latest_status(openai_finetune, mock_response):
+async def test_status_updates_latest_status(openai_finetune, mock_response):
     # Set initial status
     openai_finetune.datamodel.latest_status = FineTuneStatusType.running
     assert openai_finetune.datamodel.latest_status == FineTuneStatusType.running
@@ -484,7 +492,7 @@ def test_status_updates_latest_status(openai_finetune, mock_response):
             return_value=mock_response,
         ),
     ):
-        status = openai_finetune.status()
+        status = await openai_finetune.status()
 
         # Verify status was updated in datamodel
         assert openai_finetune.datamodel.latest_status == FineTuneStatusType.completed

@@ -1,3 +1,4 @@
+import time
 from typing import Dict
 
 from langchain_core.language_models import LanguageModelInput
@@ -107,17 +108,16 @@ class LangchainAdapter(BaseAdapter):
             )
 
             cot_messages = [*messages]
-            cot_response = base_model.invoke(cot_messages)
+            cot_response = await base_model.ainvoke(cot_messages)
             intermediate_outputs["chain_of_thought"] = cot_response.content
             messages.append(AIMessage(content=cot_response.content))
             messages.append(
                 SystemMessage(content="Considering the above, return a final result.")
             )
         elif cot_prompt:
-            # for plaintext output, we just add COT instructions. We still only make one call.
             messages.append(SystemMessage(content=cot_prompt))
 
-        response = chain.invoke(messages)
+        response = await chain.ainvoke(messages)
 
         if self.has_structured_output():
             if (

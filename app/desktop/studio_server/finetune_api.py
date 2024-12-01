@@ -126,7 +126,8 @@ def connect_fine_tune_api(app: FastAPI):
                 ]:
                     provider_name = ModelProviderName[finetune.provider]
                     # fetching status updates the datamodel
-                    finetune_registry[provider_name](finetune).status()
+                    ft_adapter = finetune_registry[provider_name](finetune)
+                    await ft_adapter.status()
 
         return finetunes
 
@@ -150,7 +151,7 @@ def connect_fine_tune_api(app: FastAPI):
                 detail=f"Fine tune provider '{finetune.provider}' not found",
             )
         finetune_adapter = finetune_registry[finetune.provider]
-        status = finetune_adapter(finetune).status()
+        status = await finetune_adapter(finetune).status()
         return FinetuneWithStatus(finetune=finetune, status=status)
 
     @app.get("/api/finetune_providers")
@@ -248,7 +249,7 @@ def connect_fine_tune_api(app: FastAPI):
             task, request.custom_system_message, request.system_message_generator
         )
 
-        _, finetune_model = finetune_adapter_class.create_and_start(
+        _, finetune_model = await finetune_adapter_class.create_and_start(
             dataset=dataset,
             provider_id=request.provider,
             provider_base_model_id=request.base_model_id,
