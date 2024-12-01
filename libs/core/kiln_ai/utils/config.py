@@ -67,6 +67,11 @@ class Config:
                 env_var="OPENROUTER_API_KEY",
                 sensitive=True,
             ),
+            "fireworks_api_key": ConfigProperty(
+                str,
+                env_var="FIREWORKS_API_KEY",
+                sensitive=True,
+            ),
             "projects": ConfigProperty(
                 list,
                 default_lambda=lambda: [],
