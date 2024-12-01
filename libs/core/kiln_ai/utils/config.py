@@ -72,6 +72,10 @@ class Config:
                 env_var="FIREWORKS_API_KEY",
                 sensitive=True,
             ),
+            "fireworks_account_id": ConfigProperty(
+                str,
+                env_var="FIREWORKS_ACCOUNT_ID",
+            ),
             "projects": ConfigProperty(
                 list,
                 default_lambda=lambda: [],
