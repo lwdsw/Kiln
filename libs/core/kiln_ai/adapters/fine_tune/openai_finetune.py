@@ -13,7 +13,7 @@ from kiln_ai.adapters.fine_tune.dataset_formatter import DatasetFormat, DatasetF
 from kiln_ai.datamodel import DatasetSplit, Task
 from kiln_ai.utils.config import Config
 
-oai_client = openai.OpenAI(
+oai_client = openai.AsyncOpenAI(
     api_key=Config.shared().open_ai_api_key or "",
 )
 
@@ -23,20 +23,20 @@ class OpenAIFinetune(BaseFinetuneAdapter):
     A fine-tuning adapter for OpenAI.
     """
 
-    def status(self) -> FineTuneStatus:
+    async def status(self) -> FineTuneStatus:
         """
         Get the status of the fine-tune.
         """
 
         # Update the datamodel with the latest status if it has changed
-        status = self._status()
+        status = await self._status()
         if status.status != self.datamodel.latest_status:
             self.datamodel.latest_status = status.status
             if self.datamodel.path:
                 self.datamodel.save_to_file()
         return status
 
-    def _status(self) -> FineTuneStatus:
+    async def _status(self) -> FineTuneStatus:
         if not self.datamodel or not self.datamodel.provider_id:
             return FineTuneStatus(
                 status=FineTuneStatusType.pending,
@@ -45,7 +45,9 @@ class OpenAIFinetune(BaseFinetuneAdapter):
 
         try:
             # Will raise an error if the job is not found, or for other issues
-            response = oai_client.fine_tuning.jobs.retrieve(self.datamodel.provider_id)
+            response = await oai_client.fine_tuning.jobs.retrieve(
+                self.datamodel.provider_id
+            )
 
             # If the fine-tuned model has been updated, update the datamodel
             try:
@@ -117,17 +119,17 @@ class OpenAIFinetune(BaseFinetuneAdapter):
             message=f"Unknown status: [{status}]",
         )
 
-    def _start(self, dataset: DatasetSplit) -> None:
+    async def _start(self, dataset: DatasetSplit) -> None:
         task = self.datamodel.parent_task()
         if not task:
             raise ValueError("Task is required to start a fine-tune")
 
-        train_file_id = self.generate_and_upload_jsonl(
+        train_file_id = await self.generate_and_upload_jsonl(
             dataset, self.datamodel.train_split_name, task
         )
         validation_file_id = None
         if self.datamodel.validation_split_name:
-            validation_file_id = self.generate_and_upload_jsonl(
+            validation_file_id = await self.generate_and_upload_jsonl(
                 dataset, self.datamodel.validation_split_name, task
             )
 
@@ -138,7 +140,7 @@ class OpenAIFinetune(BaseFinetuneAdapter):
             if k in ["n_epochs", "learning_rate_multiplier", "batch_size"]
         }
 
-        ft = oai_client.fine_tuning.jobs.create(
+        ft = await oai_client.fine_tuning.jobs.create(
             training_file=train_file_id,
             model=self.datamodel.base_model_id,
             validation_file=validation_file_id,
@@ -153,7 +155,7 @@ class OpenAIFinetune(BaseFinetuneAdapter):
 
         return None
 
-    def generate_and_upload_jsonl(
+    async def generate_and_upload_jsonl(
         self, dataset: DatasetSplit, split_name: str, task: Task
     ) -> str:
         formatter = DatasetFormatter(dataset, self.datamodel.system_message)
@@ -165,7 +167,7 @@ class OpenAIFinetune(BaseFinetuneAdapter):
         )
         path = formatter.dump_to_file(split_name, format)
 
-        response = oai_client.files.create(
+        response = await oai_client.files.create(
             file=open(path, "rb"),
             purpose="fine-tune",
         )

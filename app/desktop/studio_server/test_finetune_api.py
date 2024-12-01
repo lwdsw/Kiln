@@ -1,5 +1,5 @@
 import unittest.mock
-from unittest.mock import Mock
+from unittest.mock import AsyncMock, Mock
 
 import pytest
 from fastapi import FastAPI
@@ -378,21 +378,23 @@ def test_create_dataset_split_request_validation():
 @pytest.fixture
 def mock_finetune_adapter():
     adapter = Mock()
-    adapter.create_and_start.return_value = (
-        None,  # First return value is ignored in the API
-        Finetune(
-            id="new_ft",
-            name="New Finetune",
-            provider="test_provider",
-            base_model_id="base_model_1",
-            dataset_split_id="split1",
-            system_message="Test system message",
-        ),
+    adapter.create_and_start = AsyncMock(
+        return_value=(
+            None,  # First return value is ignored in the API
+            Finetune(
+                id="new_ft",
+                name="New Finetune",
+                provider="test_provider",
+                base_model_id="base_model_1",
+                dataset_split_id="split1",
+                system_message="Test system message",
+            ),
+        )
     )
     return adapter
 
 
-def test_create_finetune(
+async def test_create_finetune(
     client, mock_task_from_id, mock_task, mock_finetune_registry, mock_finetune_adapter
 ):
     mock_finetune_registry["test_provider"] = mock_finetune_adapter
@@ -421,7 +423,7 @@ def test_create_finetune(
     assert result["base_model_id"] == "base_model_1"
 
     # Verify the adapter was called correctly
-    mock_finetune_adapter.create_and_start.assert_called_once_with(
+    mock_finetune_adapter.create_and_start.assert_awaited_once_with(
         dataset=mock_task.dataset_splits.return_value[0],  # First split from our mock
         provider_id="test_provider",
         provider_base_model_id="base_model_1",
@@ -554,7 +556,7 @@ def mock_prompt_builder():
         yield mock, builder
 
 
-def test_create_finetune_with_prompt_builder(
+async def test_create_finetune_with_prompt_builder(
     client,
     mock_task_from_id,
     mock_task,
@@ -587,8 +589,8 @@ def test_create_finetune_with_prompt_builder(
     builder.build_prompt.assert_called_once()
 
     # Verify the adapter was called with the generated system message
-    mock_finetune_adapter.create_and_start.assert_called_once()
-    call_kwargs = mock_finetune_adapter.create_and_start.call_args[1]
+    mock_finetune_adapter.create_and_start.assert_awaited_once()
+    call_kwargs = mock_finetune_adapter.create_and_start.await_args[1]
     assert call_kwargs["system_message"] == "Generated system message"
 
 
@@ -771,7 +773,7 @@ def test_download_dataset_jsonl_with_prompt_builder(
     )
 
 
-def test_get_finetune(client, mock_task_from_id, mock_task):
+async def test_get_finetune(client, mock_task_from_id, mock_task):
     response = client.get("/api/projects/project1/tasks/task1/finetunes/ft1")
 
     assert response.status_code == 200
@@ -804,7 +806,7 @@ def test_get_finetune_not_found(client, mock_task_from_id, mock_task):
     mock_task.finetunes.assert_called_once()
 
 
-def test_get_finetunes_with_status_update(
+async def test_get_finetunes_with_status_update(
     client, mock_task_from_id, mock_task, mock_finetune_registry, monkeypatch
 ):
     # Create a mock enum class
@@ -819,7 +821,9 @@ def test_get_finetunes_with_status_update(
 
     # Create mock adapter with status method
     mock_adapter = Mock()
-    mock_adapter.status.return_value = {"status": "running", "message": "Training..."}
+    mock_adapter.status = AsyncMock(
+        return_value={"status": "running", "message": "Training..."}
+    )
     mock_adapter_class = Mock(return_value=mock_adapter)
     mock_finetune_registry["test_provider"] = mock_adapter_class
 

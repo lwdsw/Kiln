@@ -15,10 +15,10 @@ from kiln_ai.datamodel import Finetune as FinetuneModel
 class MockFinetune(BaseFinetuneAdapter):
     """Mock implementation of BaseFinetune for testing"""
 
-    def _start(self, dataset: DatasetSplit) -> None:
+    async def _start(self, dataset: DatasetSplit) -> None:
         pass
 
-    def status(self) -> FineTuneStatus:
+    async def status(self) -> FineTuneStatus:
         return FineTuneStatus(status=FineTuneStatusType.pending, message="loading...")
 
     @classmethod
@@ -67,10 +67,11 @@ def basic_finetune(sample_task):
     )
 
 
-def test_finetune_status(basic_finetune):
-    assert basic_finetune.status().status == FineTuneStatusType.pending
-    assert basic_finetune.status().message == "loading..."
-    assert isinstance(basic_finetune.status(), FineTuneStatus)
+async def test_finetune_status(basic_finetune):
+    status = await basic_finetune.status()
+    assert status.status == FineTuneStatusType.pending
+    assert status.message == "loading..."
+    assert isinstance(status, FineTuneStatus)
 
 
 def test_available_parameters():
@@ -144,9 +145,9 @@ def mock_dataset(sample_task):
     return dataset
 
 
-def test_create_and_start_success(mock_dataset):
+async def test_create_and_start_success(mock_dataset):
     # Test successful creation with minimal parameters
-    adapter, datamodel = MockFinetune.create_and_start(
+    adapter, datamodel = await MockFinetune.create_and_start(
         dataset=mock_dataset,
         provider_id="openai",
         provider_base_model_id="gpt-4o-mini-2024-07-18",
@@ -167,9 +168,9 @@ def test_create_and_start_success(mock_dataset):
     assert datamodel.path.exists()
 
 
-def test_create_and_start_with_all_params(mock_dataset):
+async def test_create_and_start_with_all_params(mock_dataset):
     # Test creation with all optional parameters
-    adapter, datamodel = MockFinetune.create_and_start(
+    adapter, datamodel = await MockFinetune.create_and_start(
         dataset=mock_dataset,
         provider_id="openai",
         provider_base_model_id="gpt-4o-mini-2024-07-18",
@@ -193,10 +194,10 @@ def test_create_and_start_with_all_params(mock_dataset):
     assert loaded_datamodel.model_dump_json() == datamodel.model_dump_json()
 
 
-def test_create_and_start_invalid_parameters(mock_dataset):
+async def test_create_and_start_invalid_parameters(mock_dataset):
     # Test with invalid parameters
     with pytest.raises(ValueError, match="Parameter epochs is required"):
-        MockFinetune.create_and_start(
+        await MockFinetune.create_and_start(
             dataset=mock_dataset,
             provider_id="openai",
             provider_base_model_id="gpt-4o-mini-2024-07-18",
@@ -206,7 +207,7 @@ def test_create_and_start_invalid_parameters(mock_dataset):
         )
 
 
-def test_create_and_start_no_parent_task():
+async def test_create_and_start_no_parent_task():
     # Test with dataset that has no parent task
     dataset = Mock(spec=DatasetSplit)
     dataset.id = "dataset_123"
@@ -214,7 +215,7 @@ def test_create_and_start_no_parent_task():
     dataset.split_contents = {"train": [], "validation": [], "test": []}
 
     with pytest.raises(ValueError, match="Dataset must have a parent task with a path"):
-        MockFinetune.create_and_start(
+        await MockFinetune.create_and_start(
             dataset=dataset,
             provider_id="openai",
             provider_base_model_id="gpt-4o-mini-2024-07-18",
@@ -224,7 +225,7 @@ def test_create_and_start_no_parent_task():
         )
 
 
-def test_create_and_start_no_parent_task_path():
+async def test_create_and_start_no_parent_task_path():
     # Test with dataset that has parent task but no path
     task = Mock(spec=Task)
     task.path = None
@@ -235,7 +236,7 @@ def test_create_and_start_no_parent_task_path():
     dataset.split_contents = {"train": [], "validation": [], "test": []}
 
     with pytest.raises(ValueError, match="Dataset must have a parent task with a path"):
-        MockFinetune.create_and_start(
+        await MockFinetune.create_and_start(
             dataset=dataset,
             provider_id="openai",
             provider_base_model_id="gpt-4o-mini-2024-07-18",
@@ -254,14 +255,14 @@ def test_check_valid_provider_model():
         MockFinetune.check_valid_provider_model("openai", "gpt-99")
 
 
-def test_create_and_start_invalid_train_split(mock_dataset):
+async def test_create_and_start_invalid_train_split(mock_dataset):
     # Test with an invalid train split name
     mock_dataset.split_contents = {"valid_train": [], "valid_test": []}
 
     with pytest.raises(
         ValueError, match="Train split invalid_train not found in dataset"
     ):
-        MockFinetune.create_and_start(
+        await MockFinetune.create_and_start(
             dataset=mock_dataset,
             provider_id="openai",
             provider_base_model_id="gpt-4o-mini-2024-07-18",
@@ -271,14 +272,14 @@ def test_create_and_start_invalid_train_split(mock_dataset):
         )
 
 
-def test_create_and_start_invalid_validation_split(mock_dataset):
+async def test_create_and_start_invalid_validation_split(mock_dataset):
     # Test with an invalid validation split name
     mock_dataset.split_contents = {"valid_train": [], "valid_test": []}
 
     with pytest.raises(
         ValueError, match="Validation split invalid_test not found in dataset"
     ):
-        MockFinetune.create_and_start(
+        await MockFinetune.create_and_start(
             dataset=mock_dataset,
             provider_id="openai",
             provider_base_model_id="gpt-4o-mini-2024-07-18",
