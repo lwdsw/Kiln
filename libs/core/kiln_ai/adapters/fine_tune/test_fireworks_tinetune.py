@@ -1,10 +1,13 @@
-from unittest.mock import MagicMock, patch
+from pathlib import Path
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import pytest
 
 from kiln_ai.adapters.fine_tune.base_finetune import FineTuneStatusType
+from kiln_ai.adapters.fine_tune.dataset_formatter import DatasetFormat, DatasetFormatter
 from kiln_ai.adapters.fine_tune.fireworks_finetune import FireworksFinetune
+from kiln_ai.datamodel import DatasetSplit, Task, Train80Test20SplitDefinition
 from kiln_ai.datamodel import Finetune as FinetuneModel
 from kiln_ai.utils.config import Config
 
@@ -45,7 +48,15 @@ def mock_client():
     return client
 
 
-async def test_setup(fireworks_finetune):
+@pytest.fixture
+def mock_api_key():
+    with patch.object(Config, "shared") as mock_config:
+        mock_config.return_value.fireworks_api_key = "test-api-key"
+        mock_config.return_value.fireworks_account_id = "test-account-id"
+        yield
+
+
+async def test_setup(fireworks_finetune, mock_api_key):
     if (
         not Config.shared().fireworks_api_key
         or not Config.shared().fireworks_account_id
@@ -68,7 +79,7 @@ async def test_status_missing_credentials(fireworks_finetune):
         assert "Fireworks API key or account ID not set" == status.message
 
 
-async def test_status_missing_provider_id(fireworks_finetune):
+async def test_status_missing_provider_id(fireworks_finetune, mock_api_key):
     fireworks_finetune.datamodel.provider_id = None
 
     status = await fireworks_finetune.status()
@@ -103,6 +114,7 @@ async def test_status_api_errors(
     status_code,
     expected_status,
     expected_message,
+    mock_api_key,
 ):
     mock_response.status_code = status_code
     mock_response.text = "Error message"
@@ -147,6 +159,7 @@ async def test_status_job_states(
     state,
     expected_status,
     message,
+    mock_api_key,
 ):
     mock_response.json.return_value = {"state": state}
     mock_client.get.return_value = mock_response
@@ -158,7 +171,9 @@ async def test_status_job_states(
         assert message == status.message
 
 
-async def test_status_invalid_response(fireworks_finetune, mock_response, mock_client):
+async def test_status_invalid_response(
+    fireworks_finetune, mock_response, mock_client, mock_api_key
+):
     mock_response.json.return_value = {"no_state_field": "value"}
     mock_client.get.return_value = mock_response
 
@@ -169,7 +184,7 @@ async def test_status_invalid_response(fireworks_finetune, mock_response, mock_c
         assert "Invalid response from Fireworks" in status.message
 
 
-async def test_status_request_exception(fireworks_finetune, mock_client):
+async def test_status_request_exception(fireworks_finetune, mock_client, mock_api_key):
     mock_client.get.side_effect = Exception("Connection error")
 
     with patch("httpx.AsyncClient") as mock_client_class:
@@ -180,3 +195,135 @@ async def test_status_request_exception(fireworks_finetune, mock_client):
             "Error retrieving fine-tuning job status: Connection error"
             == status.message
         )
+
+
+@pytest.fixture
+def mock_dataset():
+    return DatasetSplit(
+        id="test-dataset-123",
+        name="Test Dataset",
+        splits=Train80Test20SplitDefinition,
+        split_contents={"train": [], "test": []},
+    )
+
+
+@pytest.fixture
+def mock_task():
+    return Task(
+        id="test-task-123",
+        name="Test Task",
+        output_json_schema=None,  # Can be modified in specific tests
+        instruction="Test instruction",
+    )
+
+
+async def test_generate_and_upload_jsonl_success(
+    fireworks_finetune, mock_dataset, mock_task, mock_api_key
+):
+    mock_path = Path("mock_path.jsonl")
+    mock_dataset_id = "dataset-123"
+
+    # Mock the formatter
+    mock_formatter = MagicMock(spec=DatasetFormatter)
+    mock_formatter.dump_to_file.return_value = mock_path
+
+    # Mock responses for the three API calls
+    create_response = MagicMock(spec=httpx.Response)
+    create_response.status_code = 200
+
+    upload_response = MagicMock(spec=httpx.Response)
+    upload_response.status_code = 200
+
+    status_response = MagicMock(spec=httpx.Response)
+    status_response.status_code = 200
+    status_response.json.return_value = {"state": "READY"}
+
+    with (
+        patch(
+            "kiln_ai.adapters.fine_tune.fireworks_finetune.DatasetFormatter",
+            return_value=mock_formatter,
+        ),
+        patch("httpx.AsyncClient") as mock_client_class,
+        patch("builtins.open"),
+        patch(
+            "kiln_ai.adapters.fine_tune.fireworks_finetune.uuid4",
+            return_value=mock_dataset_id,
+        ),
+    ):
+        mock_client = AsyncMock()
+        mock_client.post = AsyncMock(side_effect=[create_response, upload_response])
+        mock_client.get = AsyncMock(return_value=status_response)
+        mock_client_class.return_value.__aenter__.return_value = mock_client
+
+        result = await fireworks_finetune.generate_and_upload_jsonl(
+            mock_dataset, "train", mock_task
+        )
+
+        # Verify formatter was created with correct parameters
+        mock_formatter.dump_to_file.assert_called_once_with(
+            "train", DatasetFormat.OPENAI_CHAT_JSONL
+        )
+
+        assert result == mock_dataset_id
+        assert mock_client.post.call_count == 2
+        assert mock_client.get.call_count == 1
+
+
+async def test_start_success(fireworks_finetune, mock_dataset, mock_task, mock_api_key):
+    fireworks_finetune.datamodel.parent = mock_task
+    mock_dataset_id = "dataset-123"
+    mock_model_id = "ft-model-123"
+
+    # Mock response for create fine-tuning job
+    create_response = MagicMock(spec=httpx.Response)
+    create_response.status_code = 200
+    create_response.json.return_value = {"name": mock_model_id}
+
+    with (
+        patch.object(
+            fireworks_finetune,
+            "generate_and_upload_jsonl",
+            return_value=mock_dataset_id,
+        ),
+        patch("httpx.AsyncClient") as mock_client_class,
+    ):
+        mock_client = AsyncMock()
+        mock_client.post.return_value = create_response
+        mock_client_class.return_value.__aenter__.return_value = mock_client
+
+        await fireworks_finetune._start(mock_dataset)
+
+        # Verify dataset was uploaded
+        fireworks_finetune.generate_and_upload_jsonl.assert_called_once_with(
+            mock_dataset, fireworks_finetune.datamodel.train_split_name, mock_task
+        )
+
+        # Verify model ID was updated
+        assert fireworks_finetune.datamodel.provider_id == mock_model_id
+
+
+async def test_start_api_error(
+    fireworks_finetune, mock_dataset, mock_task, mock_api_key
+):
+    fireworks_finetune.datamodel.parent = mock_task
+    mock_dataset_id = "dataset-123"
+
+    # Mock error response
+    error_response = MagicMock(spec=httpx.Response)
+    error_response.status_code = 500
+    error_response.text = "Internal Server Error"
+
+    with (
+        patch.object(
+            fireworks_finetune,
+            "generate_and_upload_jsonl",
+            return_value=mock_dataset_id,
+        ),
+        patch("httpx.AsyncClient") as mock_client_class,
+    ):
+        mock_client = AsyncMock()
+        mock_client.post.return_value = error_response
+        mock_client_class.return_value.__aenter__.return_value = mock_client
+
+        with pytest.raises(ValueError, match="Failed to create fine-tuning job"):
+            await fireworks_finetune._start(mock_dataset)
