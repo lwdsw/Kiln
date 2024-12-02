@@ -426,8 +426,8 @@ async def test_deploy_missing_model_id(fireworks_finetune, mock_api_key):
     # Test missing model ID
     fireworks_finetune.datamodel.properties["undeployed_model_id"] = None
 
-    with pytest.raises(ValueError, match="Model ID is required to deploy"):
-        await fireworks_finetune._deploy()
+    response = await fireworks_finetune._deploy()
+    assert response is False
 
 
 async def test_status_with_deploy(fireworks_finetune, mock_api_key):

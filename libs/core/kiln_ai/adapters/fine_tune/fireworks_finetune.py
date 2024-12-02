@@ -113,10 +113,16 @@ class FireworksFinetune(BaseFinetuneAdapter):
         url = f"https://api.fireworks.ai/v1/accounts/{account_id}/fineTuningJobs"
         # Model ID != fine tune ID on Fireworks. Model is the result of the tune job.
         model_id = str(uuid4())
+        # Limit the display name to 60 characters
+        display_name = (
+            f"Kiln AI fine-tuning [ID:{self.datamodel.id}][name:{self.datamodel.name}]"[
+                :60
+            ]
+        )
         payload = {
             "modelId": model_id,
             "dataset": f"accounts/{account_id}/datasets/{train_file_id}",
-            "displayName": f"Kiln AI fine-tuning [ID:{self.datamodel.id}][name:{self.datamodel.name}]",
+            "displayName": display_name,
             "baseModel": self.datamodel.base_model_id,
             "conversation": {},
         }
@@ -272,11 +278,15 @@ class FireworksFinetune(BaseFinetuneAdapter):
 
         model_id = self.datamodel.properties.get("undeployed_model_id")
         if not model_id or not isinstance(model_id, str):
-            raise ValueError("Model ID is required to deploy")
+            return False
 
         url = f"https://api.fireworks.ai/v1/accounts/{account_id}/deployedModels"
+        # Limit the display name to 60 characters
+        display_name = f"Kiln AI fine-tuned model [ID:{self.datamodel.id}][name:{self.datamodel.name}]"[
+            :60
+        ]
         payload = {
-            "displayName": f"Kiln AI fine-tuned model [ID:{self.datamodel.id}][name:{self.datamodel.name}]",
+            "displayName": display_name,
             "model": model_id,
         }
         headers = {
