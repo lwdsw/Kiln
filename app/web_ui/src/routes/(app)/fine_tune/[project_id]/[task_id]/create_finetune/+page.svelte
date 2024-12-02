@@ -3,6 +3,7 @@
   import FormContainer from "$lib/utils/form_container.svelte"
   import FormElement from "$lib/utils/form_element.svelte"
   import { page } from "$app/stores"
+  import { current_task } from "$lib/stores"
   import { client } from "$lib/api_client"
   import { KilnError, createKilnError } from "$lib/utils/error_handlers"
   import { onMount } from "svelte"
@@ -47,11 +48,15 @@
     : selected_dataset?.split_contents["all"]
       ? "all"
       : null
+  // Only openai supports automatic validation
+  $: show_automatic_validation_option =
+    selected_dataset &&
+    selected_dataset_has_val &&
+    model_provider_id === "openai"
   $: step_3_visible =
     model_provider !== disabled_header &&
     !!selected_dataset &&
-    (is_download ||
-      !selected_dataset_has_val ||
+    (!show_automatic_validation_option ||
       automatic_validation !== disabled_header)
   $: is_download = model_provider.startsWith("download_")
   $: step_4_download_visible = step_3_visible && is_download
@@ -190,6 +195,7 @@
     dataset_select.push(["new", "New Dataset"])
   }
 
+  $: model_provider_id = model_provider.split("/")[0]
   $: if (model_provider !== disabled_header) {
     get_hyperparameters(model_provider.split("/")[0])
   }
@@ -525,17 +531,6 @@
             bind:value={dataset_id}
           />
           {#if selected_dataset}
-            {#if selected_dataset_training_set_name && selected_dataset.split_contents[selected_dataset_training_set_name]?.length < 100}
-              <div class="text-error text-sm mt-2">
-                Warning: Your selected dataset has less than 100 examples for
-                training. We strongly recommend creating a larger dataset before
-                fine-tuning. Try our
-                <a href={`/generate/${project_id}/${task_id}`} class="link">
-                  generation tool
-                </a>
-                to expand your dataset.
-              </div>
-            {/if}
             <div class="text-sm">
               The selected dataset has {selected_dataset.splits?.length}
               {selected_dataset.splits?.length === 1 ? "split" : "splits"}:
@@ -548,10 +543,12 @@
                     <span class="text-xs text-gray-500 pl-2">
                       {#if is_download}
                         <!-- Nothing -->
-                      {:else if split_name === "val" && automatic_validation === disabled_header}
+                      {:else if split_name === "val" && automatic_validation === disabled_header && show_automatic_validation_option}
                         May be used for validation during fine-tuning
                       {:else if split_name === "val" && automatic_validation === "yes"}
                         Will be used for validation during fine-tuning
+                      {:else if split_name === "val"}
+                        Will not be used, reserved for later evaluation
                       {:else if split_name === "test"}
                         Will not be used, reserved for later evaluation
                       {:else if split_name === selected_dataset_training_set_name}
@@ -562,8 +559,30 @@
                 {/each}
               </ul>
             </div>
+            {#if selected_dataset_training_set_name && selected_dataset.split_contents[selected_dataset_training_set_name]?.length < 100}
+              <div class="text-sm">
+                <span class="badge badge-error mr-2"
+                  >Warning: Small Dataset</span
+                >
+                Your selected dataset has less than 100 examples for training. We
+                strongly recommend creating a larger dataset before fine-tuning.
+                Try our
+                <a href={`/generate/${project_id}/${task_id}`} class="link">
+                  generation tool
+                </a>
+                to expand your dataset.
+              </div>
+            {/if}
+            {#if model_provider_id === "fireworks_ai" && task_id === $current_task?.id && !!$current_task?.output_json_schema}
+              <div class="text-sm">
+                <span class="badge badge-warning mr-2">Technical Note</span> Fireworks
+                fine-tuning does not support tool calling, and this task has structured
+                JSON output which would ideally use tool calling. The model will
+                be trained with JSON output instead.
+              </div>
+            {/if}
           {/if}
-          {#if selected_dataset && selected_dataset_has_val && !is_download}
+          {#if show_automatic_validation_option}
             <FormElement
               label="Automatic Validation"
               description="The selected dataset has a validation set. Should we use this for validation during fine-tuning? Select 'Yes' if your task is completely deterministic (classification), and 'No' if the task is not deterministic (e.g. generation)."
