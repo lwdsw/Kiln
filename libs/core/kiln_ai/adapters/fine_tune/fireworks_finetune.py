@@ -25,6 +25,13 @@ class FireworksFinetune(BaseFinetuneAdapter):
             self.datamodel.latest_status = status.status
             if self.datamodel.path:
                 self.datamodel.save_to_file()
+
+        # Deploy every time we check status. This can help resolve issues, Fireworks will undeploy unused models after a time.
+        if status.status == FineTuneStatusType.completed:
+            deployed = await self._deploy()
+            if not deployed:
+                status.message = "Fine-tuning job completed but failed to deploy model."
+
         return status
 
     async def _status(self) -> FineTuneStatus:
@@ -104,7 +111,10 @@ class FireworksFinetune(BaseFinetuneAdapter):
             raise ValueError("Fireworks API key or account ID not set")
 
         url = f"https://api.fireworks.ai/v1/accounts/{account_id}/fineTuningJobs"
+        # Model ID != fine tune ID on Fireworks. Model is the result of the tune job.
+        model_id = str(uuid4())
         payload = {
+            "modelId": model_id,
             "dataset": f"accounts/{account_id}/datasets/{train_file_id}",
             "displayName": f"Kiln AI fine-tuning [ID:{self.datamodel.id}][name:{self.datamodel.name}]",
             "baseModel": f"accounts/fireworks/models/{self.datamodel.base_model_id}",
@@ -128,9 +138,13 @@ class FireworksFinetune(BaseFinetuneAdapter):
                 f"Failed to create fine-tuning job with valid name: [{response.status_code}] {response.text}"
             )
 
-        # name is actually the ID, Fireworks is weird
-        model_id = data["name"]
-        self.datamodel.provider_id = model_id
+        # name is actually the ID of the fine-tune job,
+        # model ID is the model that results from the fine-tune job
+        fine_tune_id = data["name"]
+        self.datamodel.provider_id = fine_tune_id
+        self.datamodel.properties["model_id"] = (
+            f"accounts/{account_id}/models/{model_id}"
+        )
         if self.datamodel.path:
             self.datamodel.save_to_file()
 
@@ -241,3 +255,43 @@ class FireworksFinetune(BaseFinetuneAdapter):
             "batchSize": parameters.get("batch_size"),
         }
         return {k: v for k, v in payload.items() if v is not None}
+
+    async def _deploy(self) -> bool:
+        # Now we "deploy" the model using PEFT serverless.
+        # A bit complicated: most fireworks deploys are server based.
+        # However, a Lora can be serverless (PEFT).
+        # By calling the deploy endpoint WITHOUT first creating a deployment ID, it will only deploy if it can be done serverless.
+        # https://docs.fireworks.ai/models/deploying#deploying-to-serverless
+        # This endpoint will return 400 if already deployed with code 9, so we consider that a success.
+
+        api_key = Config.shared().fireworks_api_key
+        account_id = Config.shared().fireworks_account_id
+        if not api_key or not account_id:
+            raise ValueError("Fireworks API key or account ID not set")
+
+        model_id = self.datamodel.properties.get("model_id")
+        if not model_id or not isinstance(model_id, str):
+            raise ValueError("Model ID is required to deploy")
+
+        url = f"https://api.fireworks.ai/v1/accounts/{account_id}/deployedModels"
+        payload = {
+            "displayName": f"Kiln AI fine-tuned model [ID:{self.datamodel.id}][name:{self.datamodel.name}]",
+            "model": model_id,
+        }
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        }
+        async with httpx.AsyncClient() as client:
+            response = await client.post(url, json=payload, headers=headers)
+
+        # Fresh deploy worked
+        if response.status_code == 200:
+            return True
+
+        # Already deployed, thta's okay!
+        code = response.json().get("code")
+        if code == 9:
+            return True
+
+        return False

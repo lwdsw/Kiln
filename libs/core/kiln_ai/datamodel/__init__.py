@@ -194,6 +194,10 @@ class Finetune(KilnParentedModel):
         default=FineTuneStatusType.unknown,
         description="The latest known status of this fine-tune. Not updated in real time.",
     )
+    properties: Dict[str, str | int | float] = Field(
+        default={},
+        description="Properties of the fine-tune. Different providers may use different properties.",
+    )
 
     def parent_task(self) -> Task | None:
         if not isinstance(self.parent, Task):
