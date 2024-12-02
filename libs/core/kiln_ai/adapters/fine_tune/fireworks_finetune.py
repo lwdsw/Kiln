@@ -117,7 +117,7 @@ class FireworksFinetune(BaseFinetuneAdapter):
             "modelId": model_id,
             "dataset": f"accounts/{account_id}/datasets/{train_file_id}",
             "displayName": f"Kiln AI fine-tuning [ID:{self.datamodel.id}][name:{self.datamodel.name}]",
-            "baseModel": {self.datamodel.base_model_id},
+            "baseModel": self.datamodel.base_model_id,
             "conversation": {},
         }
         hyperparameters = self.create_payload_parameters(self.datamodel.parameters)
