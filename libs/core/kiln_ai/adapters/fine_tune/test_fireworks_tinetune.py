@@ -32,9 +32,8 @@ def fireworks_finetune(tmp_path):
             train_split_name="train",
             dataset_split_id="dataset-123",
             system_message="Test system message",
-            fine_tune_model_id="ft-123",
             path=tmp_file,
-            properties={"model_id": "model-123"},
+            properties={"undeployed_model_id": "ftm-123"},
         ),
     )
     return finetune
@@ -368,6 +367,7 @@ async def test_deploy_success(fireworks_finetune, mock_api_key):
     # Mock response for successful deployment
     success_response = MagicMock(spec=httpx.Response)
     success_response.status_code = 200
+    assert fireworks_finetune.datamodel.fine_tune_model_id is None
 
     with patch("httpx.AsyncClient") as mock_client_class:
         mock_client = AsyncMock()
@@ -376,6 +376,7 @@ async def test_deploy_success(fireworks_finetune, mock_api_key):
 
         result = await fireworks_finetune._deploy()
         assert result is True
+        assert fireworks_finetune.datamodel.fine_tune_model_id == "ftm-123"
 
 
 async def test_deploy_already_deployed(fireworks_finetune, mock_api_key):
@@ -423,7 +424,7 @@ async def test_deploy_missing_credentials(fireworks_finetune):
 
 async def test_deploy_missing_model_id(fireworks_finetune, mock_api_key):
     # Test missing model ID
-    fireworks_finetune.datamodel.properties["model_id"] = None
+    fireworks_finetune.datamodel.properties["undeployed_model_id"] = None
 
     with pytest.raises(ValueError, match="Model ID is required to deploy"):
         await fireworks_finetune._deploy()

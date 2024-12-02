@@ -117,7 +117,7 @@ class FireworksFinetune(BaseFinetuneAdapter):
             "modelId": model_id,
             "dataset": f"accounts/{account_id}/datasets/{train_file_id}",
             "displayName": f"Kiln AI fine-tuning [ID:{self.datamodel.id}][name:{self.datamodel.name}]",
-            "baseModel": f"accounts/fireworks/models/{self.datamodel.base_model_id}",
+            "baseModel": {self.datamodel.base_model_id},
             "conversation": {},
         }
         hyperparameters = self.create_payload_parameters(self.datamodel.parameters)
@@ -140,9 +140,10 @@ class FireworksFinetune(BaseFinetuneAdapter):
 
         # name is actually the ID of the fine-tune job,
         # model ID is the model that results from the fine-tune job
-        fine_tune_id = data["name"]
-        self.datamodel.provider_id = fine_tune_id
-        self.datamodel.properties["model_id"] = (
+        job_id = data["name"]
+        self.datamodel.provider_id = job_id
+        # Keep track of the expected model ID before it's deployed as a property. We move it to fine_tune_model_id after deployment.
+        self.datamodel.properties["undeployed_model_id"] = (
             f"accounts/{account_id}/models/{model_id}"
         )
         if self.datamodel.path:
@@ -269,7 +270,7 @@ class FireworksFinetune(BaseFinetuneAdapter):
         if not api_key or not account_id:
             raise ValueError("Fireworks API key or account ID not set")
 
-        model_id = self.datamodel.properties.get("model_id")
+        model_id = self.datamodel.properties.get("undeployed_model_id")
         if not model_id or not isinstance(model_id, str):
             raise ValueError("Model ID is required to deploy")
 
@@ -285,13 +286,13 @@ class FireworksFinetune(BaseFinetuneAdapter):
         async with httpx.AsyncClient() as client:
             response = await client.post(url, json=payload, headers=headers)
 
-        # Fresh deploy worked
-        if response.status_code == 200:
-            return True
-
-        # Already deployed, thta's okay!
-        code = response.json().get("code")
-        if code == 9:
+        # Fresh deploy worked (200) or already deployed (code=9)
+        if response.status_code == 200 or response.json().get("code") == 9:
+            # Update the datamodel if the model ID has changed, which makes it available to use in the UI
+            if self.datamodel.fine_tune_model_id != model_id:
+                self.datamodel.fine_tune_model_id = model_id
+                if self.datamodel.path:
+                    self.datamodel.save_to_file()
             return True
 
         return False

@@ -270,7 +270,7 @@ built_in_models: List[KilnModel] = [
                 name=ModelProviderName.fireworks_ai,
                 supports_structured_output=False,
                 supports_data_gen=False,
-                provider_finetune_id="llama-v3p1-8b-instruct",
+                provider_finetune_id="accounts/fireworks/models/llama-v3p1-8b-instruct",
                 provider_options={
                     "model": "accounts/fireworks/models/llama-v3p1-8b-instruct"
                 },
@@ -307,7 +307,7 @@ built_in_models: List[KilnModel] = [
             ),
             KilnModelProvider(
                 name=ModelProviderName.fireworks_ai,
-                provider_finetune_id="llama-v3p1-70b-instruct",
+                provider_finetune_id="accounts/fireworks/models/llama-v3p1-70b-instruct",
                 provider_options={
                     "model": "accounts/fireworks/models/llama-v3p1-70b-instruct"
                 },
@@ -400,7 +400,7 @@ built_in_models: List[KilnModel] = [
             ),
             KilnModelProvider(
                 name=ModelProviderName.fireworks_ai,
-                provider_finetune_id="llama-v3p2-1b-instruct",
+                provider_finetune_id="accounts/fireworks/models/llama-v3p2-1b-instruct",
                 supports_structured_output=False,
                 supports_data_gen=False,
                 provider_options={
@@ -429,7 +429,7 @@ built_in_models: List[KilnModel] = [
             ),
             KilnModelProvider(
                 name=ModelProviderName.fireworks_ai,
-                provider_finetune_id="llama-v3p2-3b-instruct",
+                provider_finetune_id="accounts/fireworks/models/llama-v3p2-3b-instruct",
                 supports_structured_output=False,
                 supports_data_gen=False,
                 provider_options={
