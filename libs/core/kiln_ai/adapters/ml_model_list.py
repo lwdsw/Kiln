@@ -63,6 +63,7 @@ class ModelName(str, Enum):
     llama_3_1_8b = "llama_3_1_8b"
     llama_3_1_70b = "llama_3_1_70b"
     llama_3_1_405b = "llama_3_1_405b"
+    llama_3_2_1b = "llama_3_2_1b"
     llama_3_2_3b = "llama_3_2_3b"
     llama_3_2_11b = "llama_3_2_11b"
     llama_3_2_90b = "llama_3_2_90b"
@@ -269,6 +270,7 @@ built_in_models: List[KilnModel] = [
                 name=ModelProviderName.fireworks_ai,
                 supports_structured_output=False,
                 supports_data_gen=False,
+                provider_finetune_id="llama-v3p1-8b-instruct",
                 provider_options={
                     "model": "accounts/fireworks/models/llama-v3p1-8b-instruct"
                 },
@@ -305,6 +307,7 @@ built_in_models: List[KilnModel] = [
             ),
             KilnModelProvider(
                 name=ModelProviderName.fireworks_ai,
+                provider_finetune_id="llama-v3p1-70b-instruct",
                 provider_options={
                     "model": "accounts/fireworks/models/llama-v3p1-70b-instruct"
                 },
@@ -335,6 +338,7 @@ built_in_models: List[KilnModel] = [
             ),
             KilnModelProvider(
                 name=ModelProviderName.fireworks_ai,
+                # No finetune support. https://docs.fireworks.ai/fine-tuning/fine-tuning-models
                 provider_options={
                     "model": "accounts/fireworks/models/llama-v3p1-405b-instruct"
                 },
@@ -376,6 +380,35 @@ built_in_models: List[KilnModel] = [
             ),
         ],
     ),
+    # Llama 3.2 1B
+    KilnModel(
+        family=ModelFamily.llama,
+        name=ModelName.llama_3_2_1b,
+        friendly_name="Llama 3.2 1B",
+        providers=[
+            KilnModelProvider(
+                name=ModelProviderName.openrouter,
+                supports_structured_output=False,
+                supports_data_gen=False,
+                provider_options={"model": "meta-llama/llama-3.2-1b-instruct"},
+            ),
+            KilnModelProvider(
+                name=ModelProviderName.ollama,
+                supports_structured_output=False,
+                supports_data_gen=False,
+                provider_options={"model": "llama3.2:1b"},
+            ),
+            KilnModelProvider(
+                name=ModelProviderName.fireworks_ai,
+                provider_finetune_id="llama-v3p2-1b-instruct",
+                supports_structured_output=False,
+                supports_data_gen=False,
+                provider_options={
+                    "model": "accounts/fireworks/models/llama-v3p2-1b-instruct"
+                },
+            ),
+        ],
+    ),
     # Llama 3.2 3B
     KilnModel(
         family=ModelFamily.llama,
@@ -396,6 +429,7 @@ built_in_models: List[KilnModel] = [
             ),
             KilnModelProvider(
                 name=ModelProviderName.fireworks_ai,
+                provider_finetune_id="llama-v3p2-3b-instruct",
                 supports_structured_output=False,
                 supports_data_gen=False,
                 provider_options={
@@ -424,6 +458,7 @@ built_in_models: List[KilnModel] = [
             ),
             KilnModelProvider(
                 name=ModelProviderName.fireworks_ai,
+                # No finetune support. https://docs.fireworks.ai/fine-tuning/fine-tuning-models
                 supports_structured_output=False,
                 supports_data_gen=False,
                 provider_options={
@@ -452,6 +487,7 @@ built_in_models: List[KilnModel] = [
             ),
             KilnModelProvider(
                 name=ModelProviderName.fireworks_ai,
+                # No finetune support. https://docs.fireworks.ai/fine-tuning/fine-tuning-models
                 supports_structured_output=False,
                 supports_data_gen=False,
                 provider_options={
@@ -481,6 +517,9 @@ built_in_models: List[KilnModel] = [
             ),
             KilnModelProvider(
                 name=ModelProviderName.fireworks_ai,
+                supports_structured_output=False,
+                supports_data_gen=False,
+                # No finetune support. https://docs.fireworks.ai/fine-tuning/fine-tuning-models
                 provider_options={
                     "model": "accounts/fireworks/models/phi-3-vision-128k-instruct"
                 },

@@ -78,7 +78,10 @@
       },
       {
         name: provider_name + " Job ID",
-        value: finetune_data.provider_id,
+        value: format_provider_id(
+          finetune_data.provider_id,
+          finetune_data.provider,
+        ),
         link: provider_link(),
       },
       { name: "Created At", value: formatDate(finetune_data.created_at) },
@@ -90,8 +93,24 @@
   function provider_link(): string | undefined {
     if (finetune?.finetune.provider === "openai") {
       return `https://platform.openai.com/finetune/${finetune.finetune.provider_id}`
+    } else if (finetune?.finetune.provider === "fireworks_ai") {
+      const url_id = finetune.finetune.provider_id?.split("/").pop()
+      return `https://fireworks.ai/dashboard/fine-tuning/${url_id}`
     }
     return undefined
+  }
+
+  function format_provider_id(
+    provider_id: string | null | undefined,
+    provider: string,
+  ): string {
+    if (!provider_id) {
+      return "Unknown"
+    }
+    if (provider === "fireworks_ai") {
+      return provider_id.split("/").pop() || provider_id
+    }
+    return provider_id
   }
 </script>
 
