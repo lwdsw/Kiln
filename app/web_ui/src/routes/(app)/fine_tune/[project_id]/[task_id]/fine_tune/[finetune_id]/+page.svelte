@@ -74,7 +74,10 @@
       { name: "Base Model", value: finetune_data.base_model_id },
       {
         name: provider_name + " Model ID",
-        value: finetune_data.fine_tune_model_id || "Not completed",
+        value: format_model_id(
+          finetune_data.fine_tune_model_id,
+          finetune_data.provider,
+        ),
       },
       {
         name: provider_name + " Job ID",
@@ -82,7 +85,7 @@
           finetune_data.provider_id,
           finetune_data.provider,
         ),
-        link: provider_link(),
+        link: job_link(),
       },
       { name: "Created At", value: formatDate(finetune_data.created_at) },
       { name: "Created By", value: finetune_data.created_by },
@@ -90,7 +93,7 @@
     properties = properties.filter((property) => !!property.value)
   }
 
-  function provider_link(): string | undefined {
+  function job_link(): string | undefined {
     if (finetune?.finetune.provider === "openai") {
       return `https://platform.openai.com/finetune/${finetune.finetune.provider_id}`
     } else if (finetune?.finetune.provider === "fireworks_ai") {
@@ -111,6 +114,19 @@
       return provider_id.split("/").pop() || provider_id
     }
     return provider_id
+  }
+
+  function format_model_id(
+    model_id: string | null | undefined,
+    provider: string,
+  ): string {
+    if (!model_id) {
+      return "Not completed"
+    }
+    if (provider === "fireworks_ai") {
+      return model_id.split("/").pop() || model_id
+    }
+    return model_id
   }
 </script>
 
@@ -194,10 +210,10 @@
               </div>
             {/if}
 
-            {#if provider_link()}
-              <div class="flex items-center">Provider Details</div>
+            {#if job_link()}
+              <div class="flex items-center">Job Dashboard</div>
               <div class="flex items-center text-gray-500">
-                <a href={provider_link()} target="_blank" class="btn btn-sm">
+                <a href={job_link()} target="_blank" class="btn btn-sm">
                   {provider_name_from_id(finetune.finetune.provider)} Dashboard
                 </a>
               </div>
