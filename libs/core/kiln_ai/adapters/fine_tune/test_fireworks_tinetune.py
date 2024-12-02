@@ -4,10 +4,17 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 import pytest
 
-from kiln_ai.adapters.fine_tune.base_finetune import FineTuneStatusType
+from kiln_ai.adapters.fine_tune.base_finetune import (
+    FineTuneParameter,
+    FineTuneStatusType,
+)
 from kiln_ai.adapters.fine_tune.dataset_formatter import DatasetFormat, DatasetFormatter
 from kiln_ai.adapters.fine_tune.fireworks_finetune import FireworksFinetune
-from kiln_ai.datamodel import DatasetSplit, Task, Train80Test20SplitDefinition
+from kiln_ai.datamodel import (
+    DatasetSplit,
+    Task,
+    Train80Test20SplitDefinition,
+)
 from kiln_ai.datamodel import Finetune as FinetuneModel
 from kiln_ai.utils.config import Config
 
@@ -327,3 +334,26 @@ async def test_start_api_error(
 
         with pytest.raises(ValueError, match="Failed to create fine-tuning job"):
             await fireworks_finetune._start(mock_dataset)
+
+
+def test_available_parameters(fireworks_finetune):
+    parameters = fireworks_finetune.available_parameters()
+    assert len(parameters) == 4
+    assert all(isinstance(p, FineTuneParameter) for p in parameters)
+
+    payload_parameters = fireworks_finetune.create_payload_parameters(
+        {"lora_rank": 16, "epochs": 3, "learning_rate": 0.001, "batch_size": 32}
+    )
+    assert payload_parameters == {
+        "loraRank": 16,
+        "epochs": 3,
+        "learningRate": 0.001,
+        "batchSize": 32,
+    }
+    payload_parameters = fireworks_finetune.create_payload_parameters({})
+    assert payload_parameters == {}
+
+    payload_parameters = fireworks_finetune.create_payload_parameters(
+        {"lora_rank": 16, "epochs": 3}
+    )
+    assert payload_parameters == {"loraRank": 16, "epochs": 3}

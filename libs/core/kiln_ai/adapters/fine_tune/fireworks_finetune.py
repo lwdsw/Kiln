@@ -4,6 +4,7 @@ import httpx
 
 from kiln_ai.adapters.fine_tune.base_finetune import (
     BaseFinetuneAdapter,
+    FineTuneParameter,
     FineTuneStatus,
     FineTuneStatusType,
 )
@@ -109,6 +110,8 @@ class FireworksFinetune(BaseFinetuneAdapter):
             "baseModel": f"accounts/fireworks/models/{self.datamodel.base_model_id}",
             "conversation": {},
         }
+        hyperparameters = self.create_payload_parameters(self.datamodel.parameters)
+        payload.update(hyperparameters)
         headers = {
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
@@ -198,3 +201,43 @@ class FireworksFinetune(BaseFinetuneAdapter):
             raise ValueError(f"Dataset is not ready [{data['state']}]")
 
         return dataset_id
+
+    @classmethod
+    def available_parameters(cls) -> list[FineTuneParameter]:
+        return [
+            FineTuneParameter(
+                name="epochs",
+                description="The number of epochs to fine-tune for. If not provided, defaults to a recommended value.",
+                type="int",
+                optional=True,
+            ),
+            FineTuneParameter(
+                name="learning_rate",
+                description="The learning rate to use for fine-tuning. If not provided, defaults to a recommended value.",
+                type="float",
+                optional=True,
+            ),
+            FineTuneParameter(
+                name="batch_size",
+                description="The batch size of dataset used in training can be configured with a positive integer less than 1024 and in power of 2. If not specified, a reasonable default value will be chosen.",
+                type="int",
+                optional=True,
+            ),
+            FineTuneParameter(
+                name="lora_rank",
+                description="LoRA rank refers to the dimensionality of trainable matrices in Low-Rank Adaptation fine-tuning, balancing model adaptability and computational efficiency in fine-tuning large language models. The LoRA rank used in training can be configured with a positive integer with a max value of 32. If not specified, a reasonable default value will be chosen.",
+                type="int",
+                optional=True,
+            ),
+        ]
+
+    def create_payload_parameters(
+        self, parameters: dict[str, str | int | float | bool]
+    ) -> dict:
+        payload = {
+            "loraRank": parameters.get("lora_rank"),
+            "epochs": parameters.get("epochs"),
+            "learningRate": parameters.get("learning_rate"),
+            "batchSize": parameters.get("batch_size"),
+        }
+        return {k: v for k, v in payload.items() if v is not None}
