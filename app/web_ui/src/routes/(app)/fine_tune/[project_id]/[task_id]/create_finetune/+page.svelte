@@ -344,7 +344,7 @@
             body: {
               dataset_id: dataset_id,
               provider: model_provider.split("/")[0],
-              base_model_id: model_provider.split("/")[1],
+              base_model_id: model_provider.split("/").slice(1).join("/"),
               train_split_name: selected_dataset_training_set_name || "",
               name: finetune_name ? finetune_name : undefined,
               description: finetune_description
@@ -594,36 +594,36 @@
             />
           {/if}
           {#if !is_download}
-            {#if hyperparameters_loading}
-              <div class="w-full min-h-[50vh] flex justify-center items-center">
-                <div class="loading loading-spinner loading-lg"></div>
-              </div>
-            {:else if hyperparameters_error || !hyperparameters}
-              <div class="text-error text-sm">
-                {hyperparameters_error?.getMessage() ||
-                  "An unknown error occurred"}
-              </div>
-            {:else if hyperparameters.length > 0}
-              <div class="collapse collapse-arrow bg-base-200">
-                <input type="checkbox" class="peer" />
-                <div class="collapse-title font-medium">Advanced Options</div>
-                <div class="collapse-content flex flex-col gap-4">
-                  <FormElement
-                    label="Name"
-                    description="A name to identify this fine-tune. Leave blank and we'll generate one for you."
-                    optional={true}
-                    inputType="input"
-                    id="finetune_name"
-                    bind:value={finetune_name}
-                  />
-                  <FormElement
-                    label="Description"
-                    description="An optional description of this fine-tune."
-                    optional={true}
-                    inputType="textarea"
-                    id="finetune_description"
-                    bind:value={finetune_description}
-                  />
+            <div class="collapse collapse-arrow bg-base-200">
+              <input type="checkbox" class="peer" />
+              <div class="collapse-title font-medium">Advanced Options</div>
+              <div class="collapse-content flex flex-col gap-4">
+                <FormElement
+                  label="Name"
+                  description="A name to identify this fine-tune. Leave blank and we'll generate one for you."
+                  optional={true}
+                  inputType="input"
+                  id="finetune_name"
+                  bind:value={finetune_name}
+                />
+                <FormElement
+                  label="Description"
+                  description="An optional description of this fine-tune."
+                  optional={true}
+                  inputType="textarea"
+                  id="finetune_description"
+                  bind:value={finetune_description}
+                />
+                {#if hyperparameters_loading}
+                  <div class="w-full flex justify-center items-center">
+                    <div class="loading loading-spinner loading-lg"></div>
+                  </div>
+                {:else if hyperparameters_error || !hyperparameters}
+                  <div class="text-error text-sm">
+                    {hyperparameters_error?.getMessage() ||
+                      "An unknown error occurred"}
+                  </div>
+                {:else if hyperparameters.length > 0}
                   {#each hyperparameters as hyperparameter}
                     <FormElement
                       label={hyperparameter.name +
@@ -638,9 +638,9 @@
                       bind:value={hyperparameter_values[hyperparameter.name]}
                     />
                   {/each}
-                </div>
+                {/if}
               </div>
-            {/if}
+            </div>
           {/if}
         {/if}
       </FormContainer>
