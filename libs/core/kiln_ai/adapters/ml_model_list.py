@@ -821,7 +821,7 @@ async def kiln_model_provider_from(
         supports_data_gen=False,
         untested_model=True,
         provider_options=provider_options_for_custom_model(name, provider_name),
-    )  # type: ignore[arg-type]
+    )
 
 
 async def langchain_model_from(
@@ -951,18 +951,20 @@ def parse_ollama_tags(tags: Any) -> OllamaConnection | None:
         models = tags["models"]
         if isinstance(models, list):
             model_names = [model["model"] for model in models]
-            available_supported_models = [
-                model
-                for model in model_names
-                if model in supported_ollama_models
-                or model in [f"{m}:latest" for m in supported_ollama_models]
+            available_supported_models = []
+            untested_models = []
+            supported_models_latest_aliases = [
+                f"{m}:latest" for m in supported_ollama_models
             ]
-            untested_models = [
-                model
-                for model in model_names
-                if model not in supported_ollama_models
-                and model not in [f"{m}:latest" for m in supported_ollama_models]
-            ]
+            for model in model_names:
+                if (
+                    model in supported_ollama_models
+                    or model in supported_models_latest_aliases
+                ):
+                    available_supported_models.append(model)
+                else:
+                    untested_models.append(model)
+
             if available_supported_models:
                 return OllamaConnection(
                     message="Ollama connected",

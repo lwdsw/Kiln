@@ -389,8 +389,6 @@ async def available_ollama_models() -> AvailableModels | None:
                         supports_data_gen=ollama_provider.supports_data_gen,
                     )
                 )
-            else:
-                print(f"Failed to find model {ollama_model_tag}")
         for ollama_model in ollama_connection.untested_models:
             ollama_models.models.append(
                 ModelDetails(
