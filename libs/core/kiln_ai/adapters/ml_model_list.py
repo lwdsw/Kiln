@@ -12,7 +12,7 @@ from langchain_fireworks import ChatFireworks
 from langchain_groq import ChatGroq
 from langchain_ollama import ChatOllama
 from langchain_openai import ChatOpenAI
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from kiln_ai.datamodel.registry import project_from_id
 
@@ -91,6 +91,7 @@ class KilnModelProvider(BaseModel):
         name: The provider's identifier
         supports_structured_output: Whether the provider supports structured output formats
         supports_data_gen: Whether the provider supports data generation
+        untested_model: Whether the model is untested (typically user added). The supports_ fields are not applicable.
         provider_finetune_id: The finetune ID for the provider, if applicable
         provider_options: Additional provider-specific configuration options
         adapter_options: Additional options specific to the adapter. Top level key should be adapter ID.
@@ -99,6 +100,7 @@ class KilnModelProvider(BaseModel):
     name: ModelProviderName
     supports_structured_output: bool = True
     supports_data_gen: bool = True
+    untested_model: bool = False
     provider_finetune_id: str | None = None
     provider_options: Dict = {}
     adapter_options: Dict = {}
@@ -643,6 +645,40 @@ def provider_name_from_id(id: str) -> str:
     return "Unknown provider: " + id
 
 
+def provider_options_for_custom_model(
+    model_name: str, provider_name: str
+) -> Dict[str, str]:
+    """
+    Generated model provider options for a custom model. Each has their own format/options.
+    """
+    if provider_name not in ModelProviderName.__members__:
+        raise ValueError(f"Invalid provider name: {provider_name}")
+
+    enum_id = ModelProviderName(provider_name)
+    match enum_id:
+        case ModelProviderName.amazon_bedrock:
+            # us-west-2 is the only region consistently supported by Bedrock
+            return {"model": model_name, "region_name": "us-west-2"}
+        case (
+            ModelProviderName.openai
+            | ModelProviderName.ollama
+            | ModelProviderName.fireworks_ai
+            | ModelProviderName.openrouter
+            | ModelProviderName.groq
+        ):
+            return {"model": model_name}
+        case ModelProviderName.kiln_fine_tune:
+            raise ValueError(
+                "Fine tuned models should populate provider options via another path"
+            )
+        case _:
+            # triggers pyright warning if I miss a case
+            raise_exhaustive_error(enum_id)
+
+    # Won't reach this, type checking will catch missed values
+    return {"model": model_name}
+
+
 def raise_exhaustive_error(value: NoReturn) -> NoReturn:
     raise ValueError(f"Unhandled enum value: {value}")
 
@@ -680,8 +716,10 @@ provider_warnings: Dict[ModelProviderName, ModelProviderWarning] = {
 async def provider_enabled(provider_name: ModelProviderName) -> bool:
     if provider_name == ModelProviderName.ollama:
         try:
-            tags = await get_ollama_connection()
-            return tags is not None and len(tags.models) > 0
+            conn = await get_ollama_connection()
+            return conn is not None and (
+                len(conn.supported_models) > 0 or len(conn.untested_models) > 0
+            )
         except Exception:
             return False
 
@@ -721,7 +759,7 @@ def check_provider_warnings(provider_name: ModelProviderName):
 
 async def builtin_model_from(
     name: str, provider_name: str | None = None
-) -> KilnModelProvider:
+) -> KilnModelProvider | None:
     """
     Gets a model and provider from the built-in list of models.
 
@@ -736,7 +774,7 @@ async def builtin_model_from(
         ValueError: If the model or provider is not found, or if the provider is misconfigured
     """
     if name not in ModelName.__members__:
-        raise ValueError(f"Invalid name: {name}")
+        return None
 
     # Select the model from built_in_models using the name
     model = next(filter(lambda m: m.name == name, built_in_models))
@@ -748,14 +786,13 @@ async def builtin_model_from(
     if model.providers is None or len(model.providers) == 0:
         raise ValueError(f"Model {name} has no providers")
     elif provider_name is None:
-        # TODO: priority order
         provider = model.providers[0]
     else:
         provider = next(
             filter(lambda p: p.name == provider_name, model.providers), None
         )
     if provider is None:
-        raise ValueError(f"Provider {provider_name} not found for model {name}")
+        return None
 
     check_provider_warnings(provider.name)
     return provider
@@ -766,8 +803,25 @@ async def kiln_model_provider_from(
 ) -> KilnModelProvider:
     if provider_name == ModelProviderName.kiln_fine_tune:
         return finetune_provider_model(name)
-    else:
-        return await builtin_model_from(name, provider_name)
+
+    built_in_model = await builtin_model_from(name, provider_name)
+    if built_in_model:
+        return built_in_model
+
+    # Custom/untested model. Set untested, and build a ModelProvider at runtime
+    if provider_name is None:
+        raise ValueError("Provider name is required for custom models")
+    if provider_name not in ModelProviderName.__members__:
+        raise ValueError(f"Invalid provider name: {provider_name}")
+    provider = ModelProviderName(provider_name)
+    check_provider_warnings(provider)
+    return KilnModelProvider(
+        name=provider,
+        supports_structured_output=False,
+        supports_data_gen=False,
+        untested_model=True,
+        provider_options=provider_options_for_custom_model(name, provider_name),
+    )  # type: ignore[arg-type]
 
 
 async def langchain_model_from(
@@ -817,7 +871,7 @@ async def langchain_model_from_provider(
             raise ValueError("Failed to connect to Ollama. Ensure Ollama is running.")
 
         for model_name in potential_model_names:
-            if ollama_model_supported(ollama_connection, model_name):
+            if ollama_model_installed(ollama_connection, model_name):
                 return ChatOllama(model=model_name, base_url=ollama_base_url())
 
         raise ValueError(f"Model {model_name} not installed on Ollama")
@@ -867,7 +921,11 @@ async def ollama_online() -> bool:
 
 class OllamaConnection(BaseModel):
     message: str
-    models: List[str]
+    supported_models: List[str]
+    untested_models: List[str] = Field(default_factory=list)
+
+    def all_models(self) -> List[str]:
+        return self.supported_models + self.untested_models
 
 
 # Parse the Ollama /api/tags response
@@ -899,15 +957,23 @@ def parse_ollama_tags(tags: Any) -> OllamaConnection | None:
                 if model in supported_ollama_models
                 or model in [f"{m}:latest" for m in supported_ollama_models]
             ]
+            untested_models = [
+                model
+                for model in model_names
+                if model not in supported_ollama_models
+                and model not in [f"{m}:latest" for m in supported_ollama_models]
+            ]
             if available_supported_models:
                 return OllamaConnection(
                     message="Ollama connected",
-                    models=available_supported_models,
+                    supported_models=available_supported_models,
+                    untested_models=untested_models,
                 )
 
     return OllamaConnection(
         message="Ollama is running, but no supported models are installed. Install one or more supported model, like 'ollama pull phi3.5'.",
-        models=[],
+        supported_models=[],
+        untested_models=[],
     )
 
 
@@ -924,8 +990,9 @@ async def get_ollama_connection() -> OllamaConnection | None:
     return parse_ollama_tags(tags)
 
 
-def ollama_model_supported(conn: OllamaConnection, model_name: str) -> bool:
-    return model_name in conn.models or f"{model_name}:latest" in conn.models
+def ollama_model_installed(conn: OllamaConnection, model_name: str) -> bool:
+    all_models = conn.all_models()
+    return model_name in all_models or f"{model_name}:latest" in all_models
 
 
 finetune_cache: dict[str, KilnModelProvider] = {}

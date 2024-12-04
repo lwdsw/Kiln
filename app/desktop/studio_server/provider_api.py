@@ -52,6 +52,8 @@ class ModelDetails(BaseModel):
     name: str
     supports_structured_output: bool
     supports_data_gen: bool
+    # True if this is a untested model (typically user added). We don't know if these support structured output, data gen, etc. They should appear in their own section in the UI.
+    untested_model: bool = Field(default=False)
     task_filter: List[str] | None = Field(default=None)
 
 
@@ -129,7 +131,7 @@ def connect_provider_api(app: FastAPI):
 
         return models
 
-    @app.post("/api/provider/ollama/connect")
+    @app.get("/api/provider/ollama/connect")
     async def connect_ollama_api() -> OllamaConnection:
         return await connect_ollama()
 
@@ -376,7 +378,7 @@ async def available_ollama_models() -> AvailableModels | None:
             models=[],
         )
 
-        for ollama_model_tag in ollama_connection.models:
+        for ollama_model_tag in ollama_connection.supported_models:
             model, ollama_provider = model_from_ollama_tag(ollama_model_tag)
             if model and ollama_provider:
                 ollama_models.models.append(
@@ -387,6 +389,18 @@ async def available_ollama_models() -> AvailableModels | None:
                         supports_data_gen=ollama_provider.supports_data_gen,
                     )
                 )
+            else:
+                print(f"Failed to find model {ollama_model_tag}")
+        for ollama_model in ollama_connection.untested_models:
+            ollama_models.models.append(
+                ModelDetails(
+                    id=ollama_model,
+                    name=ollama_model,
+                    supports_structured_output=False,
+                    supports_data_gen=False,
+                    untested_model=True,
+                )
+            )
 
         if len(ollama_models.models) > 0:
             return ollama_models

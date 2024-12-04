@@ -269,10 +269,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
-        put?: never;
         /** Connect Ollama Api */
-        post: operations["connect_ollama_api_api_provider_ollama_connect_post"];
+        get: operations["connect_ollama_api_api_provider_ollama_connect_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -922,6 +922,14 @@ export interface components {
              * @default unknown
              */
             latest_status: components["schemas"]["FineTuneStatusType"];
+            /**
+             * Properties
+             * @description Properties of the fine-tune. Different providers may use different properties.
+             * @default {}
+             */
+            properties: {
+                [key: string]: string | number;
+            };
             /** Model Type */
             readonly model_type: string;
         };
@@ -972,6 +980,11 @@ export interface components {
             supports_structured_output: boolean;
             /** Supports Data Gen */
             supports_data_gen: boolean;
+            /**
+             * Untested Model
+             * @default false
+             */
+            untested_model: boolean;
             /** Task Filter */
             task_filter?: string[] | null;
         };
@@ -981,13 +994,15 @@ export interface components {
          *     Where models have instruct and raw versions, instruct is default and raw is specified.
          * @enum {string}
          */
-        ModelName: "llama_3_1_8b" | "llama_3_1_70b" | "llama_3_1_405b" | "llama_3_2_3b" | "llama_3_2_11b" | "llama_3_2_90b" | "gpt_4o_mini" | "gpt_4o" | "phi_3_5" | "mistral_large" | "mistral_nemo" | "gemma_2_2b" | "gemma_2_9b" | "gemma_2_27b" | "claude_3_5_haiku" | "claude_3_5_sonnet" | "gemini_1_5_flash" | "gemini_1_5_flash_8b" | "gemini_1_5_pro" | "nemotron_70b";
+        ModelName: "llama_3_1_8b" | "llama_3_1_70b" | "llama_3_1_405b" | "llama_3_2_1b" | "llama_3_2_3b" | "llama_3_2_11b" | "llama_3_2_90b" | "gpt_4o_mini" | "gpt_4o" | "phi_3_5" | "mistral_large" | "mistral_nemo" | "gemma_2_2b" | "gemma_2_9b" | "gemma_2_27b" | "claude_3_5_haiku" | "claude_3_5_sonnet" | "gemini_1_5_flash" | "gemini_1_5_flash_8b" | "gemini_1_5_pro" | "nemotron_70b";
         /** OllamaConnection */
         OllamaConnection: {
             /** Message */
             message: string;
-            /** Models */
-            models: string[];
+            /** Supported Models */
+            supported_models: string[];
+            /** Untested Models */
+            untested_models?: string[];
         };
         /**
          * Priority
@@ -2023,7 +2038,7 @@ export interface operations {
             };
         };
     };
-    connect_ollama_api_api_provider_ollama_connect_post: {
+    connect_ollama_api_api_provider_ollama_connect_get: {
         parameters: {
             query?: never;
             header?: never;
