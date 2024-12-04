@@ -355,7 +355,7 @@ async def test_get_available_models(app, client):
 
     # Mock connect_ollama
     mock_ollama_connection = OllamaConnection(
-        message="Connected", models=["ollama_model1", "ollama_model2:latest"]
+        message="Connected", supported_models=["ollama_model1", "ollama_model2:latest"]
     )
 
     with (
@@ -390,6 +390,7 @@ async def test_get_available_models(app, client):
                     "supports_structured_output": True,
                     "supports_data_gen": True,
                     "task_filter": None,
+                    "untested_model": False,
                 }
             ],
         },
@@ -403,6 +404,7 @@ async def test_get_available_models(app, client):
                     "supports_structured_output": True,
                     "supports_data_gen": True,
                     "task_filter": None,
+                    "untested_model": False,
                 }
             ],
         },
@@ -416,6 +418,7 @@ async def test_get_available_models(app, client):
                     "supports_structured_output": False,
                     "supports_data_gen": False,
                     "task_filter": None,
+                    "untested_model": False,
                 }
             ],
         },
@@ -477,6 +480,7 @@ async def test_get_available_models_ollama_exception(app, client):
                     "supports_structured_output": True,
                     "supports_data_gen": True,
                     "task_filter": None,
+                    "untested_model": False,
                 }
             ],
         },
@@ -610,7 +614,9 @@ async def test_available_ollama_models():
 
     # Test successful connection
     mock_ollama_connection = OllamaConnection(
-        message="Connected", models=["llama2", "mistral:latest"]
+        message="Connected",
+        supported_models=["llama2", "mistral:latest"],
+        untested_models=["scosman-net"],
     )
 
     with (
@@ -625,21 +631,31 @@ async def test_available_ollama_models():
         assert result is not None
         assert result.provider_name == "Ollama"
         assert result.provider_id == ModelProviderName.ollama
-        assert len(result.models) == 2
+        assert len(result.models) == 3
 
         # Check first model
         assert result.models[0].id == "model1"
         assert result.models[0].name == "Model 1"
         assert result.models[0].supports_structured_output is True
+        assert result.models[0].untested_model is False
 
         # Check second model
         assert result.models[1].id == "model2"
         assert result.models[1].name == "Model 2"
         assert result.models[1].supports_structured_output is False
+        assert result.models[1].untested_model is False
+
+        # Check third model
+        assert result.models[2].id == "scosman-net"
+        assert result.models[2].name == "scosman-net"
+        assert result.models[2].supports_structured_output is False
+        assert result.models[2].untested_model is True
 
     # Test when no models match
     mock_ollama_connection = OllamaConnection(
-        message="Connected", models=["unknown-model"]
+        message="Connected",
+        supported_models=["unknown-model"],
+        untested_models=[],
     )
 
     with (
@@ -661,7 +677,9 @@ async def test_available_ollama_models():
         assert result is None
 
     # Test with empty models list
-    mock_ollama_connection = OllamaConnection(message="Connected", models=[])
+    mock_ollama_connection = OllamaConnection(
+        message="Connected", supported_models=[], untested_models=[]
+    )
 
     with (
         patch("app.desktop.studio_server.provider_api.built_in_models", test_models),
