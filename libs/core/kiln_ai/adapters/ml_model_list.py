@@ -963,7 +963,7 @@ def parse_ollama_tags(tags: Any) -> OllamaConnection | None:
                 else:
                     untested_models.append(model)
 
-            if available_supported_models:
+            if available_supported_models or untested_models:
                 return OllamaConnection(
                     message="Ollama connected",
                     supported_models=available_supported_models,

@@ -121,6 +121,14 @@ def test_parse_ollama_tags_no_models():
     assert "scosman_net:latest" in conn.untested_models
 
 
+def test_parse_ollama_tags_only_untested_models():
+    json_response = '{"models":[{"name":"scosman_net","model":"scosman_net:latest"}]}'
+    tags = json.loads(json_response)
+    conn = parse_ollama_tags(tags)
+    assert conn.supported_models == []
+    assert conn.untested_models == ["scosman_net:latest"]
+
+
 def test_ollama_model_installed():
     conn = OllamaConnection(
         supported_models=["phi3.5:latest", "gemma2:2b", "llama3.1:latest"],
