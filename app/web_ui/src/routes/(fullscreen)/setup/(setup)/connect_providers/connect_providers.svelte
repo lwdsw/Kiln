@@ -194,7 +194,7 @@
       (!data.untested_models || data.untested_models.length === 0)
     ) {
       status.ollama.error =
-        "Ollama running, but no models available. Install some using ollama cli (e.g. 'ollama pull llama3.2')."
+        "Ollama running, but no models available. Install some using ollama cli (e.g. 'ollama pull llama3.1')."
       return
     }
     status.ollama.error = null
@@ -204,7 +204,7 @@
         ? "The following supported models are available: " +
           data.supported_models.join(", ") +
           ". "
-        : "No supported models are installed -- we suggest installing some (e.g. 'ollama pull llama3.2'). "
+        : "No supported models are installed -- we suggest installing some (e.g. 'ollama pull llama3.1'). "
     const untested_models_str =
       data.untested_models && data.untested_models.length > 0
         ? "The following untested models are installed: " +
