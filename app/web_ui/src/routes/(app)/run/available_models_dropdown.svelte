@@ -31,6 +31,7 @@
     current_task_id: string | null,
   ): [string, [unknown, string][]][] {
     let options = []
+    let unsupported_models = []
     for (const provider of providers) {
       let model_list = []
       for (const model of provider.models) {
@@ -45,10 +46,13 @@
         }
 
         let id = provider.provider_id + "/" + model.id
+        let long_label = provider.provider_name + " / " + model.name
         if (requires_data_gen && !model.supports_data_gen) {
+          unsupported_models.push([id, long_label])
           continue
         }
         if (structured_output && !model.supports_structured_output) {
+          unsupported_models.push([id, long_label])
           continue
         }
         model_list.push([id, model.name])
@@ -56,6 +60,13 @@
       if (model_list.length > 0) {
         options.push([provider.provider_name, model_list])
       }
+    }
+
+    if (unsupported_models.length > 0) {
+      const not_recommended_label = requires_data_gen
+        ? "Not Recommended - Data Gen Not Supported"
+        : "Not Recommended - Structured Output Fails"
+      options.push([not_recommended_label, unsupported_models])
     }
 
     // @ts-expect-error this is the correct format, but TS isn't finding it
@@ -76,11 +87,6 @@
 <FormElement
   label="Model"
   bind:value={model}
-  info_description={requires_structured_output
-    ? "Some models are not available for tasks that require structured output"
-    : requires_data_gen
-      ? "Some models are not available for synthetic data generation"
-      : ""}
   id="model"
   inputType="select"
   bind:error_message
