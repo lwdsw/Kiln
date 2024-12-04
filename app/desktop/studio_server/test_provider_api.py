@@ -681,16 +681,19 @@ def test_all_fine_tuned_models(mock_all_projects):
     mock_fine_tune1.id = "ft1"
     mock_fine_tune1.name = "Fine Tune 1"
     mock_fine_tune1.fine_tune_model_id = "model1"
+    mock_fine_tune1.provider = ModelProviderName.openai
 
     mock_fine_tune2 = Mock()
     mock_fine_tune2.id = "ft2"
     mock_fine_tune2.name = "Fine Tune 2"
     mock_fine_tune2.fine_tune_model_id = "model2"
+    mock_fine_tune2.provider = ModelProviderName.openai
 
     mock_fine_tune3 = Mock()
     mock_fine_tune3.id = "ft3"
     mock_fine_tune3.name = "Incomplete Fine Tune"
     mock_fine_tune3.fine_tune_model_id = None  # Incomplete fine-tune
+    mock_fine_tune3.provider = ModelProviderName.openai
 
     mock_task1 = Mock()
     mock_task1.id = "task1"
@@ -720,14 +723,14 @@ def test_all_fine_tuned_models(mock_all_projects):
 
     # Verify first model details
     assert result.models[0].id == "proj1::task1::ft1"
-    assert result.models[0].name == "Fine Tune 1"
+    assert result.models[0].name == "Fine Tune 1 (OpenAI)"
     assert result.models[0].supports_structured_output is True
     assert result.models[0].supports_data_gen is True
     assert result.models[0].task_filter == ["task1"]
 
     # Verify second model details
     assert result.models[1].id == "proj2::task2::ft2"
-    assert result.models[1].name == "Fine Tune 2"
+    assert result.models[1].name == "Fine Tune 2 (OpenAI)"
     assert result.models[1].supports_structured_output is True
     assert result.models[1].supports_data_gen is True
     assert result.models[1].task_filter == ["task2"]

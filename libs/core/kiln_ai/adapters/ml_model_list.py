@@ -90,7 +90,10 @@ class KilnModelProvider(BaseModel):
     Attributes:
         name: The provider's identifier
         supports_structured_output: Whether the provider supports structured output formats
+        supports_data_gen: Whether the provider supports data generation
+        provider_finetune_id: The finetune ID for the provider, if applicable
         provider_options: Additional provider-specific configuration options
+        adapter_options: Additional options specific to the adapter. Top level key should be adapter ID.
     """
 
     name: ModelProviderName
@@ -98,6 +101,7 @@ class KilnModelProvider(BaseModel):
     supports_data_gen: bool = True
     provider_finetune_id: str | None = None
     provider_options: Dict = {}
+    adapter_options: Dict = {}
 
 
 class KilnModel(BaseModel):
@@ -757,13 +761,19 @@ async def builtin_model_from(
     return provider
 
 
+async def kiln_model_provider_from(
+    name: str, provider_name: str | None = None
+) -> KilnModelProvider:
+    if provider_name == ModelProviderName.kiln_fine_tune:
+        return finetune_provider_model(name)
+    else:
+        return await builtin_model_from(name, provider_name)
+
+
 async def langchain_model_from(
     name: str, provider_name: str | None = None
 ) -> BaseChatModel:
-    if provider_name == ModelProviderName.kiln_fine_tune:
-        provider = finetune_provider_model(name)
-    else:
-        provider = await builtin_model_from(name, provider_name)
+    provider = await kiln_model_provider_from(name, provider_name)
     return await langchain_model_from_provider(provider, name)
 
 
@@ -952,6 +962,17 @@ def finetune_provider_model(
             "model": fine_tune.fine_tune_model_id,
         },
     )
+
+    # TODO: Don't love this abstraction/logic.
+    if fine_tune.provider == ModelProviderName.fireworks_ai:
+        # Fireworks finetunes are trained with json, not tool calling (which is LC default format)
+        model_provider.adapter_options = {
+            "langchain": {
+                "with_structured_output_options": {
+                    "method": "json_mode",
+                }
+            }
+        }
 
     finetune_cache[model_id] = model_provider
     return model_provider
