@@ -54,12 +54,6 @@ class LangchainAdapter(BaseAdapter):
                 "model_name and provider must be provided if custom_model is not provided"
             )
 
-    def adapter_specific_instructions(self) -> str | None:
-        # TODO: This is probably a bad ideal. Not all with structured output models are tool calling models.
-        if self.has_structured_output():
-            return "Always respond with a tool call. Never respond with a human readable message."
-        return None
-
     async def model(self) -> LangChainModelType:
         # cached model
         if self._model:
