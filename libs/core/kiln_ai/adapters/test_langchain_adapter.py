@@ -3,7 +3,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langchain_groq import ChatGroq
 
-from kiln_ai.adapters.langchain_adapters import LangchainAdapter
+from kiln_ai.adapters.langchain_adapters import (
+    LangchainAdapter,
+    get_structured_output_options,
+)
 from kiln_ai.adapters.prompt_builders import SimpleChainOfThoughtPromptBuilder
 from kiln_ai.adapters.test_prompt_adaptors import build_test_task
 
@@ -118,3 +121,32 @@ async def test_langchain_adapter_with_cot(tmp_path):
         == "Chain of thought reasoning..."
     )
     assert response.output == {"count": 1}
+
+
+async def test_get_structured_output_options():
+    # Mock the provider response
+    mock_provider = MagicMock()
+    mock_provider.adapter_options = {
+        "langchain": {
+            "with_structured_output_options": {
+                "force_json_response": True,
+                "max_retries": 3,
+            }
+        }
+    }
+
+    # Test with provider that has options
+    with patch(
+        "kiln_ai.adapters.langchain_adapters.kiln_model_provider_from",
+        AsyncMock(return_value=mock_provider),
+    ):
+        options = await get_structured_output_options("model_name", "provider")
+        assert options == {"force_json_response": True, "max_retries": 3}
+
+    # Test with provider that has no options
+    with patch(
+        "kiln_ai.adapters.langchain_adapters.kiln_model_provider_from",
+        AsyncMock(return_value=None),
+    ):
+        options = await get_structured_output_options("model_name", "provider")
+        assert options == {}

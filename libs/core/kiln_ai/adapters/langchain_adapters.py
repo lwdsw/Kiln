@@ -1,5 +1,4 @@
-import time
-from typing import Dict
+from typing import Any, Dict
 
 from langchain_core.language_models import LanguageModelInput
 from langchain_core.language_models.chat_models import BaseChatModel
@@ -11,7 +10,10 @@ from pydantic import BaseModel
 import kiln_ai.datamodel as datamodel
 
 from .base_adapter import AdapterInfo, BaseAdapter, BasePromptBuilder, RunOutput
-from .ml_model_list import langchain_model_from
+from .ml_model_list import (
+    kiln_model_provider_from,
+    langchain_model_from,
+)
 
 LangChainModelType = BaseChatModel | Runnable[LanguageModelInput, Dict | BaseModel]
 
@@ -53,6 +55,7 @@ class LangchainAdapter(BaseAdapter):
             )
 
     def adapter_specific_instructions(self) -> str | None:
+        # TODO: This is probably a bad ideal. Not all with structured output models are tool calling models.
         if self.has_structured_output():
             return "Always respond with a tool call. Never respond with a human readable message."
         return None
@@ -79,8 +82,13 @@ class LangchainAdapter(BaseAdapter):
                 )
             output_schema["title"] = "task_response"
             output_schema["description"] = "A response from the task"
+            with_structured_output_options = await get_structured_output_options(
+                self.model_name, self.model_provider
+            )
             self._model = self._model.with_structured_output(
-                output_schema, include_raw=True
+                output_schema,
+                include_raw=True,
+                **with_structured_output_options,
             )
         return self._model
 
@@ -159,3 +167,14 @@ class LangchainAdapter(BaseAdapter):
         ):
             return response["arguments"]
         return response
+
+
+async def get_structured_output_options(
+    model_name: str, model_provider: str
+) -> Dict[str, Any]:
+    finetune_provider = await kiln_model_provider_from(model_name, model_provider)
+    if finetune_provider and finetune_provider.adapter_options.get("langchain"):
+        return finetune_provider.adapter_options["langchain"].get(
+            "with_structured_output_options", {}
+        )
+    return {}

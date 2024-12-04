@@ -160,7 +160,7 @@ class FireworksFinetune(BaseFinetuneAdapter):
     ) -> str:
         formatter = DatasetFormatter(dataset, self.datamodel.system_message)
         # OpenAI compatible: https://docs.fireworks.ai/fine-tuning/fine-tuning-models#conversation
-        # Note: Fireworks does not support tool calls (tested and failed on llama 3.1 70b)
+        # Note: Fireworks does not support tool calls (confirmed by Fireworks team) so we'll use json mode
         format = DatasetFormat.OPENAI_CHAT_JSONL
         path = formatter.dump_to_file(split_name, format)
 
