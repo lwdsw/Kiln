@@ -576,9 +576,8 @@
             {#if model_provider_id === "fireworks_ai" && task_id === $current_task?.id && !!$current_task?.output_json_schema}
               <div class="text-sm">
                 <span class="badge badge-warning mr-2">Technical Note</span> Fireworks
-                fine-tuning does not support tool calling, and this task has structured
-                JSON output which would ideally use tool calling. The model will
-                be trained with JSON output instead.
+                fine-tuning does not support tool calling. The model will be trained
+                with JSON output instead.
               </div>
             {/if}
           {/if}
