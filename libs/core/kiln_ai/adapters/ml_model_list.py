@@ -251,7 +251,6 @@ built_in_models: List[KilnModel] = [
             ),
             KilnModelProvider(
                 name=ModelProviderName.amazon_bedrock,
-                supports_structured_output=False,
                 supports_data_gen=False,
                 provider_options={
                     "model": "meta.llama3-1-8b-instruct-v1:0",
@@ -295,8 +294,7 @@ built_in_models: List[KilnModel] = [
             ),
             KilnModelProvider(
                 name=ModelProviderName.amazon_bedrock,
-                # not sure how AWS manages to break this, but it's not working
-                supports_structured_output=False,
+                # AWS 70b not working as well as the others.
                 supports_data_gen=False,
                 provider_options={
                     "model": "meta.llama3-1-70b-instruct-v1:0",
