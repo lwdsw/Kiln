@@ -236,6 +236,7 @@ built_in_models: List[KilnModel] = [
             ),
             KilnModelProvider(
                 name=ModelProviderName.amazon_bedrock,
+                supports_structured_output=False,
                 supports_data_gen=False,
                 provider_options={
                     "model": "meta.llama3-1-8b-instruct-v1:0",
@@ -280,6 +281,7 @@ built_in_models: List[KilnModel] = [
             KilnModelProvider(
                 name=ModelProviderName.amazon_bedrock,
                 # AWS 70b not working as well as the others.
+                supports_structured_output=False,
                 supports_data_gen=False,
                 provider_options={
                     "model": "meta.llama3-1-70b-instruct-v1:0",
@@ -435,9 +437,12 @@ built_in_models: List[KilnModel] = [
         providers=[
             KilnModelProvider(
                 name=ModelProviderName.openrouter,
-                supports_structured_output=False,
-                supports_data_gen=False,
                 provider_options={"model": "meta-llama/llama-3.2-11b-vision-instruct"},
+                adapter_options={
+                    "langchain": {
+                        "with_structured_output_options": {"method": "json_mode"}
+                    }
+                },
             ),
             KilnModelProvider(
                 name=ModelProviderName.ollama,
@@ -448,10 +453,13 @@ built_in_models: List[KilnModel] = [
             KilnModelProvider(
                 name=ModelProviderName.fireworks_ai,
                 # No finetune support. https://docs.fireworks.ai/fine-tuning/fine-tuning-models
-                supports_structured_output=False,
-                supports_data_gen=False,
                 provider_options={
                     "model": "accounts/fireworks/models/llama-v3p2-11b-vision-instruct"
+                },
+                adapter_options={
+                    "langchain": {
+                        "with_structured_output_options": {"method": "json_mode"}
+                    }
                 },
             ),
         ],
@@ -464,23 +472,27 @@ built_in_models: List[KilnModel] = [
         providers=[
             KilnModelProvider(
                 name=ModelProviderName.openrouter,
-                supports_structured_output=False,
-                supports_data_gen=False,
                 provider_options={"model": "meta-llama/llama-3.2-90b-vision-instruct"},
+                adapter_options={
+                    "langchain": {
+                        "with_structured_output_options": {"method": "json_mode"}
+                    }
+                },
             ),
             KilnModelProvider(
                 name=ModelProviderName.ollama,
-                supports_structured_output=False,
-                supports_data_gen=False,
                 provider_options={"model": "llama3.2-vision:90b"},
             ),
             KilnModelProvider(
                 name=ModelProviderName.fireworks_ai,
                 # No finetune support. https://docs.fireworks.ai/fine-tuning/fine-tuning-models
-                supports_structured_output=False,
-                supports_data_gen=False,
                 provider_options={
                     "model": "accounts/fireworks/models/llama-v3p2-90b-vision-instruct"
+                },
+                adapter_options={
+                    "langchain": {
+                        "with_structured_output_options": {"method": "json_mode"}
+                    }
                 },
             ),
         ],
