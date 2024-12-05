@@ -180,7 +180,7 @@ async def test_provider_enabled_ollama_success():
 @pytest.mark.asyncio
 async def test_provider_enabled_ollama_no_models():
     with patch(
-        "kiln_ai.adapters.ollama_tools.get_ollama_connection", new_callable=AsyncMock
+        "kiln_ai.adapters.provider_tools.get_ollama_connection", new_callable=AsyncMock
     ) as mock_get_ollama:
         # Mock Ollama connection but with no models
         mock_get_ollama.return_value = OllamaConnection(
@@ -196,7 +196,7 @@ async def test_provider_enabled_ollama_no_models():
 @pytest.mark.asyncio
 async def test_provider_enabled_ollama_connection_error():
     with patch(
-        "kiln_ai.adapters.ollama_tools.get_ollama_connection", new_callable=AsyncMock
+        "kiln_ai.adapters.provider_tools.get_ollama_connection", new_callable=AsyncMock
     ) as mock_get_ollama:
         # Mock Ollama connection failure
         mock_get_ollama.side_effect = Exception("Connection failed")
