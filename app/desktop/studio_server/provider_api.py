@@ -9,10 +9,14 @@ from kiln_ai.adapters.ml_model_list import (
     KilnModelProvider,
     ModelName,
     ModelProviderName,
-    OllamaConnection,
     built_in_models,
+)
+from kiln_ai.adapters.ollama_tools import (
+    OllamaConnection,
     ollama_base_url,
     parse_ollama_tags,
+)
+from kiln_ai.adapters.provider_tools import (
     provider_name_from_id,
     provider_warnings,
 )

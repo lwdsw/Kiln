@@ -11,7 +11,7 @@ from kiln_ai.adapters.data_gen.data_gen_task import (
     DataGenSampleTaskInput,
     list_json_schema_for_task,
 )
-from kiln_ai.adapters.ml_model_list import get_model_and_provider
+from kiln_ai.adapters.provider_tools import get_model_and_provider
 from kiln_ai.adapters.test_prompt_adaptors import get_all_models_and_providers
 from kiln_ai.datamodel import Project, Task
 

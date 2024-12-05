@@ -10,10 +10,7 @@ from pydantic import BaseModel
 import kiln_ai.datamodel as datamodel
 
 from .base_adapter import AdapterInfo, BaseAdapter, BasePromptBuilder, RunOutput
-from .ml_model_list import (
-    kiln_model_provider_from,
-    langchain_model_from,
-)
+from .provider_tools import kiln_model_provider_from, langchain_model_from
 
 LangChainModelType = BaseChatModel | Runnable[LanguageModelInput, Dict | BaseModel]
 

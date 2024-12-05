@@ -6,12 +6,16 @@ import pytest
 from kiln_ai.adapters.ml_model_list import (
     ModelName,
     ModelProviderName,
+)
+from kiln_ai.adapters.ollama_tools import (
     OllamaConnection,
+    ollama_model_installed,
+    parse_ollama_tags,
+)
+from kiln_ai.adapters.provider_tools import (
     check_provider_warnings,
     get_model_and_provider,
     kiln_model_provider_from,
-    ollama_model_installed,
-    parse_ollama_tags,
     provider_enabled,
     provider_name_from_id,
     provider_options_for_custom_model,
@@ -21,7 +25,7 @@ from kiln_ai.adapters.ml_model_list import (
 
 @pytest.fixture
 def mock_config():
-    with patch("kiln_ai.adapters.ml_model_list.get_config_value") as mock:
+    with patch("kiln_ai.adapters.provider_tools.get_config_value") as mock:
         yield mock
 
 
@@ -202,7 +206,7 @@ def test_get_model_and_provider_multiple_providers():
 @pytest.mark.asyncio
 async def test_provider_enabled_ollama_success():
     with patch(
-        "kiln_ai.adapters.ml_model_list.get_ollama_connection", new_callable=AsyncMock
+        "kiln_ai.adapters.provider_tools.get_ollama_connection", new_callable=AsyncMock
     ) as mock_get_ollama:
         # Mock successful Ollama connection with models
         mock_get_ollama.return_value = OllamaConnection(
@@ -216,7 +220,7 @@ async def test_provider_enabled_ollama_success():
 @pytest.mark.asyncio
 async def test_provider_enabled_ollama_no_models():
     with patch(
-        "kiln_ai.adapters.ml_model_list.get_ollama_connection", new_callable=AsyncMock
+        "kiln_ai.adapters.ollama_tools.get_ollama_connection", new_callable=AsyncMock
     ) as mock_get_ollama:
         # Mock Ollama connection but with no models
         mock_get_ollama.return_value = OllamaConnection(
@@ -232,7 +236,7 @@ async def test_provider_enabled_ollama_no_models():
 @pytest.mark.asyncio
 async def test_provider_enabled_ollama_connection_error():
     with patch(
-        "kiln_ai.adapters.ml_model_list.get_ollama_connection", new_callable=AsyncMock
+        "kiln_ai.adapters.ollama_tools.get_ollama_connection", new_callable=AsyncMock
     ) as mock_get_ollama:
         # Mock Ollama connection failure
         mock_get_ollama.side_effect = Exception("Connection failed")
