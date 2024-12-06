@@ -1,5 +1,6 @@
 <script lang="ts">
   import AppPage from "../../../app_page.svelte"
+  import EmptyInto from "./empty_into.svelte"
   import { client } from "$lib/api_client"
   import type { TaskRun } from "$lib/types"
   import { KilnError, createKilnError } from "$lib/utils/error_handlers"
@@ -7,6 +8,7 @@
   import { model_info, load_model_info, model_name } from "$lib/stores"
   import { goto } from "$app/navigation"
   import { page } from "$app/stores"
+  import { formatDate } from "$lib/utils/formatters"
 
   let runs: TaskRun[] | null = null
   let error: KilnError | null = null
@@ -15,6 +17,7 @@
     | keyof TaskRun
     | "rating"
     | "inputPreview"
+    | "source"
     | "outputPreview"
     | "model"
     | "repairState"
@@ -27,6 +30,7 @@
   const columns = [
     { key: "rating", label: "Rating" },
     { key: "repairState", label: "Repair State" },
+    { key: "source", label: "Source" },
     { key: "model", label: "Model" },
     { key: "created_at", label: "Created At" },
     { key: "inputPreview", label: "Input Preview" },
@@ -91,26 +95,6 @@
     }
   }
 
-  function formatDate(dateString: string | undefined): string {
-    if (!dateString) {
-      return "Unknown"
-    }
-    const date = new Date(dateString)
-    const currentYear = new Date().getFullYear()
-    const options: Intl.DateTimeFormatOptions = {
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    }
-
-    if (date.getFullYear() !== currentYear) {
-      options.year = "numeric"
-    }
-
-    return date.toLocaleString("en-US", options)
-  }
-
   function previewText(
     text: string | undefined | null,
     maxLength: number = 100,
@@ -136,6 +120,10 @@
       case "rating":
         aValue = a.output.rating?.value ?? -1
         bValue = b.output.rating?.value ?? -1
+        break
+      case "source":
+        aValue = a.input_source?.type ?? ""
+        bValue = b.input_source?.type ?? ""
         break
       case "inputPreview":
         aValue = (a.input ?? "").toLowerCase()
@@ -189,13 +177,24 @@
 
 <AppPage
   title="Dataset"
-  subtitle="Explore your runs, sample data, and ratings for this task."
-  action_button="Add Data"
-  action_button_href="/run"
+  subtitle="Explore sample and ratings for this task."
+  action_buttons={[
+    {
+      label: "Add Data",
+      handler() {
+        // @ts-expect-error showModal is not a method on HTMLElement
+        document.getElementById("add_data_modal")?.showModal()
+      },
+    },
+  ]}
 >
   {#if loading}
     <div class="w-full min-h-[50vh] flex justify-center items-center">
       <div class="loading loading-spinner loading-lg"></div>
+    </div>
+  {:else if runs && runs.length == 0}
+    <div class="flex flex-col items-center justify-center min-h-[60vh]">
+      <EmptyInto {project_id} {task_id} />
     </div>
   {:else if runs}
     <div class="overflow-x-auto">
@@ -233,6 +232,10 @@
                   : "Unrated"}
               </td>
               <td>{formatRepairState(run)}</td>
+              <td
+                >{run.input_source?.type.charAt(0).toUpperCase() +
+                  run.input_source?.type.slice(1)}</td
+              >
               <td>
                 {model_name(
                   run.output?.source?.properties["model_name"],
@@ -262,3 +265,24 @@
     </div>
   {/if}
 </AppPage>
+
+<dialog id="add_data_modal" class="modal">
+  <div class="modal-box">
+    <form method="dialog">
+      <button
+        class="btn btn-sm text-xl btn-circle btn-ghost absolute right-2 top-2 focus:outline-none"
+        >✕</button
+      >
+    </form>
+    <h3 class="text-lg font-bold mb-8">Add Data</h3>
+    <div class="flex flex-row gap-6 justify-center flex-col">
+      <a href={`/generate/${project_id}/${task_id}`} class="btn btn-primary">
+        Generate Synthetic Data
+      </a>
+      <a href="/run" class="btn btn-primary"> Manually Add Data </a>
+    </div>
+  </div>
+  <form method="dialog" class="modal-backdrop">
+    <button>close</button>
+  </form>
+</dialog>
