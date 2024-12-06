@@ -111,7 +111,7 @@
   {#if selected_model_unsupported || selected_model_untested}
     <div class="text-sm text-gray-500 flex flex-row items-center mt-2">
       <svg
-        class="w-5 h-5 text-warning flex-none"
+        class="w-5 h-5 text-error flex-none"
         fill="currentColor"
         width="800px"
         height="800px"
@@ -132,8 +132,8 @@
           {#if requires_data_gen}
             for use with data generation. It's known to generate incorrect data.
           {:else if requires_structured_output}
-            for use with tasks requiring structured output (like this one). It
-            fails to consistently return structured data.
+            for use with tasks requiring structured output. It fails to
+            consistently return structured data.
           {/if}
         {/if}
       </div>

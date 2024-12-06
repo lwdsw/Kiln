@@ -36,6 +36,8 @@ class ModelFamily(str, Enum):
     gemma = "gemma"
     gemini = "gemini"
     claude = "claude"
+    mixtral = "mixtral"
+    qwen = "qwen"
 
 
 # Where models have instruct and raw versions, instruct is default and raw is specified
@@ -66,6 +68,9 @@ class ModelName(str, Enum):
     gemini_1_5_flash_8b = "gemini_1_5_flash_8b"
     gemini_1_5_pro = "gemini_1_5_pro"
     nemotron_70b = "nemotron_70b"
+    mixtral_8x7b = "mixtral_8x7b"
+    qwen_2p5_7b = "qwen_2p5_7b"
+    qwen_2p5_72b = "qwen_2p5_72b"
 
 
 class KilnModelProvider(BaseModel):
@@ -584,6 +589,102 @@ built_in_models: List[KilnModel] = [
                 name=ModelProviderName.openrouter,
                 supports_data_gen=False,
                 provider_options={"model": "google/gemma-2-27b-it"},
+            ),
+        ],
+    ),
+    # Mixtral 8x7B
+    KilnModel(
+        family=ModelFamily.mixtral,
+        name=ModelName.mixtral_8x7b,
+        friendly_name="Mixtral 8x7B",
+        providers=[
+            KilnModelProvider(
+                name=ModelProviderName.fireworks_ai,
+                provider_options={
+                    "model": "accounts/fireworks/models/mixtral-8x7b-instruct-hf",
+                },
+                provider_finetune_id="accounts/fireworks/models/mixtral-8x7b-instruct-hf",
+                adapter_options={
+                    "langchain": {
+                        "with_structured_output_options": {"method": "json_mode"}
+                    }
+                },
+            ),
+            KilnModelProvider(
+                name=ModelProviderName.openrouter,
+                provider_options={"model": "mistralai/mixtral-8x7b-instruct"},
+                adapter_options={
+                    "langchain": {
+                        "with_structured_output_options": {"method": "json_mode"}
+                    }
+                },
+            ),
+            KilnModelProvider(
+                name=ModelProviderName.ollama,
+                supports_structured_output=False,
+                supports_data_gen=False,
+                provider_options={"model": "mixtral"},
+            ),
+        ],
+    ),
+    # Qwen 2.5 7B
+    KilnModel(
+        family=ModelFamily.qwen,
+        name=ModelName.qwen_2p5_7b,
+        friendly_name="Qwen 2.5 7B",
+        providers=[
+            KilnModelProvider(
+                name=ModelProviderName.openrouter,
+                provider_options={"model": "qwen/qwen-2.5-7b-instruct"},
+                # Tool calls not supported. JSON doesn't error, but fails.
+                supports_structured_output=False,
+                supports_data_gen=False,
+                adapter_options={
+                    "langchain": {
+                        "with_structured_output_options": {"method": "json_mode"}
+                    }
+                },
+            ),
+            KilnModelProvider(
+                name=ModelProviderName.ollama,
+                provider_options={"model": "qwen2.5"},
+            ),
+        ],
+    ),
+    # Qwen 2.5 72B
+    KilnModel(
+        family=ModelFamily.qwen,
+        name=ModelName.qwen_2p5_72b,
+        friendly_name="Qwen 2.5 72B",
+        providers=[
+            KilnModelProvider(
+                name=ModelProviderName.openrouter,
+                provider_options={"model": "qwen/qwen-2.5-72b-instruct"},
+                # Not consistent with structure data. Works sometimes but not often
+                supports_structured_output=False,
+                supports_data_gen=False,
+                adapter_options={
+                    "langchain": {
+                        "with_structured_output_options": {"method": "json_mode"}
+                    }
+                },
+            ),
+            KilnModelProvider(
+                name=ModelProviderName.ollama,
+                provider_options={"model": "qwen2.5:72b"},
+            ),
+            KilnModelProvider(
+                name=ModelProviderName.fireworks_ai,
+                provider_options={
+                    "model": "accounts/fireworks/models/qwen2p5-72b-instruct"
+                },
+                # Fireworks will start tuning, but it never finishes.
+                # provider_finetune_id="accounts/fireworks/models/qwen2p5-72b-instruct",
+                adapter_options={
+                    "langchain": {
+                        "with_structured_output_options": {"method": "json_mode"}
+                    }
+                },
             ),
         ],
     ),
