@@ -35,7 +35,9 @@ The Kiln desktop app is a free download, available on [MacOS and Windows](https:
 
 ## App Demo
 
-<img width="440" alt="Kiln Preview" src="https://github.com/user-attachments/assets/a0a8b410-2b11-4a63-93cb-95493e049382">
+<a href="https://github.com/user-attachments/assets/a0a8b410-2b11-4a63-93cb-95493e049382">
+<img alt="Kiln Preview" src="https://github.com/user-attachments/assets/51db632b-be98-4fc6-a31c-0ba6fd54dcbb">
+</a>
 
 ## Install Python Library
 
