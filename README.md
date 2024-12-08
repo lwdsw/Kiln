@@ -29,9 +29,9 @@
 
 ## Download Kiln Desktop Apps
 
-The Kiln desktop app is a free download, available on [MacOS and Windows](https://github.com/Kiln-AI/Kiln/releases/latest). We have experimental [Linux support](https://github.com/Kiln-AI/Kiln/releases/latest).
+[<img width="220" alt="Download button" src="https://github.com/user-attachments/assets/a5d51b8b-b30a-4a16-a902-ab6ef1d58dc0">](https://github.com/Kiln-AI/Kiln/releases/latest)
 
-[<img width="220" alt="Download button" src="https://github.com/user-attachments/assets/f6045c20-4fc6-4446-a743-8f5890bcce38">](https://github.com/Kiln-AI/Kiln/releases/latest)
+The Kiln desktop app is completely free. Available on MacOS, Windows and Linux.
 
 ## App Demo
 
