@@ -4,7 +4,9 @@
 
 ## Overview
 
-We'll be walking through an example where we start from scratch, and build 9 fine-tuned models in just under 18 minutes of active work (not counting time waiting for training to complete).
+We'll be walking through an example where we start from scratch, and build 9 fine-tuned models in just under 18 minutes of active work, not counting time waiting for training and data-gen.
+
+No coding is necessary, and our UI will guide you through the process. Step 6 is optional, and requires some basic python skills. Our open-source python library is available for advanced users.
 
 You can follow this guide to create your own LLM fine-tunes. We'll cover:
 
