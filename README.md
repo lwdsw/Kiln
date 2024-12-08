@@ -31,7 +31,7 @@
 
 The Kiln desktop app is a free download, available on [MacOS and Windows](https://github.com/Kiln-AI/Kiln/releases/latest). We have experimental [Linux support](https://github.com/Kiln-AI/Kiln/releases/latest).
 
-[<img width="190" alt="Download button" src="https://github.com/user-attachments/assets/09874d7a-4873-4bb7-81c8-c3939206dc81">](https://github.com/Kiln-AI/Kiln/releases/latest)
+[<img width="220" alt="Download button" src="https://github.com/user-attachments/assets/f6045c20-4fc6-4446-a743-8f5890bcce38">](https://github.com/Kiln-AI/Kiln/releases/latest)
 
 ## App Demo
 
