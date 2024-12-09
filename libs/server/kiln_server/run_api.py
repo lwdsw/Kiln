@@ -6,6 +6,7 @@ from fastapi import FastAPI, HTTPException
 from kiln_ai.adapters.adapter_registry import adapter_for_task
 from kiln_ai.adapters.prompt_builders import prompt_builder_from_ui_name
 from kiln_ai.datamodel import Task, TaskOutputRating, TaskOutputRatingType, TaskRun
+from kiln_ai.datamodel.basemodel import ID_TYPE
 from pydantic import BaseModel, ConfigDict
 
 from kiln_server.project_api import project_from_id
@@ -44,7 +45,7 @@ class RunTaskRequest(BaseModel):
 
 
 class RunSummary(BaseModel):
-    id: str
+    id: ID_TYPE
     rating: TaskOutputRating | None = None
     created_at: datetime
     input_preview: str | None = None
@@ -55,7 +56,9 @@ class RunSummary(BaseModel):
 
     @classmethod
     def format_preview(cls, text: str | None, max_length: int = 100) -> str | None:
-        if len(text or "") > max_length:
+        if text is None:
+            return None
+        if len(text) > max_length:
             return text[:max_length] + "…"
         return text
 
@@ -66,11 +69,15 @@ class RunSummary(BaseModel):
         elif run.output and not run.output.rating:
             return "Rating needed"
         elif (
-            run.output.rating.value == 5.0
+            run.output.rating
+            and run.output.rating.value == 5.0
             and run.output.rating.type == TaskOutputRatingType.five_star
         ):
             return "No repair needed"
-        elif run.output.rating.type != TaskOutputRatingType.five_star:
+        elif (
+            run.output.rating
+            and run.output.rating.type != TaskOutputRatingType.five_star
+        ):
             return "Unknown"
         elif run.output.output:
             return "Repair needed"
@@ -84,6 +91,8 @@ class RunSummary(BaseModel):
             if run.output and run.output.source and run.output.source.properties
             else None
         )
+        if not isinstance(model_name, str):
+            model_name = None
         output = run.output.output if run.output and run.output.output else None
 
         return RunSummary(
