@@ -68,6 +68,8 @@ class RunSummary(BaseModel):
             return "Repaired"
         elif run.output and not run.output.rating:
             return "Rating needed"
+        elif not run.output or not run.output.output:
+            return "No output"
         elif (
             run.output.rating
             and run.output.rating.value == 5.0
@@ -81,8 +83,7 @@ class RunSummary(BaseModel):
             return "Unknown"
         elif run.output.output:
             return "Repair needed"
-        else:
-            return "No output"
+        return "Unknown"
 
     @classmethod
     def from_run(cls, run: TaskRun) -> "RunSummary":
