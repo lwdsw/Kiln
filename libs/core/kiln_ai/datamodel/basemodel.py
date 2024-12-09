@@ -27,6 +27,7 @@ from pydantic import (
 from pydantic_core import ErrorDetails
 from typing_extensions import Self
 
+from kiln_ai.datamodel.model_cache import ModelCache
 from kiln_ai.utils.config import Config
 from kiln_ai.utils.formatting import snake_case
 
@@ -128,6 +129,9 @@ class KilnBaseModel(BaseModel):
             ValueError: If the loaded model is not of the expected type or version
             FileNotFoundError: If the file does not exist
         """
+        cached_model = ModelCache.shared().get_model(path, cls)
+        if cached_model is not None:
+            return cached_model
         with open(path, "r") as file:
             file_data = file.read()
             # TODO P2 perf: parsing the JSON twice here.
@@ -150,6 +154,8 @@ class KilnBaseModel(BaseModel):
                 f"Class: {m.__class__.__name__}, id: {getattr(m, 'id', None)}, path: {path}, "
                 f"version: {m.v}, max version: {m.max_schema_version()}"
             )
+        ModelCache.shared().set_model(path, m)
+        print("loaded: ", path)
         return m
 
     def save_to_file(self) -> None:
@@ -170,6 +176,7 @@ class KilnBaseModel(BaseModel):
             file.write(json_data)
         # save the path so even if something like name changes, the file doesn't move
         self.path = path
+        ModelCache.shared().set_model(path, self)
 
     def delete(self) -> None:
         if self.path is None:
@@ -178,6 +185,7 @@ class KilnBaseModel(BaseModel):
         if dir_path is None:
             raise ValueError("Cannot delete model because path is not set")
         shutil.rmtree(dir_path)
+        ModelCache.shared().invalidate(self.path)
         self.path = None
 
     def build_path(self) -> Path | None:
