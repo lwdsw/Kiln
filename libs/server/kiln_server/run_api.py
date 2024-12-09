@@ -1,10 +1,11 @@
 from asyncio import Lock
+from datetime import datetime
 from typing import Any, Dict
 
 from fastapi import FastAPI, HTTPException
 from kiln_ai.adapters.adapter_registry import adapter_for_task
 from kiln_ai.adapters.prompt_builders import prompt_builder_from_ui_name
-from kiln_ai.datamodel import Task, TaskRun
+from kiln_ai.datamodel import Task, TaskOutputRating, TaskRun
 from pydantic import BaseModel, ConfigDict
 
 from kiln_server.project_api import project_from_id
@@ -42,6 +43,55 @@ class RunTaskRequest(BaseModel):
     model_config = ConfigDict(protected_namespaces=())
 
 
+class RunSummary(BaseModel):
+    id: str
+    rating: TaskOutputRating | None = None
+    created_at: datetime
+    input_preview: str | None = None
+    output_preview: str | None = None
+    repair_state: str | None = None
+    model_name: str | None = None
+    input_source: str | None = None
+
+    @classmethod
+    def format_preview(cls, text: str | None, max_length: int = 100) -> str | None:
+        if len(text or "") > max_length:
+            return text[:max_length] + "..."
+        return text
+
+    def from_run(run: TaskRun) -> "RunSummary":
+        # TODO: move this logic into TaskOutputRating.
+        repair_status = None
+        if run.repair_instructions:
+            repair_status = "Repaired"
+        elif run.output and not run.output.rating:
+            repair_status = "Rating needed"
+        elif run.output.rating.value == 5.0 and run.output.rating.type == "five_star":
+            repair_status = "No repair needed"
+        elif run.output.output:
+            repair_status = "Repair needed"
+        else:
+            repair_status = "No output"
+
+        model_name = (
+            run.output.source.properties.get("model_name")
+            if run.output and run.output.source and run.output.source.properties
+            else None
+        )
+        output = run.output.output if run.output and run.output.output else None
+
+        return RunSummary(
+            id=run.id,
+            rating=run.output.rating,
+            input_preview=RunSummary.format_preview(run.input),
+            output_preview=RunSummary.format_preview(output),
+            created_at=run.created_at,
+            repair_state=repair_status,
+            model_name=model_name,
+            input_source=run.input_source.type,
+        )
+
+
 def run_from_id(project_id: str, task_id: str, run_id: str) -> TaskRun:
     task, run = task_and_run_from_id(project_id, task_id, run_id)
     return run
@@ -75,6 +125,15 @@ def connect_run_api(app: FastAPI):
     async def get_runs(project_id: str, task_id: str) -> list[TaskRun]:
         task = task_from_id(project_id, task_id)
         return list(task.runs())
+
+    @app.get("/api/projects/{project_id}/tasks/{task_id}/runs_summaries")
+    async def get_runs_summary(project_id: str, task_id: str) -> list[RunSummary]:
+        task = task_from_id(project_id, task_id)
+        runs = task.runs()
+        run_summaries = []
+        for run in runs:
+            run_summaries.append(RunSummary.from_run(run))
+        return run_summaries
 
     @app.post("/api/projects/{project_id}/tasks/{task_id}/run")
     async def run_task(
