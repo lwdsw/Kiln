@@ -1,7 +1,15 @@
 """
-A simple cache for our basemodel.
+A simple cache for our datamodel.
 
 Works at the file level, caching the pydantic model based on the file path.
+
+Keeping this really simple. Our goal is to really be "disk-backed" data model, so using disk primatives.
+
+ - Use disk mtime to determine if the cached model is stale.
+ - Still using glob for iterating over projects, just caching at the file level
+ - Use path as the cache key
+ - Cache always populated from a disk read, so we know it refects what's on disk. Even if we had a memory-constructed version, we don't cache that.
+ - Cache the parsed model, not the raw file contents. Parsing and validating is what's expensive. >99% speedup when measured.
 """
 
 from pathlib import Path
