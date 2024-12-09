@@ -1,4 +1,5 @@
 import json
+import os
 import re
 import shutil
 import uuid
@@ -116,7 +117,7 @@ class KilnBaseModel(BaseModel):
         return cls.load_from_file(path)
 
     @classmethod
-    def load_from_file(cls: Type[T], path: Path) -> T:
+    def load_from_file(cls: Type[T], path: Path | str) -> T:
         """Load a model instance from a specific file path.
 
         Args:
@@ -129,10 +130,14 @@ class KilnBaseModel(BaseModel):
             ValueError: If the loaded model is not of the expected type or version
             FileNotFoundError: If the file does not exist
         """
+        if isinstance(path, str):
+            path = Path(path)
         cached_model = ModelCache.shared().get_model(path, cls)
         if cached_model is not None:
             return cached_model
         with open(path, "r") as file:
+            # modified time of file for cache invalidation. From file descriptor so it's atomic w read.
+            mtime = os.fstat(file.fileno()).st_mtime
             file_data = file.read()
             # TODO P2 perf: parsing the JSON twice here.
             # Once for model_type, once for model. Can't call model_validate with parsed json because enum types break; they get strings instead of enums.
@@ -154,8 +159,7 @@ class KilnBaseModel(BaseModel):
                 f"Class: {m.__class__.__name__}, id: {getattr(m, 'id', None)}, path: {path}, "
                 f"version: {m.v}, max version: {m.max_schema_version()}"
             )
-        ModelCache.shared().set_model(path, m)
-        print("loaded: ", path)
+        ModelCache.shared().set_model(path, m, mtime)
         return m
 
     def save_to_file(self) -> None:
@@ -176,7 +180,8 @@ class KilnBaseModel(BaseModel):
             file.write(json_data)
         # save the path so even if something like name changes, the file doesn't move
         self.path = path
-        ModelCache.shared().set_model(path, self)
+        # We could save, but invalidating ensures we load once from file
+        ModelCache.shared().invalidate(path)
 
     def delete(self) -> None:
         if self.path is None:
