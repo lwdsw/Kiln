@@ -27,9 +27,9 @@ def test_path(tmp_path):
 
 def test_set_and_get_model(model_cache, test_path):
     model = ModelTest(name="test", value=123)
-    mtime = test_path.stat().st_mtime
+    mtime_ns = test_path.stat().st_mtime_ns
 
-    model_cache.set_model(test_path, model, mtime)
+    model_cache.set_model(test_path, model, mtime_ns)
     cached_model = model_cache.get_model(test_path, ModelTest)
 
     assert cached_model is not None
@@ -77,9 +77,9 @@ def test_get_model_wrong_type(model_cache, test_path):
         other_field: str
 
     model = ModelTest(name="test", value=123)
-    mtime = test_path.stat().st_mtime
+    mtime_ns = test_path.stat().st_mtime_ns
 
-    model_cache.set_model(test_path, model, mtime)
+    model_cache.set_model(test_path, model, mtime_ns)
 
     with pytest.raises(ValueError):
         model_cache.get_model(test_path, AnotherModel)
@@ -90,15 +90,15 @@ def test_get_model_wrong_type(model_cache, test_path):
 
 
 def test_is_cache_valid_true(model_cache, test_path):
-    mtime = test_path.stat().st_mtime
-    assert model_cache._is_cache_valid(test_path, mtime) is True
+    mtime_ns = test_path.stat().st_mtime_ns
+    assert model_cache._is_cache_valid(test_path, mtime_ns) is True
 
 
 def test_is_cache_valid_false_due_to_mtime_change(model_cache, test_path):
-    mtime = test_path.stat().st_mtime
+    mtime_ns = test_path.stat().st_mtime_ns
     # Simulate a file modification by updating the mtime
     test_path.touch()
-    assert model_cache._is_cache_valid(test_path, mtime) is False
+    assert model_cache._is_cache_valid(test_path, mtime_ns) is False
 
 
 def test_is_cache_valid_false_due_to_missing_file(model_cache):
@@ -130,10 +130,10 @@ def test_benchmark_get_model(benchmark, model_cache, test_path):
 
 def test_get_model_returns_copy(model_cache, test_path):
     model = ModelTest(name="test", value=123)
-    mtime = test_path.stat().st_mtime
+    mtime_ns = test_path.stat().st_mtime_ns
 
     # Set the model in the cache
-    model_cache.set_model(test_path, model, mtime)
+    model_cache.set_model(test_path, model, mtime_ns)
 
     # Get a copy of the model from the cache
     cached_model = model_cache.get_model(test_path, ModelTest)
@@ -153,7 +153,7 @@ def test_get_model_returns_copy(model_cache, test_path):
     assert new_cached_model.name == "test"
 
     # Save the mutated model back to the cache
-    model_cache.set_model(test_path, cached_model, mtime)
+    model_cache.set_model(test_path, cached_model, mtime_ns)
 
     # Get the model again from the cache
     updated_cached_model = model_cache.get_model(test_path, ModelTest)

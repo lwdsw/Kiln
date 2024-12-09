@@ -25,7 +25,7 @@ class ModelCache:
 
     def __init__(self):
         # Store both the model and the modified time of the cached file contents
-        self.model_cache: Dict[Path, Tuple[BaseModel, float]] = {}
+        self.model_cache: Dict[Path, Tuple[BaseModel, int]] = {}
 
     @classmethod
     def shared(cls):
@@ -33,18 +33,18 @@ class ModelCache:
             cls._shared_instance = cls()
         return cls._shared_instance
 
-    def _is_cache_valid(self, path: Path, cached_mtime: float) -> bool:
+    def _is_cache_valid(self, path: Path, cached_mtime_ns: int) -> bool:
         try:
-            current_mtime = path.stat().st_mtime
+            current_mtime_ns = path.stat().st_mtime_ns
         except Exception:
             return False
-        return cached_mtime == current_mtime
+        return cached_mtime_ns == current_mtime_ns
 
     def get_model(self, path: Path, model_type: Type[T]) -> Optional[T]:
         if path not in self.model_cache:
             return None
-        model, cached_mtime = self.model_cache[path]
-        if not self._is_cache_valid(path, cached_mtime):
+        model, cached_mtime_ns = self.model_cache[path]
+        if not self._is_cache_valid(path, cached_mtime_ns):
             self.invalidate(path)
             return None
 
@@ -56,8 +56,8 @@ class ModelCache:
         # Benchmark shows about 2x slower, but much more foolproof
         return model.model_copy(deep=True)
 
-    def set_model(self, path: Path, model: BaseModel, mtime: float):
-        self.model_cache[path] = (model, mtime)
+    def set_model(self, path: Path, model: BaseModel, mtime_ns: int):
+        self.model_cache[path] = (model, mtime_ns)
 
     def invalidate(self, path: Path):
         if path in self.model_cache:

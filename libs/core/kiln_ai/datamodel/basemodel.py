@@ -137,7 +137,7 @@ class KilnBaseModel(BaseModel):
             return cached_model
         with open(path, "r") as file:
             # modified time of file for cache invalidation. From file descriptor so it's atomic w read.
-            mtime = os.fstat(file.fileno()).st_mtime
+            mtime_ns = os.fstat(file.fileno()).st_mtime_ns
             file_data = file.read()
             # TODO P2 perf: parsing the JSON twice here.
             # Once for model_type, once for model. Can't call model_validate with parsed json because enum types break; they get strings instead of enums.
@@ -159,7 +159,7 @@ class KilnBaseModel(BaseModel):
                 f"Class: {m.__class__.__name__}, id: {getattr(m, 'id', None)}, path: {path}, "
                 f"version: {m.v}, max version: {m.max_schema_version()}"
             )
-        ModelCache.shared().set_model(path, m, mtime)
+        ModelCache.shared().set_model(path, m, mtime_ns)
         return m
 
     def save_to_file(self) -> None:
