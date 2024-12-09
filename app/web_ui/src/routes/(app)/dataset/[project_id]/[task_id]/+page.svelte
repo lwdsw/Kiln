@@ -100,11 +100,11 @@
         bValue = b.input_source ?? ""
         break
       case "inputPreview":
-        aValue = a.input_preview ?? ""
-        bValue = b.input_preview ?? ""
+        aValue = (a.input_preview ?? "").toLowerCase()
+        bValue = (b.input_preview ?? "").toLowerCase()
         break
       case "outputPreview":
-        aValue = a.output_preview ?? ""
+        aValue = (a.output_preview ?? "").toLowerCase()
         bValue = (b.output_preview ?? "").toLowerCase()
         break
       case "repairState":
