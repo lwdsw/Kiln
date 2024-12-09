@@ -180,7 +180,8 @@ class KilnBaseModel(BaseModel):
             file.write(json_data)
         # save the path so even if something like name changes, the file doesn't move
         self.path = path
-        # We could save, but invalidating ensures we load once from file
+        # We could save, but invalidating will trigger load on next use.
+        # This ensures everything in cache is loaded from disk, and the cache perfectly reflects what's on disk
         ModelCache.shared().invalidate(path)
 
     def delete(self) -> None:

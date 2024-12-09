@@ -3,7 +3,7 @@ A simple cache for our datamodel.
 
 Works at the file level, caching the pydantic model based on the file path.
 
-Keeping this really simple. Our goal is to really be "disk-backed" data model, so using disk primatives.
+Keeping this really simple. Our goal is to really be "disk-backed" data model, so using disk primitives.
 
  - Use disk mtime to determine if the cached model is stale.
  - Still using glob for iterating over projects, just caching at the file level
@@ -51,7 +51,10 @@ class ModelCache:
         if not isinstance(model, model_type):
             self.invalidate(path)
             raise ValueError(f"Model at {path} is not of type {model_type.__name__}")
-        return model
+
+        # We return a copy so in-memory edits don't impact the cache until they are saved
+        # Benchmark shows about 2x slower, but much more foolproof
+        return model.model_copy(deep=True)
 
     def set_model(self, path: Path, model: BaseModel, mtime: float):
         self.model_cache[path] = (model, mtime)
