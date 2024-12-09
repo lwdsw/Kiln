@@ -50,6 +50,8 @@ def test_newer_file(tmp_path) -> Path:
 @pytest.fixture
 def tmp_model_cache():
     temp_cache = ModelCache()
+    # We're testing integration, not cache functions, in this file
+    temp_cache._enabled = True
     with (
         patch("kiln_ai.datamodel.basemodel.ModelCache.shared", return_value=temp_cache),
     ):

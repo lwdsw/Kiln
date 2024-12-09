@@ -1,5 +1,5 @@
 from pathlib import Path
-from unittest.mock import patch
+from unittest import mock
 
 import pytest
 from pydantic import BaseModel
@@ -18,6 +18,10 @@ def model_cache():
     return ModelCache()
 
 
+def should_skip_test(model_cache):
+    return not model_cache._enabled
+
+
 @pytest.fixture
 def test_path(tmp_path):
     # Create a temporary file path for testing
@@ -27,6 +31,9 @@ def test_path(tmp_path):
 
 
 def test_set_and_get_model(model_cache, test_path):
+    if not model_cache._enabled:
+        pytest.skip("Cache is disabled on this fs")
+
     model = ModelTest(name="test", value=123)
     mtime_ns = test_path.stat().st_mtime_ns
 
@@ -74,6 +81,9 @@ def test_cache_invalid_due_to_mtime_change(model_cache, test_path):
 
 
 def test_get_model_wrong_type(model_cache, test_path):
+    if not model_cache._enabled:
+        pytest.skip("Cache is disabled on this fs")
+
     class AnotherModel(BaseModel):
         other_field: str
 
@@ -96,6 +106,9 @@ def test_is_cache_valid_true(model_cache, test_path):
 
 
 def test_is_cache_valid_false_due_to_mtime_change(model_cache, test_path):
+    if not model_cache._enabled:
+        pytest.skip("Cache is disabled on this fs")
+
     mtime_ns = test_path.stat().st_mtime_ns
     # Simulate a file modification by updating the mtime
     test_path.touch()
@@ -130,6 +143,9 @@ def test_benchmark_get_model(benchmark, model_cache, test_path):
 
 
 def test_get_model_returns_copy(model_cache, test_path):
+    if not model_cache._enabled:
+        pytest.skip("Cache is disabled on this fs")
+
     model = ModelTest(name="test", value=123)
     mtime_ns = test_path.stat().st_mtime_ns
 
@@ -168,10 +184,61 @@ def test_no_cache_when_no_fine_granularity(model_cache, test_path):
     model = ModelTest(name="test", value=123)
     mtime_ns = test_path.stat().st_mtime_ns
 
-    model_cache._has_fine_granularity = False
+    model_cache._enabled = False
     model_cache.set_model(test_path, model, mtime_ns)
     cached_model = model_cache.get_model(test_path, ModelTest)
 
     # Assert that the model is not cached
     assert cached_model is None
     assert model_cache.model_cache == {}
+    assert model_cache._enabled is False
+
+
+def test_check_timestamp_granularity_macos():
+    with mock.patch("sys.platform", "darwin"):
+        cache = ModelCache()
+        assert cache._check_timestamp_granularity() is True
+        assert cache._enabled is True
+
+
+def test_check_timestamp_granularity_windows():
+    with mock.patch("sys.platform", "win32"):
+        cache = ModelCache()
+        assert cache._check_timestamp_granularity() is True
+        assert cache._enabled is True
+
+
+def test_check_timestamp_granularity_linux_good():
+    mock_stats = mock.Mock()
+    mock_stats.f_timespec = 9  # nanosecond precision
+
+    with (
+        mock.patch("sys.platform", "linux"),
+        mock.patch("os.statvfs", return_value=mock_stats),
+    ):
+        cache = ModelCache()
+        assert cache._check_timestamp_granularity() is True
+        assert cache._enabled is True
+
+
+def test_check_timestamp_granularity_linux_poor():
+    mock_stats = mock.Mock()
+    mock_stats.f_timespec = 3  # millisecond precision
+
+    with (
+        mock.patch("sys.platform", "linux"),
+        mock.patch("os.statvfs", return_value=mock_stats),
+    ):
+        cache = ModelCache()
+        assert cache._check_timestamp_granularity() is False
+        assert cache._enabled is False
+
+
+def test_check_timestamp_granularity_linux_error():
+    with (
+        mock.patch("sys.platform", "linux"),
+        mock.patch("os.statvfs", side_effect=OSError("Mock filesystem error")),
+    ):
+        cache = ModelCache()
+        assert cache._check_timestamp_granularity() is False
+        assert cache._enabled is False

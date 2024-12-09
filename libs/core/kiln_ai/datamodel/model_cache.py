@@ -29,8 +29,8 @@ class ModelCache:
     def __init__(self):
         # Store both the model and the modified time of the cached file contents
         self.model_cache: Dict[Path, Tuple[BaseModel, int]] = {}
-        self._has_fine_granularity = self._check_timestamp_granularity()
-        if not self._has_fine_granularity:
+        self._enabled = self._check_timestamp_granularity()
+        if not self._enabled:
             warnings.warn(
                 "File system does not support fine-grained timestamps. "
                 "Model caching has been disabled to ensure consistency."
@@ -67,7 +67,7 @@ class ModelCache:
 
     def set_model(self, path: Path, model: BaseModel, mtime_ns: int):
         # disable caching if the filesystem doesn't support fine-grained timestamps
-        if not self._has_fine_granularity:
+        if not self._enabled:
             return
         self.model_cache[path] = (model, mtime_ns)
 
@@ -82,9 +82,7 @@ class ModelCache:
         """Check if filesystem supports fine-grained timestamps (microseconds or better)."""
 
         # MacOS and Windows support fine-grained timestamps
-        if sys.platform == "darwin":  # macOS
-            return True
-        if sys.platform == "win32":  # Windows
+        if sys.platform in ["darwin", "win32"]:
             return True
 
         # Linux supports fine-grained timestamps SOMETIMES. ext4 should work.
