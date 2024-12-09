@@ -12,6 +12,9 @@ Keeping this really simple. Our goal is to really be "disk-backed" data model, s
  - Cache the parsed model, not the raw file contents. Parsing and validating is what's expensive. >99% speedup when measured.
 """
 
+import os
+import sys
+import warnings
 from pathlib import Path
 from typing import Dict, Optional, Tuple, Type, TypeVar
 
@@ -26,6 +29,12 @@ class ModelCache:
     def __init__(self):
         # Store both the model and the modified time of the cached file contents
         self.model_cache: Dict[Path, Tuple[BaseModel, int]] = {}
+        self._has_fine_granularity = self._check_timestamp_granularity()
+        if not self._has_fine_granularity:
+            warnings.warn(
+                "File system does not support fine-grained timestamps. "
+                "Model caching has been disabled to ensure consistency."
+            )
 
     @classmethod
     def shared(cls):
@@ -57,6 +66,9 @@ class ModelCache:
         return model.model_copy(deep=True)
 
     def set_model(self, path: Path, model: BaseModel, mtime_ns: int):
+        # disable caching if the filesystem doesn't support fine-grained timestamps
+        if not self._has_fine_granularity:
+            return
         self.model_cache[path] = (model, mtime_ns)
 
     def invalidate(self, path: Path):
@@ -65,3 +77,29 @@ class ModelCache:
 
     def clear(self):
         self.model_cache.clear()
+
+    def _check_timestamp_granularity(self) -> bool:
+        """Check if filesystem supports fine-grained timestamps (microseconds or better)."""
+
+        # MacOS and Windows support fine-grained timestamps
+        if sys.platform == "darwin":  # macOS
+            return True
+        if sys.platform == "win32":  # Windows
+            return True
+
+        # Linux supports fine-grained timestamps SOMETIMES. ext4 should work.
+        try:
+            # Get filesystem stats for the current directory
+            stats = os.statvfs(Path(__file__).parent)
+
+            # f_timespec was added in Linux 5.6 (2020)
+            # Returns nanoseconds precision as a power of 10
+            # e.g., 1 = decisecond, 2 = centisecond, 3 = millisecond, etc.
+            timespec = getattr(stats, "f_timespec", 0)
+
+            # Consider microsecond precision (6) or better as "fine-grained"
+            return timespec >= 6
+        except (AttributeError, OSError):
+            # If f_timespec isn't available or other errors occur,
+            # assume poor granularity to be safe
+            return False

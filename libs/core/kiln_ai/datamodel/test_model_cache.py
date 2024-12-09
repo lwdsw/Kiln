@@ -1,4 +1,5 @@
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 from pydantic import BaseModel
@@ -161,3 +162,16 @@ def test_get_model_returns_copy(model_cache, test_path):
     # Assert that the updated cached model has the mutated values
     assert updated_cached_model.name == "mutated"
     assert updated_cached_model.value == 123
+
+
+def test_no_cache_when_no_fine_granularity(model_cache, test_path):
+    model = ModelTest(name="test", value=123)
+    mtime_ns = test_path.stat().st_mtime_ns
+
+    model_cache._has_fine_granularity = False
+    model_cache.set_model(test_path, model, mtime_ns)
+    cached_model = model_cache.get_model(test_path, ModelTest)
+
+    # Assert that the model is not cached
+    assert cached_model is None
+    assert model_cache.model_cache == {}
