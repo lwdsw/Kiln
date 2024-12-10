@@ -4,7 +4,7 @@
     </picture>
 </p>
 <h3 align="center">
-    The easiest tool for fine-tuning LLM models and collaborating on datasets.
+    The easiest tool for fine-tuning LLM models, synthetic data generation, and collaborating on datasets.
 </h3>
 
 |               |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
@@ -20,7 +20,7 @@
 ## Key Features
 
 - 🚀 **Intuitive Desktop Apps**: One-click apps for Windows, MacOS, and Linux. Truly intuitive design.
-- 🎛️ **Fine Tuning**: Zero-code fine-tuning for Llama, GPT4o, Mixtral, and more.
+- 🎛️ **Fine Tuning**: Zero-code fine-tuning for Llama, GPT4o, and Mixtral. Automatic serverless deployment of models.
 - 🤖 **Synthetic Data Generation**: Generate training data with our interactive visual tooling.
 - 🤝 **Team Collaboration**: Git-based version control for your AI datasets. Intuitive UI makes it easy to collaborate with QA, PM, and subject matter experts on structured data (examples, prompts, ratings, feedback, issues, etc.).
 - 📝 **Auto-Prompts**: Generate a variety of prompts from your data, including chain-of-thought, few-shot, and multi-shot.
@@ -40,15 +40,15 @@ In this demo, I create 9 fine-tuned models (including Llama 3.x, Mixtral, and GP
 
 ## Download Kiln Desktop Apps
 
-[<img width="220" alt="Download button" src="https://github.com/user-attachments/assets/a5d51b8b-b30a-4a16-a902-ab6ef1d58dc0">](https://github.com/Kiln-AI/Kiln/releases/latest)
-
 The Kiln desktop app is completely free. Available on MacOS, Windows and Linux.
+
+[<img width="220" alt="Download button" src="https://github.com/user-attachments/assets/a5d51b8b-b30a-4a16-a902-ab6ef1d58dc0">](https://github.com/Kiln-AI/Kiln/releases/latest)
 
 ## Install Python Library
 
 [![PyPI - Version](https://img.shields.io/pypi/v/kiln-ai.svg?logo=pypi&label=PyPI&logoColor=gold)](https://pypi.org/project/kiln-ai/) [![Docs](https://img.shields.io/badge/docs-pdoc-blue)](https://kiln-ai.github.io/Kiln/kiln_core_docs/index.html)
 
-Our open-source [python library](https://pypi.org/project/kiln-ai/) allows for deep custom integrations. [Read the docs](https://kiln-ai.github.io/Kiln/kiln_core_docs/index.html).
+Our open-source [python library](https://pypi.org/project/kiln-ai/) allows you to integrate Kiln datasets into your own workflows, build fine tunes, use Kiln in Notebooks, build custom tools, and much more! [Read the docs](https://kiln-ai.github.io/Kiln/kiln_core_docs/index.html).
 
 ```bash
 pip install kiln-ai
@@ -118,6 +118,18 @@ Your data stays completely private and local to your machine. We never collect o
 You can run completely locally using Ollama, or bring your own keys for OpenAI, OpenRouter, Groq, AWS, etc.
 
 _Note: We collect anonymous usage metrics via Posthog analytics (never including dataset content or PII). This can be blocked with standard ad-blockers._
+
+## REST API
+
+[![PyPI - Version](https://img.shields.io/pypi/v/kiln-server.svg?logo=pypi&label=PyPI&logoColor=gold)](https://pypi.org/project/kiln-server/) [![Docs](https://img.shields.io/badge/docs-OpenAPI-blue)](https://kiln-ai.github.io/Kiln/kiln_server_openapi_docs/index.html)
+
+We offer a self-hostable REST API for Kiln based on FastAPI. [Read the docs](https://kiln-ai.github.io/Kiln/kiln_server_openapi_docs/index.htm).
+
+The REST API supports OpenAPI, so you can generate client libraries for almost [any](https://github.com/swagger-api/swagger-codegen) [language](https://openapi-generator.tech/docs/generators).
+
+```bash
+pip install kiln_server
+```
 
 ## Contributing & Development
 
