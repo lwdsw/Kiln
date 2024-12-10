@@ -413,3 +413,60 @@ def test_load_from_file_with_cached_model(test_base_file, tmp_model_cache):
 
         # Assert that open was not called (we used the cached model, not file)
         mock_open.assert_not_called()
+
+
+def test_from_id_and_parent_path(test_base_parented_file, tmp_model_cache):
+    # Set up parent and children models
+    parent = BaseParentExample.load_from_file(test_base_parented_file)
+
+    child1 = DefaultParentedModel(parent=parent, name="Child1")
+    child2 = DefaultParentedModel(parent=parent, name="Child2")
+    child3 = DefaultParentedModel(parent=parent, name="Child3")
+
+    # Save all children
+    child1.save_to_file()
+    child2.save_to_file()
+    child3.save_to_file()
+
+    # Test finding existing child by ID
+    found_child = DefaultParentedModel.from_id_and_parent_path(
+        child2.id, test_base_parented_file
+    )
+    assert found_child is not None
+    assert found_child.id == child2.id
+    assert found_child.name == "Child2"
+    assert found_child is not child2  # not same instance (deep copy)
+
+    # Test non-existent ID returns None
+    not_found = DefaultParentedModel.from_id_and_parent_path(
+        "nonexistent", test_base_parented_file
+    )
+    assert not_found is None
+
+
+def test_from_id_and_parent_path_with_cache(test_base_parented_file, tmp_model_cache):
+    # Set up parent and child
+    parent = BaseParentExample.load_from_file(test_base_parented_file)
+    child = DefaultParentedModel(parent=parent, name="Child")
+    child.save_to_file()
+
+    # First load to populate cache
+    _ = DefaultParentedModel.from_id_and_parent_path(child.id, test_base_parented_file)
+
+    # Mock cache to verify it's used
+    tmp_model_cache.get_model_id = MagicMock(return_value=child.id)
+
+    # Load again - should use cache
+    found_child = DefaultParentedModel.from_id_and_parent_path(
+        child.id, test_base_parented_file
+    )
+
+    assert found_child is not None
+    assert found_child.id == child.id
+    tmp_model_cache.get_model_id.assert_called()
+
+
+def test_from_id_and_parent_path_without_parent():
+    # Test with None parent_path
+    not_found = DefaultParentedModel.from_id_and_parent_path("any-id", None)
+    assert not_found is None

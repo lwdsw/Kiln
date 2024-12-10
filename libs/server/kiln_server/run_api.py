@@ -117,7 +117,7 @@ def task_and_run_from_id(
     project_id: str, task_id: str, run_id: str
 ) -> tuple[Task, TaskRun]:
     task = task_from_id(project_id, task_id)
-    run = TaskRun.child_by_id_and_parent_path(run_id, task.path)
+    run = TaskRun.from_id_and_parent_path(run_id, task.path)
     if run:
         return task, run
 
