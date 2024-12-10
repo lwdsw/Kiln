@@ -20,6 +20,7 @@ from app.desktop.studio_server.provider_api import (
     available_ollama_models,
     connect_bedrock,
     connect_groq,
+    connect_ollama,
     connect_openrouter,
     connect_provider_api,
     model_from_ollama_tag,
@@ -768,3 +769,97 @@ def test_all_fine_tuned_models(mock_all_projects):
 
     result = all_fine_tuned_models()
     assert result is None
+
+
+@pytest.mark.asyncio
+async def test_connect_ollama_rejects_invalid_url_format():
+    with pytest.raises(HTTPException) as exc_info:
+        await connect_ollama("invalid-url-no-protocol")
+    assert exc_info.value.status_code == 400
+    assert "Invalid Ollama URL" in exc_info.value.detail
+
+
+@pytest.mark.asyncio
+async def test_connect_ollama_uses_custom_url_when_provided():
+    mock_tags_response = {"models": []}
+    with (
+        patch("requests.get") as mock_get,
+        patch("app.desktop.studio_server.provider_api.parse_ollama_tags") as mock_parse,
+        patch("app.desktop.studio_server.provider_api.Config.shared") as mock_config,
+    ):
+        mock_get.return_value.json.return_value = mock_tags_response
+        mock_parse.return_value = OllamaConnection(
+            message="Connected", supported_models=[]
+        )
+        mock_config.return_value.ollama_base_url = "http://default-url:11434"
+
+        await connect_ollama("http://custom-url:11434")
+
+        mock_get.assert_called_once_with("http://custom-url:11434/api/tags", timeout=5)
+
+
+@pytest.mark.asyncio
+async def test_connect_ollama_uses_default_url_when_no_custom_url():
+    mock_tags_response = {"models": []}
+    with (
+        patch("requests.get") as mock_get,
+        patch("app.desktop.studio_server.provider_api.parse_ollama_tags") as mock_parse,
+        patch(
+            "app.desktop.studio_server.provider_api.ollama_base_url"
+        ) as mock_base_url,
+    ):
+        mock_get.return_value.json.return_value = mock_tags_response
+        mock_parse.return_value = OllamaConnection(
+            message="Connected", supported_models=[]
+        )
+        mock_base_url.return_value = "http://default-url:11434"
+
+        await connect_ollama(None)
+
+        mock_get.assert_called_once_with("http://default-url:11434/api/tags", timeout=5)
+
+
+@pytest.mark.asyncio
+async def test_connect_ollama_saves_custom_url_on_success():
+    mock_tags_response = {"models": []}
+    with (
+        patch("requests.get") as mock_get,
+        patch("app.desktop.studio_server.provider_api.parse_ollama_tags") as mock_parse,
+        patch("app.desktop.studio_server.provider_api.Config.shared") as mock_config,
+    ):
+        mock_get.return_value.json.return_value = mock_tags_response
+        mock_parse.return_value = OllamaConnection(
+            message="Connected", supported_models=[]
+        )
+
+        mock_config_instance = MagicMock()
+        mock_config_instance.ollama_base_url = "http://old-url:11434"
+        mock_config.return_value = mock_config_instance
+
+        await connect_ollama("http://new-url:11434")
+
+        mock_config_instance.save_setting.assert_called_once_with(
+            "ollama_base_url", "http://new-url:11434"
+        )
+
+
+@pytest.mark.asyncio
+async def test_connect_ollama_does_not_save_unchanged_url():
+    mock_tags_response = {"models": []}
+    with (
+        patch("requests.get") as mock_get,
+        patch("app.desktop.studio_server.provider_api.parse_ollama_tags") as mock_parse,
+        patch("app.desktop.studio_server.provider_api.Config.shared") as mock_config,
+    ):
+        mock_get.return_value.json.return_value = mock_tags_response
+        mock_parse.return_value = OllamaConnection(
+            message="Connected", supported_models=[]
+        )
+
+        mock_config_instance = MagicMock()
+        mock_config_instance.ollama_base_url = "http://same-url:11434"
+        mock_config.return_value = mock_config_instance
+
+        await connect_ollama("http://same-url:11434")
+
+        mock_config_instance.save_setting.assert_not_called()
