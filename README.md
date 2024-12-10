@@ -101,12 +101,6 @@ We prioritize data correctness, which makes integrating into AI products easier.
 
 Our easy to use schema UI lets you create and use structured schemas, without knowing JSON-schema formating. For technical users, we support any valid JSON-schema for inputs and outputs.
 
-### Powerful Open-source Library and REST API
-
-We have an open-source [python library](https://pypi.org/project/kiln-ai/), and an open-source [REST API](https://pypi.org/project/kiln-server/). You can easily integrate Kiln datasets into your own workflows, build fine tunes, use Kiln in Notebooks, build custom tools, and much more!
-
-The REST API supports OpenAPI, so you can generate client libraries for almost [any](https://github.com/swagger-api/swagger-codegen) [language](https://openapi-generator.tech/docs/generators).
-
 ### Privacy
 
 Your data stays completely private and local to your machine. We never collect or have access to:
