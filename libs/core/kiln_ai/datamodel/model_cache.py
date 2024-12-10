@@ -72,8 +72,10 @@ class ModelCache:
 
     def get_model_id(self, path: Path, model_type: Type[T]) -> Optional[str]:
         model = self._get_model(path, model_type)
-        if model and hasattr(model, "id") and isinstance(model.id, str):
-            return model.id
+        if model and hasattr(model, "id"):
+            id = model.id  # type: ignore
+            if isinstance(id, str):
+                return id
         return None
 
     def set_model(self, path: Path, model: BaseModel, mtime_ns: int):

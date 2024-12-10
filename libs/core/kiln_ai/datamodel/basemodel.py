@@ -347,12 +347,17 @@ class KilnParentedModel(KilnBaseModel, metaclass=ABCMeta):
         return children
 
     @classmethod
-    def from_id_and_parent_path(cls: Type[PT], id: str, parent_path: Path) -> PT:
+    def from_id_and_parent_path(
+        cls: Type[PT], id: str, parent_path: Path | None
+    ) -> PT | None:
         """
         Fast search by ID using the cache. Avoids the model_copy overhead on all but the exact match.
 
         Uses cache so still slow on first load.
         """
+        if parent_path is None:
+            return None
+
         # Note: we're using the in-file ID. We could make this faster using the path-ID if this becomes perf bottleneck, but it's better to have 1 source of truth.
         for child_path in cls.iterate_children_paths_of_parent_path(parent_path):
             child_id = ModelCache.shared().get_model_id(child_path, cls)
