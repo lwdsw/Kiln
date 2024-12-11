@@ -99,7 +99,7 @@ In the future, we plan to add more powerful no-code options like fine tuning, lo
 
 We prioritize data correctness, which makes integrating into AI products easier. No data gets into the dataset without first passing validation, which keeps the dataset clean.
 
-Our easy to use schema UI lets you create and use structured schemas, without knowing JSON-schema formating. For technical users, we support any valid JSON-schema for inputs and outputs.
+Our easy to use schema UI lets you create and use structured schemas, without knowing JSON-schema formatting. For technical users, we support any valid JSON-schema for inputs and outputs.
 
 ### Privacy
 
