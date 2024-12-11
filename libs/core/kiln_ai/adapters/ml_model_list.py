@@ -632,18 +632,6 @@ built_in_models: List[KilnModel] = [
         friendly_name="Mixtral 8x7B",
         providers=[
             KilnModelProvider(
-                name=ModelProviderName.fireworks_ai,
-                provider_options={
-                    "model": "accounts/fireworks/models/mixtral-8x7b-instruct-hf",
-                },
-                provider_finetune_id="accounts/fireworks/models/mixtral-8x7b-instruct-hf",
-                adapter_options={
-                    "langchain": {
-                        "with_structured_output_options": {"method": "json_mode"}
-                    }
-                },
-            ),
-            KilnModelProvider(
                 name=ModelProviderName.openrouter,
                 provider_options={"model": "mistralai/mixtral-8x7b-instruct"},
                 adapter_options={
