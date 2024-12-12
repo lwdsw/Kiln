@@ -105,7 +105,7 @@
     </div>
 
     <div
-      class="flex-grow rounded-3xl bg-base-100 shadow-md px-12 py-8 mb-4 border"
+      class="flex-grow rounded-3xl bg-base-100 shadow-md px-4 md:px-12 py-8 mb-4 border"
     >
       <slot />
     </div>
