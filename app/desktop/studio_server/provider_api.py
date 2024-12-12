@@ -474,6 +474,7 @@ def custom_models() -> AvailableModels | None:
                     name=f"{provider_name_from_id(provider_id)}: {model_name}",
                     supports_structured_output=False,
                     supports_data_gen=False,
+                    untested_model=True,
                 )
             )
         except Exception as e:
@@ -481,7 +482,7 @@ def custom_models() -> AvailableModels | None:
             print(f"Error processing custom model {model_id}: {e}")
 
     return AvailableModels(
-        provider_name="Custom Models [Untested]",
+        provider_name="Custom Models",
         provider_id=ModelProviderName.kiln_custom_registry,
         models=models,
     )

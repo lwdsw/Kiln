@@ -226,7 +226,7 @@ def provider_name_from_id(id: str) -> str:
             case ModelProviderName.fireworks_ai:
                 return "Fireworks AI"
             case ModelProviderName.kiln_custom_registry:
-                return "Custom Models [Untested]"
+                return "Custom Models"
             case _:
                 # triggers pyright warning if I miss a case
                 raise_exhaustive_error(enum_id)
