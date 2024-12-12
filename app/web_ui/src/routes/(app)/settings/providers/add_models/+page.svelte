@@ -41,6 +41,7 @@
       if (settings["fireworks_api_key"] && settings["fireworks_account_id"]) {
         connected_providers.push(["fireworks_ai", "Fireworks AI"])
       }
+      // Skipping Ollama -- we pull all models from it automatically
       if (connected_providers.length > 0) {
         new_model_provider = connected_providers[0][0] || null
       } else {
