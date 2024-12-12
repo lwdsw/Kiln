@@ -2224,7 +2224,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": Record<string, never>;
                 };
             };
         };
@@ -2239,7 +2239,7 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": {
-                    [key: string]: number | string | boolean | null;
+                    [key: string]: number | string | boolean | unknown[] | null;
                 };
             };
         };
