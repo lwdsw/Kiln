@@ -111,6 +111,11 @@ async def kiln_model_provider_from(
     if built_in_model:
         return built_in_model
 
+    # For custom registry, get the provider name and model name from the model id
+    if provider_name == ModelProviderName.kiln_custom_registry:
+        provider_name = name.split("::", 1)[0]
+        name = name.split("::", 1)[1]
+
     # Custom/untested model. Set untested, and build a ModelProvider at runtime
     if provider_name is None:
         raise ValueError("Provider name is required for custom models")
@@ -220,6 +225,8 @@ def provider_name_from_id(id: str) -> str:
                 return "Fine Tuned Models"
             case ModelProviderName.fireworks_ai:
                 return "Fireworks AI"
+            case ModelProviderName.kiln_custom_registry:
+                return "Custom Models [Untested]"
             case _:
                 # triggers pyright warning if I miss a case
                 raise_exhaustive_error(enum_id)
@@ -233,6 +240,7 @@ def provider_options_for_custom_model(
     """
     Generated model provider options for a custom model. Each has their own format/options.
     """
+
     if provider_name not in ModelProviderName.__members__:
         raise ValueError(f"Invalid provider name: {provider_name}")
 
@@ -249,6 +257,10 @@ def provider_options_for_custom_model(
             | ModelProviderName.groq
         ):
             return {"model": model_name}
+        case ModelProviderName.kiln_custom_registry:
+            raise ValueError(
+                "Custom models from registry should be parsed into provider/model before calling this."
+            )
         case ModelProviderName.kiln_fine_tune:
             raise ValueError(
                 "Fine tuned models should populate provider options via another path"

@@ -22,6 +22,7 @@ class ModelProviderName(str, Enum):
     openrouter = "openrouter"
     fireworks_ai = "fireworks_ai"
     kiln_fine_tune = "kiln_fine_tune"
+    kiln_custom_registry = "kiln_custom_registry"
 
 
 class ModelFamily(str, Enum):

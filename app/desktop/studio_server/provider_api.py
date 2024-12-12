@@ -148,6 +148,11 @@ def connect_provider_api(app: FastAPI):
         if fine_tuned_models:
             models.append(fine_tuned_models)
 
+        # Add any custom models
+        custom = custom_models()
+        if custom:
+            models.append(custom)
+
         return models
 
     @app.get("/api/provider/ollama/connect")
@@ -451,6 +456,35 @@ def model_from_ollama_tag(
                     return model, ollama_provider
 
     return None, None
+
+
+def custom_models() -> AvailableModels | None:
+    custom_model_ids = Config.shared().custom_models
+    if not custom_model_ids or len(custom_model_ids) == 0:
+        return None
+
+    models: List[ModelDetails] = []
+    for model_id in custom_model_ids:
+        try:
+            provider_id = model_id.split("::", 1)[0]
+            model_name = model_id.split("::", 1)[1]
+            models.append(
+                ModelDetails(
+                    id=model_id,
+                    name=f"{provider_name_from_id(provider_id)}: {model_name}",
+                    supports_structured_output=False,
+                    supports_data_gen=False,
+                )
+            )
+        except Exception as e:
+            # Continue on to the rest
+            print(f"Error processing custom model {model_id}: {e}")
+
+    return AvailableModels(
+        provider_name="Custom Models [Untested]",
+        provider_id=ModelProviderName.kiln_custom_registry,
+        models=models,
+    )
 
 
 def all_fine_tuned_models() -> AvailableModels | None:

@@ -379,7 +379,7 @@
                 class={section == Section.SettingsProviders ? "active" : ""}
                 href="/settings/providers"
               >
-                AI Providers
+                AI Providers &amp; Models
               </a>
             </li>
             <li class="menu-nested-sm">

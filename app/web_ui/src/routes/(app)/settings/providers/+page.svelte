@@ -4,7 +4,7 @@
 </script>
 
 <AppPage
-  title="AI Providers"
+  title="AI Providers & Models"
   action_buttons={[
     {
       label: "Add Models",

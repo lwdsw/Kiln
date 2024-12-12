@@ -310,3 +310,20 @@ def test_provider_options_for_custom_model_invalid_enum():
     """Test handling of invalid enum value"""
     with pytest.raises(ValueError):
         provider_options_for_custom_model("model_name", "invalid_enum_value")
+
+
+@pytest.mark.asyncio
+async def test_kiln_model_provider_from_custom_registry(mock_config):
+    # Mock config to pass provider warnings check
+    mock_config.return_value = "fake-api-key"
+
+    # Test with a custom registry model ID in format "provider::model_name"
+    provider = await kiln_model_provider_from(
+        "openai::gpt-4-turbo", ModelProviderName.kiln_custom_registry
+    )
+
+    assert provider.name == ModelProviderName.openai
+    assert provider.supports_structured_output is False
+    assert provider.supports_data_gen is False
+    assert provider.untested_model is True
+    assert provider.provider_options == {"model": "gpt-4-turbo"}

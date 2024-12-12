@@ -4,6 +4,7 @@
   import { KilnError, createKilnError } from "$lib/utils/error_handlers"
   import { onMount } from "svelte"
   import FormElement from "$lib/utils/form_element.svelte"
+  import { provider_name_from_id } from "$lib/stores"
 
   let connected_providers: [string, string][] = []
   let loading_providers = true
@@ -67,10 +68,17 @@
   }
 
   function add_model() {
-    let model_id = new_model_provider + ":" + new_model_name
-    custom_models = [...custom_models, model_id]
-    save_model_list()
-    new_model_name = null
+    if (
+      new_model_provider &&
+      new_model_provider.length > 0 &&
+      new_model_name &&
+      new_model_name.length > 0
+    ) {
+      let model_id = new_model_provider + "::" + new_model_name
+      custom_models = [...custom_models, model_id]
+      save_model_list()
+      new_model_name = null
+    }
 
     // @ts-expect-error showModal is not a method on HTMLElement
     document.getElementById("add_model_modal")?.close()
@@ -96,6 +104,16 @@
     } finally {
       saving_model_list = false
     }
+  }
+
+  function get_model_name(model_id: string) {
+    let [_, ...model_name_parts] = model_id.split("::")
+    return model_name_parts.join("::")
+  }
+
+  function get_provider_name(model_id: string) {
+    let [provider, ..._] = model_id.split("::")
+    return provider_name_from_id(provider)
   }
 </script>
 
@@ -125,8 +143,13 @@
   {:else if custom_models.length > 0}
     <div class="flex flex-col gap-4">
       {#each custom_models as model, index}
-        <div class="flex flex-row gap-2 card card-bordered py-2 px-4">
-          <span class="grow">{model}</span>
+        <div class="flex flex-row gap-2 card bg-base-200 py-2 px-4">
+          <div class="font-medium min-w-24">
+            {get_provider_name(model)}
+          </div>
+          <div class="grow">
+            {get_model_name(model)}
+          </div>
           <button
             on:click={() => remove_model(index)}
             class="link text-sm text-gray-500">Remove</button
