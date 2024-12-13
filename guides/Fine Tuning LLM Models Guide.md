@@ -138,6 +138,10 @@ Models and products are rarely perfect on their first try. When you find bugs or
 - Regenerate fine-tunes as your dataset grows and evolves
 - Try new foundation models (directly and with fine tuning) when new state of the art models are released.
 
+#### Integrate with Code
+
+Kiln can be used entirely through the UI and doesn't require coding. However, if you'd like a code-based integration, our open-source [Python library](https://pypi.org/project/kiln-ai/) is available.
+
 #### Our "Ladder" Data Strategy
 
 Kiln enables a "Ladder" data strategy: the steps start from from small quantity and high effort, and progress to high quantity and low effort. Each step builds on the prior:
