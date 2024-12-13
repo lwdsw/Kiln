@@ -4,6 +4,7 @@ import time
 
 import kiln_server.server as kiln_server
 import uvicorn
+from kiln_ai.datamodel import set_strict_mode
 
 from app.desktop.studio_server.data_gen_api import connect_data_gen_api
 from app.desktop.studio_server.finetune_api import connect_fine_tune_api
@@ -12,6 +13,9 @@ from app.desktop.studio_server.provider_api import connect_provider_api
 from app.desktop.studio_server.repair_api import connect_repair_api
 from app.desktop.studio_server.settings_api import connect_settings
 from app.desktop.studio_server.webhost import connect_webhost
+
+# Our app server runs in strict mode
+set_strict_mode(True)
 
 
 def make_app():

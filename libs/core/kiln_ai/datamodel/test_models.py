@@ -383,3 +383,59 @@ def test_task_run_input_source_validation(tmp_path):
         assert os.path.exists(task_missing_input_source)
         task_run = TaskRun.load_from_file(task_missing_input_source)
         assert task_run.input_source is None
+
+
+def test_task_output_source_validation(tmp_path):
+    # Setup basic output source for validation
+    output_source = DataSource(
+        type=DataSourceType.synthetic,
+        properties={
+            "model_name": "test-model",
+            "model_provider": "test-provider",
+            "adapter_name": "test-adapter",
+        },
+    )
+
+    project_path = tmp_path / "project.kiln"
+    project = Project(name="Test Project", path=project_path)
+    project.save_to_file()
+    task = Task(name="Test Task", instruction="Test Instruction", parent=project)
+    task.save_to_file()
+
+    # Test 1: Creating without source should work when strict mode is off
+    task_output = TaskOutput(
+        output="test output",
+    )
+    assert task_output.source is None
+
+    # Save for later usage
+    task_run = TaskRun(
+        input="test input",
+        input_source=output_source,
+        output=task_output,
+    )
+    task_run.parent = task
+    task_run.save_to_file()
+    task_missing_output_source = task_run.path
+
+    # Test 2: Creating with source should work when strict mode is off
+    task_output = TaskOutput(
+        output="test output 2",
+        source=output_source,
+    )
+    assert task_output.source is not None
+
+    # Test 3: Creating without source should fail when strict mode is on
+    with patch("kiln_ai.datamodel.strict_mode", return_value=True):
+        with pytest.raises(ValueError) as exc_info:
+            task_output = TaskOutput(
+                output="test output 3",
+            )
+        assert "Output source is required when strict mode is enabled" in str(
+            exc_info.value
+        )
+
+        # Test 4: Loading from disk should work without source, even with strict mode on
+        assert os.path.exists(task_missing_output_source)
+        task_run = TaskRun.load_from_file(task_missing_output_source)
+        assert task_run.output.source is None

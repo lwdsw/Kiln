@@ -141,8 +141,9 @@ class TaskOutput(KilnBaseModel):
     output: str = Field(
         description="The output of the task. JSON formatted for structured output, plaintext for unstructured output."
     )
-    source: DataSource = Field(
-        description="The source of the output: human or synthetic."
+    source: DataSource | None = Field(
+        description="The source of the output: human or synthetic.",
+        default=None,
     )
     rating: TaskOutputRating | None = Field(
         default=None, description="The rating of the output"
@@ -157,6 +158,18 @@ class TaskOutput(KilnBaseModel):
                 raise ValueError("Output is not a valid JSON object")
             except jsonschema.exceptions.ValidationError as e:
                 raise ValueError(f"Output does not match task output schema: {e}")
+        return self
+
+    @model_validator(mode="after")
+    def validate_output_source(self, info: ValidationInfo) -> Self:
+        # On strict mode and not loaded from file, we validate output_source is not None.
+        # We want to be able to load any data, even if it's not perfect. But we want to create perfect data when adding new data.
+        if not strict_mode():
+            return self
+        if self.loaded_from_file(info):
+            return self
+        if self.source is None:
+            raise ValueError("Output source is required when strict mode is enabled")
         return self
 
 
@@ -415,12 +428,10 @@ class TaskRun(KilnParentedModel):
     @model_validator(mode="after")
     def validate_input_source(self, info: ValidationInfo) -> Self:
         # On strict mode and not loaded from file, we validate input_source is not None.
+        # We want to be able to load any data, even if it's not perfect. But we want to create perfect data when adding new data.
         if not strict_mode():
             return self
         if self.loaded_from_file(info):
-            # We only perform strict validation when making new models, not loading from file
-            return self
-        if self._loaded_from_file:
             return self
         if self.input_source is None:
             raise ValueError("input_source is required when strict mode is enabled")
