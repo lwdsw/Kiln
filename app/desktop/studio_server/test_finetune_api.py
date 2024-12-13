@@ -28,23 +28,21 @@ from app.desktop.studio_server.finetune_api import (
 
 
 @pytest.fixture
-def mock_task():
-    task = Mock()
-    task.dataset_splits.return_value = [
-        DatasetSplit(
-            id="split1",
-            name="Split 1",
-            split_contents={"train": ["1", "2"]},
-            splits=AllSplitDefinition,
-        ),
-        DatasetSplit(
-            id="split2",
-            name="Split 2",
-            split_contents={"test": ["3"]},
-            splits=AllSplitDefinition,
-        ),
-    ]
-    task.finetunes.return_value = [
+def test_task(tmp_path):
+    project_path = tmp_path / "project.kiln"
+
+    project = Project(name="Test Project", path=str(project_path))
+    project.save_to_file()
+
+    task = Task(
+        name="Test Task",
+        instruction="This is a test instruction",
+        description="This is a test task",
+        parent=project,
+    )
+    task.save_to_file()
+
+    tunes = [
         Finetune(
             id="ft1",
             name="Finetune 1",
@@ -62,38 +60,29 @@ def mock_task():
             system_message="System prompt 2",
         ),
     ]
-    return task
-
-
-@pytest.fixture
-def test_task(tmp_path, mock_task):
-    project_path = tmp_path / "project.kiln"
-
-    project = Project(name="Test Project", path=str(project_path))
-    project.save_to_file()
-
-    task = Task(
-        name="Test Task",
-        instruction="This is a test instruction",
-        description="This is a test task",
-        parent=project,
-    )
-    task.save_to_file()
-
-    for tune in mock_task.finetunes.return_value:
+    for tune in tunes:
         tune.parent = task
         tune.save_to_file()
 
+    splits = [
+        DatasetSplit(
+            id="split1",
+            name="Split 1",
+            split_contents={"train": ["1", "2"]},
+            splits=AllSplitDefinition,
+        ),
+        DatasetSplit(
+            id="split2",
+            name="Split 2",
+            split_contents={"test": ["3"]},
+            splits=AllSplitDefinition,
+        ),
+    ]
+    for split in splits:
+        split.parent = task
+        split.save_to_file()
+
     return task
-
-
-@pytest.fixture
-def mock_task_from_id(mock_task, monkeypatch):
-    mock_func = Mock(return_value=mock_task)
-    monkeypatch.setattr(
-        "app.desktop.studio_server.finetune_api.task_from_id", mock_func
-    )
-    return mock_func
 
 
 @pytest.fixture
@@ -112,30 +101,31 @@ def client():
     return TestClient(app)
 
 
-def test_get_dataset_splits(client, mock_task_from_id, mock_task):
+def test_get_dataset_splits(client, mock_task_from_id_disk_backed, test_task):
     response = client.get("/api/projects/project1/tasks/task1/dataset_splits")
 
     assert response.status_code == 200
     splits = response.json()
     assert len(splits) == 2
-    assert splits[0]["id"] == "split1"
-    assert splits[1]["id"] == "split2"
 
-    mock_task_from_id.assert_called_once_with("project1", "task1")
-    mock_task.dataset_splits.assert_called_once()
+    assert splits[0]["id"] in ["split1", "split2"]
+    assert splits[1]["id"] in ["split1", "split2"]
+    assert splits[0]["id"] != splits[1]["id"]
+
+    mock_task_from_id_disk_backed.assert_called_once_with("project1", "task1")
 
 
-def test_get_finetunes(client, mock_task_from_id, mock_task):
+def test_get_finetunes(client, mock_task_from_id_disk_backed, test_task):
     response = client.get("/api/projects/project1/tasks/task1/finetunes")
 
     assert response.status_code == 200
     finetunes = response.json()
     assert len(finetunes) == 2
-    assert finetunes[0]["id"] == "ft1"
-    assert finetunes[1]["id"] == "ft2"
+    assert finetunes[0]["id"] in ["ft1", "ft2"]
+    assert finetunes[1]["id"] in ["ft1", "ft2"]
+    assert finetunes[0]["id"] != finetunes[1]["id"]
 
-    mock_task_from_id.assert_called_once_with("project1", "task1")
-    mock_task.finetunes.assert_called_once()
+    mock_task_from_id_disk_backed.assert_called_once_with("project1", "task1")
 
 
 @pytest.fixture
@@ -319,7 +309,9 @@ def mock_dataset_split():
     return split
 
 
-def test_create_dataset_split(client, mock_task_from_id, mock_dataset_split):
+def test_create_dataset_split(
+    client, mock_task_from_id_disk_backed, mock_dataset_split
+):
     # Mock DatasetSplit.from_task and save_to_file
     mock_from_task = unittest.mock.patch.object(
         DatasetSplit, "from_task", return_value=mock_dataset_split
@@ -344,12 +336,14 @@ def test_create_dataset_split(client, mock_task_from_id, mock_dataset_split):
         assert result["name"] == "Test Split"
 
         # Verify the mocks were called correctly
-        mock_task_from_id.assert_called_once_with("project1", "task1")
+        mock_task_from_id_disk_backed.assert_called_once_with("project1", "task1")
         from_task_mock.assert_called_once()
         save_mock.assert_called_once()
 
 
-def test_create_dataset_split_auto_name(client, mock_task_from_id, mock_dataset_split):
+def test_create_dataset_split_auto_name(
+    client, mock_task_from_id_disk_backed, mock_dataset_split
+):
     # Mock DatasetSplit.from_task and save_to_file
     mock_from_task = unittest.mock.patch.object(
         DatasetSplit, "from_task", return_value=mock_dataset_split
@@ -428,7 +422,11 @@ def mock_finetune_adapter():
 
 
 async def test_create_finetune(
-    client, mock_task_from_id, mock_task, mock_finetune_registry, mock_finetune_adapter
+    client,
+    mock_task_from_id_disk_backed,
+    test_task,
+    mock_finetune_registry,
+    mock_finetune_adapter,
 ):
     mock_finetune_registry["test_provider"] = mock_finetune_adapter
 
@@ -455,9 +453,11 @@ async def test_create_finetune(
     assert result["provider"] == "test_provider"
     assert result["base_model_id"] == "base_model_1"
 
+    split1 = next(split for split in test_task.dataset_splits() if split.id == "split1")
+
     # Verify the adapter was called correctly
     mock_finetune_adapter.create_and_start.assert_awaited_once_with(
-        dataset=mock_task.dataset_splits.return_value[0],  # First split from our mock
+        dataset=split1,
         provider_id="test_provider",
         provider_base_model_id="base_model_1",
         train_split_name="train",
@@ -469,7 +469,7 @@ async def test_create_finetune(
     )
 
 
-def test_create_finetune_invalid_provider(client, mock_task_from_id):
+def test_create_finetune_invalid_provider(client, mock_task_from_id_disk_backed):
     request_data = {
         "dataset_id": "split1",
         "train_split_name": "train",
@@ -490,7 +490,10 @@ def test_create_finetune_invalid_provider(client, mock_task_from_id):
 
 
 def test_create_finetune_invalid_dataset(
-    client, mock_task_from_id, mock_finetune_registry, mock_finetune_adapter
+    client,
+    mock_task_from_id_disk_backed,
+    mock_finetune_registry,
+    mock_finetune_adapter,
 ):
     mock_finetune_registry["test_provider"] = mock_finetune_adapter
 
@@ -553,7 +556,10 @@ def test_create_finetune_request_validation():
 
 
 def test_create_finetune_no_system_message(
-    client, mock_task_from_id, mock_finetune_registry, mock_finetune_adapter
+    client,
+    mock_task_from_id_disk_backed,
+    mock_finetune_registry,
+    mock_finetune_adapter,
 ):
     mock_finetune_registry["test_provider"] = mock_finetune_adapter
 
@@ -591,8 +597,7 @@ def mock_prompt_builder():
 
 async def test_create_finetune_with_prompt_builder(
     client,
-    mock_task_from_id,
-    mock_task,
+    mock_task_from_id_disk_backed,
     mock_finetune_registry,
     mock_finetune_adapter,
     mock_prompt_builder,
@@ -629,7 +634,7 @@ async def test_create_finetune_with_prompt_builder(
 
 def test_create_finetune_prompt_builder_error(
     client,
-    mock_task_from_id,
+    mock_task_from_id_disk_backed,
     mock_finetune_registry,
     mock_finetune_adapter,
     mock_prompt_builder,
@@ -674,8 +679,7 @@ def mock_dataset_formatter():
 
 def test_download_dataset_jsonl(
     client,
-    mock_task_from_id,
-    mock_task,
+    mock_task_from_id_disk_backed,
     mock_dataset_formatter,
     tmp_path,
 ):
@@ -711,7 +715,7 @@ def test_download_dataset_jsonl(
     mock_formatter.dump_to_file.assert_called_once_with("train", "openai_chat_jsonl")
 
 
-def test_download_dataset_jsonl_invalid_format(client, mock_task_from_id):
+def test_download_dataset_jsonl_invalid_format(client, mock_task_from_id_disk_backed):
     response = client.get(
         "/api/download_dataset_jsonl",
         params={
@@ -728,7 +732,7 @@ def test_download_dataset_jsonl_invalid_format(client, mock_task_from_id):
     assert response.json()["detail"] == "Dataset format 'invalid_format' not found"
 
 
-def test_download_dataset_jsonl_invalid_dataset(client, mock_task_from_id):
+def test_download_dataset_jsonl_invalid_dataset(client, mock_task_from_id_disk_backed):
     response = client.get(
         "/api/download_dataset_jsonl",
         params={
@@ -747,7 +751,7 @@ def test_download_dataset_jsonl_invalid_dataset(client, mock_task_from_id):
     )
 
 
-def test_download_dataset_jsonl_invalid_split(client, mock_task_from_id, mock_task):
+def test_download_dataset_jsonl_invalid_split(client, mock_task_from_id_disk_backed):
     response = client.get(
         "/api/download_dataset_jsonl",
         params={
@@ -768,8 +772,8 @@ def test_download_dataset_jsonl_invalid_split(client, mock_task_from_id, mock_ta
 
 def test_download_dataset_jsonl_with_prompt_builder(
     client,
-    mock_task_from_id,
-    mock_task,
+    mock_task_from_id_disk_backed,
+    test_task,
     mock_dataset_formatter,
     mock_prompt_builder,
     tmp_path,
@@ -800,10 +804,9 @@ def test_download_dataset_jsonl_with_prompt_builder(
     prompt_builder_mock.assert_called_once_with("test_prompt_builder")
     builder.build_prompt.assert_called_once()
 
+    split1 = next(split for split in test_task.dataset_splits() if split.id == "split1")
     # Verify formatter was created with generated system message
-    mock_formatter_class.assert_called_once_with(
-        mock_task.dataset_splits.return_value[0], "Generated system message"
-    )
+    mock_formatter_class.assert_called_once_with(split1, "Generated system message")
 
 
 async def test_get_finetune(client, mock_task_from_id_disk_backed):
@@ -838,7 +841,11 @@ def test_get_finetune_not_found(client, mock_task_from_id_disk_backed):
 
 
 async def test_get_finetunes_with_status_update(
-    client, mock_task_from_id, mock_task, mock_finetune_registry, monkeypatch
+    client,
+    mock_task_from_id_disk_backed,
+    test_task,
+    mock_finetune_registry,
+    monkeypatch,
 ):
     # Create a mock enum class
     class MockModelProviderName:
@@ -859,8 +866,15 @@ async def test_get_finetunes_with_status_update(
     mock_finetune_registry["test_provider"] = mock_adapter_class
 
     # Add latest_status to mock finetunes
-    mock_task.finetunes.return_value[0].latest_status = "pending"  # Should be updated
-    mock_task.finetunes.return_value[1].latest_status = "completed"  # Should be skipped
+    tune1 = next(ft for ft in test_task.finetunes() if ft.id == "ft1")
+    tune2 = next(ft for ft in test_task.finetunes() if ft.id == "ft2")
+    tune1.latest_status = "pending"  # Should be updated
+    tune1.save_to_file()
+    tune2.latest_status = "completed"  # Should be skipped
+    tune2.save_to_file()
+
+    mock_adapter_class.assert_not_called()
+    mock_adapter.status.assert_not_called()
 
     response = client.get(
         "/api/projects/project1/tasks/task1/finetunes?update_status=true"
@@ -871,5 +885,5 @@ async def test_get_finetunes_with_status_update(
     assert len(finetunes) == 2
 
     # Verify that status was only checked for the pending finetune
-    mock_adapter_class.assert_called_once_with(mock_task.finetunes.return_value[0])
+    mock_adapter_class.assert_called_once_with(tune1)
     mock_adapter.status.assert_called_once()
