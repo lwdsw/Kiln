@@ -103,7 +103,7 @@ class RunSummary(BaseModel):
             created_at=run.created_at,
             repair_state=RunSummary.repair_status_display_name(run),
             model_name=model_name,
-            input_source=run.input_source.type,
+            input_source=run.input_source.type if run.input_source else None,
         )
 
 
