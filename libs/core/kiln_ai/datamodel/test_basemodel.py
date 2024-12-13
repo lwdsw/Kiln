@@ -290,9 +290,8 @@ def test_lazy_load_parent(tmp_path):
     assert loaded_parent.name == "Parent"
     assert loaded_parent.path == parent.path
 
-    # Verify that the _parent attribute is now set
-    assert hasattr(loaded_child, "_parent")
-    assert loaded_child._parent is loaded_parent
+    # Verify that the parent is cached
+    assert loaded_child.cached_parent() is loaded_parent
 
 
 def test_delete(tmp_path):

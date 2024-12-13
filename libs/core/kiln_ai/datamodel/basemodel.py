@@ -241,9 +241,6 @@ class KilnParentedModel(KilnBaseModel, metaclass=ABCMeta):
     def __getattribute__(self, name: str) -> Any:
         if name == "parent":
             return self.load_parent()
-        # TODO remove this and used cached_parent
-        if name == "_parent":
-            return self.cached_parent()
         return super().__getattribute__(name)
 
     def cached_parent(self) -> Optional[KilnBaseModel]:
