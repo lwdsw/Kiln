@@ -312,9 +312,7 @@ class KilnParentedModel(KilnBaseModel, metaclass=ABCMeta):
         )
 
     @classmethod
-    def all_children_of_parent_path(
-        cls: Type[PT], parent_path: Path | None
-    ) -> list[PT]:
+    def iterate_children_paths_of_parent_path(cls: Type[PT], parent_path: Path | None):
         if parent_path is None:
             # children are disk based. If not saved, they don't exist
             return []
@@ -336,12 +334,40 @@ class KilnParentedModel(KilnBaseModel, metaclass=ABCMeta):
             return []
 
         # Collect all /relationship/{id}/{base_filename.kiln} files in the relationship folder
-        children = []
         for child_file in relationship_folder.glob(f"**/{cls.base_filename()}"):
-            child = cls.load_from_file(child_file)
-            children.append(child)
+            yield child_file
 
+    @classmethod
+    def all_children_of_parent_path(
+        cls: Type[PT], parent_path: Path | None
+    ) -> list[PT]:
+        children = []
+        for child_path in cls.iterate_children_paths_of_parent_path(parent_path):
+            children.append(cls.load_from_file(child_path))
         return children
+
+    @classmethod
+    def from_id_and_parent_path(
+        cls: Type[PT], id: str, parent_path: Path | None
+    ) -> PT | None:
+        """
+        Fast search by ID using the cache. Avoids the model_copy overhead on all but the exact match.
+
+        Uses cache so still slow on first load.
+        """
+        if parent_path is None:
+            return None
+
+        # Note: we're using the in-file ID. We could make this faster using the path-ID if this becomes perf bottleneck, but it's better to have 1 source of truth.
+        for child_path in cls.iterate_children_paths_of_parent_path(parent_path):
+            child_id = ModelCache.shared().get_model_id(child_path, cls)
+            if child_id == id:
+                return cls.load_from_file(child_path)
+            if child_id is None:
+                child = cls.load_from_file(child_path)
+                if child.id == id:
+                    return child
+        return None
 
 
 # Parent create methods for all child relationships

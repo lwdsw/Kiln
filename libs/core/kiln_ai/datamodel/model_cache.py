@@ -49,7 +49,7 @@ class ModelCache:
             return False
         return cached_mtime_ns == current_mtime_ns
 
-    def get_model(self, path: Path, model_type: Type[T]) -> Optional[T]:
+    def _get_model(self, path: Path, model_type: Type[T]) -> Optional[T]:
         if path not in self.model_cache:
             return None
         model, cached_mtime_ns = self.model_cache[path]
@@ -60,10 +60,23 @@ class ModelCache:
         if not isinstance(model, model_type):
             self.invalidate(path)
             raise ValueError(f"Model at {path} is not of type {model_type.__name__}")
+        return model
 
+    def get_model(self, path: Path, model_type: Type[T]) -> Optional[T]:
         # We return a copy so in-memory edits don't impact the cache until they are saved
         # Benchmark shows about 2x slower, but much more foolproof
-        return model.model_copy(deep=True)
+        model = self._get_model(path, model_type)
+        if model:
+            return model.model_copy(deep=True)
+        return None
+
+    def get_model_id(self, path: Path, model_type: Type[T]) -> Optional[str]:
+        model = self._get_model(path, model_type)
+        if model and hasattr(model, "id"):
+            id = model.id  # type: ignore
+            if isinstance(id, str):
+                return id
+        return None
 
     def set_model(self, path: Path, model: BaseModel, mtime_ns: int):
         # disable caching if the filesystem doesn't support fine-grained timestamps

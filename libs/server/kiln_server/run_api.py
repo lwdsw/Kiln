@@ -9,7 +9,6 @@ from kiln_ai.datamodel import Task, TaskOutputRating, TaskOutputRatingType, Task
 from kiln_ai.datamodel.basemodel import ID_TYPE
 from pydantic import BaseModel, ConfigDict
 
-from kiln_server.project_api import project_from_id
 from kiln_server.task_api import task_from_id
 
 # Lock to prevent overwriting via concurrent updates. We use a load/update/write pattern that is not atomic.
@@ -117,9 +116,9 @@ def task_and_run_from_id(
     project_id: str, task_id: str, run_id: str
 ) -> tuple[Task, TaskRun]:
     task = task_from_id(project_id, task_id)
-    for run in task.runs():
-        if run.id == run_id:
-            return task, run
+    run = TaskRun.from_id_and_parent_path(run_id, task.path)
+    if run:
+        return task, run
 
     raise HTTPException(
         status_code=404,
@@ -156,15 +155,7 @@ def connect_run_api(app: FastAPI):
     async def run_task(
         project_id: str, task_id: str, request: RunTaskRequest
     ) -> TaskRun:
-        parent_project = project_from_id(project_id)
-        task = next(
-            (task for task in parent_project.tasks() if task.id == task_id), None
-        )
-        if task is None:
-            raise HTTPException(
-                status_code=404,
-                detail=f"Task not found. ID: {task_id}",
-            )
+        task = task_from_id(project_id, task_id)
 
         prompt_builder_class = prompt_builder_from_ui_name(
             request.ui_prompt_method or "basic"
@@ -206,17 +197,9 @@ async def update_run_util(
 ) -> TaskRun:
     # Lock to prevent overwriting concurrent updates
     async with update_run_lock:
-        parent_project = project_from_id(project_id)
-        task = next(
-            (task for task in parent_project.tasks() if task.id == task_id), None
-        )
-        if task is None:
-            raise HTTPException(
-                status_code=404,
-                detail=f"Task not found. ID: {task_id}",
-            )
+        task = task_from_id(project_id, task_id)
 
-        run = next((run for run in task.runs() if run.id == run_id), None)
+        run = TaskRun.from_id_and_parent_path(run_id, task.path)
         if run is None:
             raise HTTPException(
                 status_code=404,
