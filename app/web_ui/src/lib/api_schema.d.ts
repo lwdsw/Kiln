@@ -211,6 +211,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/projects/{project_id}/tasks/{task_id}/runs_summaries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Runs Summary */
+        get: operations["get_runs_summary_api_projects__project_id__tasks__task_id__runs_summaries_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/projects/{project_id}/tasks/{task_id}/run": {
         parameters: {
             query?: never;
@@ -1129,6 +1146,27 @@ export interface components {
              */
             provider?: string | null;
         };
+        /** RunSummary */
+        RunSummary: {
+            /** Id */
+            id: string | null;
+            rating?: components["schemas"]["TaskOutputRating-Output"] | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Input Preview */
+            input_preview?: string | null;
+            /** Output Preview */
+            output_preview?: string | null;
+            /** Repair State */
+            repair_state?: string | null;
+            /** Model Name */
+            model_name?: string | null;
+            /** Input Source */
+            input_source?: string | null;
+        };
         /** RunTaskRequest */
         RunTaskRequest: {
             /** Model Name */
@@ -1949,6 +1987,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TaskRun-Output"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_runs_summary_api_projects__project_id__tasks__task_id__runs_summaries_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunSummary"][];
                 };
             };
             /** @description Validation Error */
