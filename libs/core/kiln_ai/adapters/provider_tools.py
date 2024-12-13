@@ -11,6 +11,7 @@ from kiln_ai.adapters.ml_model_list import (
 from kiln_ai.adapters.ollama_tools import (
     get_ollama_connection,
 )
+from kiln_ai.datamodel import Finetune, Task
 from kiln_ai.datamodel.registry import project_from_id
 
 from ..utils.config import Config
@@ -148,10 +149,10 @@ def finetune_provider_model(
     project = project_from_id(project_id)
     if project is None:
         raise ValueError(f"Project {project_id} not found")
-    task = next((t for t in project.tasks() if t.id == task_id), None)
+    task = Task.from_id_and_parent_path(task_id, project.path)
     if task is None:
         raise ValueError(f"Task {task_id} not found")
-    fine_tune = next((f for f in task.finetunes() if f.id == fine_tune_id), None)
+    fine_tune = Finetune.from_id_and_parent_path(fine_tune_id, task.path)
     if fine_tune is None:
         raise ValueError(f"Fine tune {fine_tune_id} not found")
     if fine_tune.fine_tune_model_id is None:
