@@ -23,6 +23,7 @@ class ModelProviderName(str, Enum):
     fireworks_ai = "fireworks_ai"
     kiln_fine_tune = "kiln_fine_tune"
     kiln_custom_registry = "kiln_custom_registry"
+    openai_compatible = "openai_compatible"
 
 
 class ModelFamily(str, Enum):

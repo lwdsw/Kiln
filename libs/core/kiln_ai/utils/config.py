@@ -84,6 +84,10 @@ class Config:
                 list,
                 default_lambda=lambda: [],
             ),
+            "openai_compatible_providers": ConfigProperty(
+                list,
+                default_lambda=lambda: [],
+            ),
         }
         self._settings = self.load_settings()
 

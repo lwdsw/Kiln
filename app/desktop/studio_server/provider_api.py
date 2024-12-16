@@ -1,6 +1,7 @@
 import os
 from typing import Dict, List
 
+import openai
 import requests
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
@@ -152,6 +153,10 @@ def connect_provider_api(app: FastAPI):
         custom = custom_models()
         if custom:
             models.append(custom)
+
+        # Add any openai compatible providers
+        openai_compatible = openai_compatible_providers()
+        models.extend(openai_compatible)
 
         return models
 
@@ -516,3 +521,72 @@ def all_fine_tuned_models() -> AvailableModels | None:
             models=models,
         )
     return None
+
+
+_openai_compatible_providers_cache: List[AvailableModels] | None = None
+
+
+def openai_compatible_providers() -> List[AvailableModels]:
+    global _openai_compatible_providers_cache
+    v = _openai_compatible_providers_cache
+
+    if v is None:
+        # Load values and cache them
+        v = openai_compatible_providers_uncached()
+        _openai_compatible_providers_cache = v
+
+    return v
+
+
+def openai_compatible_providers_uncached() -> List[AvailableModels]:
+    providers = Config.shared().openai_compatible_providers
+    if not providers or len(providers) == 0:
+        return []
+
+    openai_compatible_models: List[AvailableModels] = []
+    for provider in providers:
+        models: List[ModelDetails] = []
+        base_url = provider["base_url"]
+        if not base_url or not base_url.startswith("http"):
+            print(f"No base URL for OpenAI compatible provider {provider} - {base_url}")
+            continue
+        name = provider["name"]
+        if not name:
+            print(f"No name for OpenAI compatible provider {provider}")
+            continue
+
+        # API key is optional, as some providers don't require it
+        api_key = provider.get("api_key") or ""
+        openai_client = openai.OpenAI(
+            api_key=api_key,
+            base_url=base_url,
+        )
+
+        try:
+            provider_models = openai_client.models.list()
+            for model in provider_models:
+                models.append(
+                    ModelDetails(
+                        id=f"{name}::{model.id}",
+                        name=model.id,
+                        supports_structured_output=False,
+                        supports_data_gen=False,
+                        untested_model=True,
+                    )
+                )
+
+            openai_compatible_models.append(
+                AvailableModels(
+                    provider_id=ModelProviderName.openai_compatible,
+                    provider_name=name,
+                    models=models,
+                )
+            )
+        except Exception as e:
+            print(f"Error connecting to OpenAI compatible provider {name}: {e}")
+            continue
+
+    if len(openai_compatible_models) == 0:
+        return []
+
+    return openai_compatible_models
