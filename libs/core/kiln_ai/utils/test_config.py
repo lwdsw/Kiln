@@ -262,8 +262,7 @@ async def test_openai_compatible_providers():
         {
             "name": "provider1",
             "url": "https://provider1.com",
-            "username": "user1",
-            "password": "password1",
+            "api_key": "password1",
         },
         {
             "name": "provider2",
@@ -273,7 +272,12 @@ async def test_openai_compatible_providers():
     config.save_setting("openai_compatible_providers", new_settings)
     assert config.openai_compatible_providers == new_settings
 
-    print(config.settings_path)
+    # Test that sensitive keys are hidden
+    settings = config.settings(hide_sensitive=True)
+    assert settings["openai_compatible_providers"] == [
+        {"name": "provider1", "url": "https://provider1.com", "api_key": "[hidden]"},
+        {"name": "provider2", "url": "https://provider2.com"},
+    ]
 
 
 def test_yaml_persistence_structured_data(config_with_yaml, mock_yaml_file):
@@ -282,8 +286,7 @@ def test_yaml_persistence_structured_data(config_with_yaml, mock_yaml_file):
         {
             "name": "provider1",
             "url": "https://provider1.com",
-            "username": "user1",
-            "password": "password1",
+            "api_key": "password1",
         },
         {
             "name": "provider2",
