@@ -1,5 +1,7 @@
 import os
-from typing import Dict, List
+from dataclasses import dataclass
+from datetime import datetime, timedelta
+from typing import Any, Dict, List
 
 import openai
 import requests
@@ -523,23 +525,50 @@ def all_fine_tuned_models() -> AvailableModels | None:
     return None
 
 
-_openai_compatible_providers_cache: List[AvailableModels] | None = None
+@dataclass
+class OpenAICompatibleProviderCache:
+    providers: List[AvailableModels]
+    last_updated: datetime | None = None
+    openai_compat_config_when_cached: Any | None = None
+
+    # Cache for 60 minutes, or if the config changes
+    def is_stale(self) -> bool:
+        if self.last_updated is None:
+            return True
+
+        if datetime.now() - self.last_updated > timedelta(minutes=60):
+            return True
+
+        current_providers = Config.shared().openai_compatible_providers
+        if current_providers != self.openai_compat_config_when_cached:
+            return True
+
+        return False
+
+
+_openai_compatible_providers_cache: OpenAICompatibleProviderCache | None = None
 
 
 def openai_compatible_providers() -> List[AvailableModels]:
     global _openai_compatible_providers_cache
-    v = _openai_compatible_providers_cache
 
-    if v is None:
+    if (
+        _openai_compatible_providers_cache is None
+        or _openai_compatible_providers_cache.is_stale()
+    ):
         # Load values and cache them
-        v = openai_compatible_providers_uncached()
-        _openai_compatible_providers_cache = v
+        provider_config = Config.shared().openai_compatible_providers
+        providers = openai_compatible_providers_uncached(provider_config)
+        _openai_compatible_providers_cache = OpenAICompatibleProviderCache(
+            providers=providers,
+            last_updated=datetime.now(),
+            openai_compat_config_when_cached=provider_config,
+        )
 
-    return v
+    return _openai_compatible_providers_cache.providers
 
 
-def openai_compatible_providers_uncached() -> List[AvailableModels]:
-    providers = Config.shared().openai_compatible_providers
+def openai_compatible_providers_uncached(providers: List[Any]) -> List[AvailableModels]:
     if not providers or len(providers) == 0:
         return []
 
