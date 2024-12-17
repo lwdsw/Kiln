@@ -168,6 +168,43 @@ def connect_provider_api(app: FastAPI):
     ) -> OllamaConnection:
         return await connect_ollama(custom_ollama_url)
 
+    @app.post("/api/provider/openai_compatible")
+    async def save_openai_compatible_providers(name: str, base_url: str, api_key: str):
+        providers = Config.shared().openai_compatible_providers or []
+        existing_provider = next((p for p in providers if p["name"] == name), None)
+        if existing_provider:
+            raise HTTPException(
+                status_code=400,
+                detail="Provider with this name already exists",
+            )
+        providers.append(
+            {
+                "name": name,
+                "base_url": base_url,
+                "api_key": api_key,
+            }
+        )
+        Config.shared().openai_compatible_providers = providers
+        return JSONResponse(
+            status_code=200,
+            content={"message": "OpenAI compatible provider saved"},
+        )
+
+    @app.delete("/api/provider/openai_compatible")
+    async def delete_openai_compatible_providers(name: str):
+        if not name:
+            return JSONResponse(
+                status_code=400,
+                content={"message": "Name is required"},
+            )
+        providers = Config.shared().openai_compatible_providers or []
+        providers = [p for p in providers if p["name"] != name]
+        Config.shared().openai_compatible_providers = providers
+        return JSONResponse(
+            status_code=200,
+            content={"message": "OpenAI compatible provider deleted"},
+        )
+
     @app.post("/api/provider/connect_api_key")
     async def connect_api_key(payload: dict):
         provider = payload.get("provider")

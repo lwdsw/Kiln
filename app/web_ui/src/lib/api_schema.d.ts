@@ -296,6 +296,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/provider/openai_compatible": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Save Openai Compatible Providers */
+        post: operations["save_openai_compatible_providers_api_provider_openai_compatible_post"];
+        /** Delete Openai Compatible Providers */
+        delete: operations["delete_openai_compatible_providers_api_provider_openai_compatible_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/provider/connect_api_key": {
         parameters: {
             query?: never;
@@ -987,6 +1005,35 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
+        /**
+         * KilnBaseModel
+         * @description Base model for all Kiln data models with common functionality for persistence and versioning.
+         *
+         *     Attributes:
+         *         v (int): Schema version number for migration support
+         *         id (str): Unique identifier for the model instance
+         *         path (Path): File system path where the model is stored
+         *         created_at (datetime): Timestamp when the model was created
+         *         created_by (str): User ID of the creator
+         */
+        KilnBaseModel: {
+            /**
+             * V
+             * @default 1
+             */
+            v: number;
+            /** Id */
+            id?: string | null;
+            /** Path */
+            path?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /** Created By */
+            created_by?: string;
+        };
         /** ModelDetails */
         ModelDetails: {
             /** Id */
@@ -1266,7 +1313,7 @@ export interface components {
              */
             output: string;
             /** @description The source of the output: human or synthetic. */
-            source: components["schemas"]["DataSource"];
+            source?: components["schemas"]["DataSource"] | null;
             /** @description The rating of the output */
             rating?: components["schemas"]["TaskOutputRating-Input"] | null;
         };
@@ -1300,7 +1347,7 @@ export interface components {
              */
             output: string;
             /** @description The source of the output: human or synthetic. */
-            source: components["schemas"]["DataSource"];
+            source?: components["schemas"]["DataSource"] | null;
             /** @description The rating of the output */
             rating?: components["schemas"]["TaskOutputRating-Output"] | null;
             /** Model Type */
@@ -1438,13 +1485,14 @@ export interface components {
             created_at?: string;
             /** Created By */
             created_by?: string;
+            parent?: components["schemas"]["KilnBaseModel"] | null;
             /**
              * Input
              * @description The inputs to the task. JSON formatted for structured input, plaintext for unstructured input.
              */
             input: string;
             /** @description The source of the input: human or synthetic. */
-            input_source: components["schemas"]["DataSource"];
+            input_source?: components["schemas"]["DataSource"] | null;
             /** @description The output of the task run. */
             output: components["schemas"]["TaskOutput-Input"];
             /**
@@ -1492,7 +1540,7 @@ export interface components {
              */
             input: string;
             /** @description The source of the input: human or synthetic. */
-            input_source: components["schemas"]["DataSource"];
+            input_source?: components["schemas"]["DataSource"] | null;
             /** @description The output of the task run. */
             output: components["schemas"]["TaskOutput-Output"];
             /**
@@ -2126,6 +2174,70 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OllamaConnection"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_openai_compatible_providers_api_provider_openai_compatible_post: {
+        parameters: {
+            query: {
+                name: string;
+                base_url: string;
+                api_key: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_openai_compatible_providers_api_provider_openai_compatible_delete: {
+        parameters: {
+            query: {
+                name: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */

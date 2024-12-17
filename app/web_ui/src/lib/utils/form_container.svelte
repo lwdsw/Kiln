@@ -14,6 +14,7 @@
   export let saved = false
   export let keyboard_submit = true
   export let submit_visible = true
+  export let gap: number = 6
   $: ui_saved_indicator = update_ui_saved_indicator(saved)
 
   function update_ui_saved_indicator(saved: boolean): boolean {
@@ -157,7 +158,7 @@
 
 <svelte:window on:keydown={handleKeydown} />
 
-<form class="flex flex-col gap-6 w-full" {id}>
+<form class="flex flex-col gap-{gap} w-full" {id}>
   <slot />
 
   <div class="flex flex-col gap-2">
