@@ -147,12 +147,12 @@ def openai_compatible_provider_model(
     except Exception:
         raise ValueError(f"Invalid openai compatible model ID: {model_id}")
 
-    openai_providers = Config.shared().openai_compatible_providers
-    if openai_providers is None:
-        raise ValueError("No openai compatible providers found")
-
+    openai_compatible_providers = Config.shared().openai_compatible_providers or []
     provider = next(
-        filter(lambda p: p.get("name") == openai_provider_name, openai_providers), None
+        filter(
+            lambda p: p.get("name") == openai_provider_name, openai_compatible_providers
+        ),
+        None,
     )
     if provider is None:
         raise ValueError(f"OpenAI compatible provider {openai_provider_name} not found")

@@ -612,11 +612,11 @@ def openai_compatible_providers_uncached(providers: List[Any]) -> List[Available
     openai_compatible_models: List[AvailableModels] = []
     for provider in providers:
         models: List[ModelDetails] = []
-        base_url = provider["base_url"]
+        base_url = provider.get("base_url")
         if not base_url or not base_url.startswith("http"):
             print(f"No base URL for OpenAI compatible provider {provider} - {base_url}")
             continue
-        name = provider["name"]
+        name = provider.get("name")
         if not name:
             print(f"No name for OpenAI compatible provider {provider}")
             continue

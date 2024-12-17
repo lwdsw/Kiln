@@ -336,7 +336,10 @@
       if (data["ollama_base_url"]) {
         custom_ollama_url = data["ollama_base_url"]
       }
-      if (data["openai_compatible_providers"]) {
+      if (
+        data["openai_compatible_providers"] &&
+        data["openai_compatible_providers"].length > 0
+      ) {
         status.openai_compatible.connected = true
         custom_openai_compatible_providers = data["openai_compatible_providers"]
       }
@@ -410,6 +413,7 @@
       new_provider_api_key = ""
       new_provider_error = null
 
+      status.openai_compatible.connected = true
       // @ts-expect-error daisyui does not add types
       document.getElementById("openai_compatible_dialog")?.close()
     } catch (e) {
@@ -445,6 +449,9 @@
         custom_openai_compatible_providers.filter(
           (v, _) => v.name !== provider.name,
         )
+      if (custom_openai_compatible_providers.length === 0) {
+        status.openai_compatible.connected = false
+      }
     } catch (e) {
       alert("Failed to remove provider: " + e)
     }
@@ -654,10 +661,9 @@
       >
     </form>
 
-    <h3 class="text-lg font-bold">Custom API</h3>
+    <h3 class="text-lg font-bold flex flex-row gap-4">Connect Custom APIs</h3>
     <p class="text-sm font-light mb-8">
-      Only recommended for advanced users. Setup any any OpenAI compatible API
-      by adding a base URL and API key.
+      Connect any any OpenAI compatible API by adding a base URL and API key.
     </p>
     {#if custom_openai_compatible_providers.length > 0}
       <div class="flex flex-col gap-2">
@@ -691,14 +697,14 @@
           id="name"
           label="API Name"
           bind:value={new_provider_name}
-          placeholder="My inference server"
-          info_description="A name for this endpoint for you use. Example: 'My inference server'"
+          placeholder="My home server"
+          info_description="A name for this endpoint for you use. Example: 'My home server'"
         />
         <FormElement
           id="base_url"
           label="Base URL"
           bind:value={new_provider_base_url}
-          placeholder="https://"
+          placeholder="https://..."
           info_description="The base URL of an OpenAI compatible API. For example, https://openrouter.ai/api/v1"
         />
         <FormElement
