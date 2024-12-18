@@ -1239,6 +1239,8 @@ export interface components {
             structured_input?: Record<string, never> | null;
             /** Ui Prompt Method */
             ui_prompt_method?: string | null;
+            /** Tags */
+            tags?: string[] | null;
         };
         /**
          * Task

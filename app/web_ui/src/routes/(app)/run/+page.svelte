@@ -64,6 +64,7 @@
           // @ts-expect-error openapi-fetch generates the wrong type for this: Record<string, never>
           structured_input: input_form.get_structured_input_data(),
           ui_prompt_method: prompt_method,
+          tags: ["manual_run"],
         },
       })
       if (fetch_error) {

@@ -39,8 +39,9 @@ class LangchainAdapter(BaseAdapter):
         model_name: str | None = None,
         provider: str | None = None,
         prompt_builder: BasePromptBuilder | None = None,
+        tags: list[str] | None = None,
     ):
-        super().__init__(kiln_task, prompt_builder=prompt_builder)
+        super().__init__(kiln_task, prompt_builder=prompt_builder, tags=tags)
         if custom_model is not None:
             self._model = custom_model
 
