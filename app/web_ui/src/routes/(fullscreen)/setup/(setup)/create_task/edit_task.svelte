@@ -175,18 +175,21 @@
           instruction:
             "Keep the joke on topic. If the user specifies a theme, the joke must be related to that theme.",
           priority: 1,
+          type: "five_star",
         },
         {
           name: "Keep it clean",
           instruction:
             "Avoid any jokes that are offensive or inappropriate. Keep the joke clean and appropriate for all audiences.",
           priority: 2,
+          type: "pass_fail_critical",
         },
         {
           name: "Be funny",
           instruction:
             "Make the joke funny and engaging. It should be something that someone would want to tell to their friends. Something clever, not just a simple pun.",
           priority: 1,
+          type: "five_star",
         },
       ],
       input_json_schema: JSON.stringify({

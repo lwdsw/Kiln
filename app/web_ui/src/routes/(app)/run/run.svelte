@@ -3,7 +3,7 @@
   import FormElement from "$lib/utils/form_element.svelte"
   import Rating from "./rating.svelte"
   let repair_instructions: string | null = null
-  import type { TaskRun, Task } from "$lib/types"
+  import type { TaskRun, Task, RequirementRating } from "$lib/types"
   import { client } from "$lib/api_client"
   import Output from "./output.svelte"
   import { KilnError, createKilnError } from "$lib/utils/error_handlers"
@@ -32,9 +32,9 @@
 
   // TODO warn_before_unload
 
-  type FiveStarRating = 1 | 2 | 3 | 4 | 5 | null
-  let overall_rating: FiveStarRating = null
-  let requirement_ratings: FiveStarRating[] = []
+  type RatingValue = number | null
+  let overall_rating: RatingValue = null
+  let requirement_ratings: RatingValue[] = []
 
   // Repair is available if the run has an overall rating but it's not 5 stars, and it doesn't yet have a repaired output
   $: should_offer_repair =
@@ -60,12 +60,12 @@
     if (!new_run) {
       return
     }
-    overall_rating = (new_run.output.rating?.value || null) as FiveStarRating
+    overall_rating = (new_run.output.rating?.value || null) as RatingValue
     Object.entries(new_run.output.rating?.requirement_ratings || {}).forEach(
       ([req_id, rating]) => {
         let index = task.requirements.findIndex((req) => req.id === req_id)
         if (index !== -1) {
-          requirement_ratings[index] = rating as FiveStarRating
+          requirement_ratings[index] = rating.value
         }
       },
     )
@@ -100,10 +100,18 @@
 
   async function save_ratings() {
     try {
-      let requirement_ratings_obj: Record<string, FiveStarRating> = {}
+      let requirement_ratings_obj: Record<string, RequirementRating | null> = {}
       task.requirements.forEach((req, index) => {
-        if (req.id) {
-          requirement_ratings_obj[req.id] = requirement_ratings[index]
+        if (!req.id) {
+          return
+        }
+        if (requirement_ratings[index] !== null) {
+          requirement_ratings_obj[req.id] = {
+            value: requirement_ratings[index],
+            type: "five_star",
+          }
+        } else {
+          requirement_ratings_obj[req.id] = null
         }
       })
       let patch_body = {
@@ -175,9 +183,8 @@
   }
 
   // Watch for changes to ratings and save them if they change
-  let prior_overall_rating: 1 | 2 | 3 | 4 | 5 | null = overall_rating
-  let prior_requirement_ratings: (1 | 2 | 3 | 4 | 5 | null)[] =
-    requirement_ratings
+  let prior_overall_rating: RatingValue = overall_rating
+  let prior_requirement_ratings: RatingValue[] = requirement_ratings
   $: {
     if (
       overall_rating !== prior_overall_rating ||

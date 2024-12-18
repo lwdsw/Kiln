@@ -157,7 +157,9 @@ class TaskOutputRating(KilnBaseModel):
         if self.type not in TaskOutputRatingType:
             raise ValueError(f"Invalid rating type: {self.type}")
 
-        self._validate_rating(self.type, self.value, "overall rating")
+        # Overall rating is optional
+        if self.value is not None:
+            self._validate_rating(self.type, self.value, "overall rating")
 
         for req_id, req_rating in self.requirement_ratings.items():
             self._validate_rating(
