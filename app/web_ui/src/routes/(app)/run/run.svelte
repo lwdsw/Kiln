@@ -108,7 +108,7 @@
         if (requirement_ratings[index] !== null) {
           requirement_ratings_obj[req.id] = {
             value: requirement_ratings[index],
-            type: "five_star",
+            type: req.type,
           }
         } else {
           requirement_ratings_obj[req.id] = null
@@ -371,7 +371,7 @@
               {requirement.name}:
               <button
                 class="tooltip"
-                data-tip={`Requirement #${index + 1} - ${requirement.instruction || "No instruction provided"}`}
+                data-tip={`Requirement #${index + 1} - ${requirement.instruction || "No instruction provided"}${requirement.type === "pass_fail_critical" ? " Use 'critical' rating for responses which are never tolerable, beyond a typical failure." : ""}`}
               >
                 <svg
                   fill="currentColor"
@@ -388,7 +388,11 @@
               </button>
             </div>
             <div class="flex items-center">
-              <Rating bind:rating={requirement_ratings[index]} size={6} />
+              <Rating
+                bind:rating={requirement_ratings[index]}
+                type={requirement.type}
+                size={6}
+              />
             </div>
           {/each}
         {/if}
@@ -396,7 +400,7 @@
           Overall Rating:
         </div>
         <div class="flex items-center">
-          <Rating bind:rating={overall_rating} size={7} />
+          <Rating bind:rating={overall_rating} type="five_star" size={7} />
         </div>
       </div>
     </div>
