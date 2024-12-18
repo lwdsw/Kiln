@@ -2592,7 +2592,9 @@ export interface operations {
     };
     save_sample_api_projects__project_id__tasks__task_id__save_sample_post: {
         parameters: {
-            query?: never;
+            query?: {
+                session_id?: string | null;
+            };
             header?: never;
             path: {
                 project_id: string;
