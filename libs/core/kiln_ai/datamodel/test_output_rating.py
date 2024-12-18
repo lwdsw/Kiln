@@ -293,13 +293,13 @@ def test_invalid_pass_fail_rating_value():
 def test_pass_fail_rating_out_of_range():
     with pytest.raises(
         ValidationError,
-        match="Overall rating of type pass_fail must be 0.0 \\(fail\\) or 1.0 \\(pass\\)",
+        match="Overall rating of type pass_fail must be 0 \\(fail\\) or 1 \\(pass\\)",
     ):
         TaskOutputRating(type=TaskOutputRatingType.pass_fail, value=2.0)
 
     with pytest.raises(
         ValidationError,
-        match="Requirement rating for req id: req1 of type pass_fail must be 0.0 \\(fail\\) or 1.0 \\(pass\\)",
+        match="Requirement rating for req id: req1 of type pass_fail must be 0 \\(fail\\) or 1 \\(pass\\)",
     ):
         TaskOutputRating(
             type=TaskOutputRatingType.pass_fail,
@@ -353,13 +353,13 @@ def test_invalid_pass_fail_critical_rating_value():
 def test_pass_fail_critical_rating_out_of_range():
     with pytest.raises(
         ValidationError,
-        match="Overall rating of type pass_fail_critical must be -1.0 \\(critical fail\\), 0.0 \\(fail\\), or 1.0 \\(pass\\)",
+        match="Overall rating of type pass_fail_critical must be -1 \\(critical fail\\), 0 \\(fail\\), or 1 \\(pass\\)",
     ):
         TaskOutputRating(type=TaskOutputRatingType.pass_fail_critical, value=2.0)
 
     with pytest.raises(
         ValidationError,
-        match="Requirement rating for req id: req1 of type pass_fail_critical must be -1.0 \\(critical fail\\), 0.0 \\(fail\\), or 1.0 \\(pass\\)",
+        match="Requirement rating for req id: req1 of type pass_fail_critical must be -1 \\(critical fail\\), 0 \\(fail\\), or 1 \\(pass\\)",
     ):
         TaskOutputRating(
             type=TaskOutputRatingType.pass_fail_critical,

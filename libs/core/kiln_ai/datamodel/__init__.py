@@ -181,7 +181,7 @@ class TaskOutputRating(KilnBaseModel):
     def _validate_five_star(self, rating: float | None, rating_name: str) -> None:
         if rating is None or not isinstance(rating, float) or not rating.is_integer():
             raise ValueError(
-                f"{rating_name.capitalize()} of type five_star must be an integer value (1.0, 2.0, 3.0, 4.0, or 5.0)"
+                f"{rating_name.capitalize()} of type five_star must be an integer value (1-5)"
             )
         if rating < 1 or rating > 5:
             raise ValueError(
@@ -191,11 +191,11 @@ class TaskOutputRating(KilnBaseModel):
     def _validate_pass_fail(self, rating: float | None, rating_name: str) -> None:
         if rating is None or not isinstance(rating, float) or not rating.is_integer():
             raise ValueError(
-                f"{rating_name.capitalize()} of type pass_fail must be an integer value (0.0 or 1.0)"
+                f"{rating_name.capitalize()} of type pass_fail must be an integer value (0 or 1)"
             )
-        if rating not in [0.0, 1.0]:
+        if rating not in [0, 1]:
             raise ValueError(
-                f"{rating_name.capitalize()} of type pass_fail must be 0.0 (fail) or 1.0 (pass)"
+                f"{rating_name.capitalize()} of type pass_fail must be 0 (fail) or 1 (pass)"
             )
 
     def _validate_pass_fail_critical(
@@ -203,11 +203,11 @@ class TaskOutputRating(KilnBaseModel):
     ) -> None:
         if rating is None or not isinstance(rating, float) or not rating.is_integer():
             raise ValueError(
-                f"{rating_name.capitalize()} of type pass_fail_critical must be an integer value (-1.0, 0.0, or 1.0)"
+                f"{rating_name.capitalize()} of type pass_fail_critical must be an integer value (-1, 0, or 1)"
             )
-        if rating not in [-1.0, 0.0, 1.0]:
+        if rating not in [-1, 0, 1]:
             raise ValueError(
-                f"{rating_name.capitalize()} of type pass_fail_critical must be -1.0 (critical fail), 0.0 (fail), or 1.0 (pass)"
+                f"{rating_name.capitalize()} of type pass_fail_critical must be -1 (critical fail), 0 (fail), or 1 (pass)"
             )
 
 
