@@ -115,7 +115,7 @@
     {:else if load_error}
       <div class="text-error">{load_error.getMessage()}</div>
     {:else if run && $current_task}
-      <div class="flex flex-col xl:flex-row gap-8 xl:gap-16 mb-10">
+      <div class="flex flex-col xl:flex-row gap-8 xl:gap-16 mb-8">
         <div class="grow">
           <div class="text-xl font-bold mb-4">Input</div>
           <Output raw_output={run.input} />

@@ -10,6 +10,7 @@
   import { bounceOut } from "svelte/easing"
   import { fly } from "svelte/transition"
   import { onMount } from "svelte"
+  import TagDropdown from "./tag_dropdown.svelte"
 
   export let project_id: string
   export let task: Task
@@ -27,9 +28,8 @@
   $: run_complete = overall_rating === 5 || !!run?.repaired_output?.output
 
   let show_raw_data = false
-
   let save_rating_error: KilnError | null = null
-
+  let show_create_tag = false
   // TODO warn_before_unload
 
   type RatingValue = number | null
@@ -96,6 +96,33 @@
       throw fetch_error
     }
     return data
+  }
+
+  let tags_error: KilnError | null = null
+  function add_tags(tags: string[]) {
+    let prior_tags = run.tags
+    let new_tags = [...prior_tags, ...tags]
+    let unique_tags = [...new Set(new_tags)]
+    save_tags(unique_tags)
+  }
+
+  function remove_tag(tag: string) {
+    let prior_tags = run.tags
+    let new_tags = prior_tags.filter((t) => t !== tag)
+    save_tags(new_tags)
+  }
+
+  async function save_tags(tags: string[]) {
+    try {
+      let patch_body = {
+        tags: tags,
+      }
+      updated_run = await patch_run(patch_body)
+      show_create_tag = false
+      tags_error = null
+    } catch (err) {
+      tags_error = createKilnError(err)
+    }
   }
 
   async function save_ratings() {
@@ -402,6 +429,50 @@
         <div class="flex items-center">
           <Rating bind:rating={overall_rating} type="five_star" size={7} />
         </div>
+      </div>
+      <div class="mt-8 mb-4">
+        <div class="text-xl font-bold">Tags</div>
+        {#if tags_error}
+          <p class="text-error text-sm">
+            {tags_error.getMessage()}
+          </p>
+        {/if}
+        <div class="flex flex-row flex-wrap gap-2 mt-2">
+          {#each run.tags.sort() as tag}
+            <div class="badge bg-gray-200 text-gray-500 py-3 px-3 max-w-full">
+              <span class="truncate">{tag}</span>
+              <button
+                class="pl-3 font-medium shrink-0"
+                on:click={() => remove_tag(tag)}>✕</button
+              >
+            </div>
+          {/each}
+          <button
+            class="badge bg-gray-200 text-gray-500 p-3 font-medium {show_create_tag
+              ? 'hidden'
+              : ''}"
+            on:click={() => (show_create_tag = true)}>+</button
+          >
+        </div>
+        {#if show_create_tag}
+          <div
+            class="mt-3 flex flex-row gap-2 items-center {show_create_tag
+              ? ''
+              : 'hidden'}"
+          >
+            <TagDropdown
+              on_select={(tag) => add_tags([tag])}
+              on_escape={() => (show_create_tag = false)}
+              focus_on_mount={true}
+            />
+            <div class="flex-none">
+              <button
+                class="btn btn-sm btn-circle text-xl font-medium"
+                on:click={() => (show_create_tag = false)}>✕</button
+              >
+            </div>
+          </div>
+        {/if}
       </div>
     </div>
   </div>

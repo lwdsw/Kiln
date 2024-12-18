@@ -1536,6 +1536,12 @@ export interface components {
             intermediate_outputs?: {
                 [key: string]: string;
             } | null;
+            /**
+             * Tags
+             * @description Tags for the task run. Tags are used to categorize task runs for filtering and reporting.
+             * @default []
+             */
+            tags: string[];
         };
         /**
          * TaskRun
@@ -1584,6 +1590,12 @@ export interface components {
             intermediate_outputs?: {
                 [key: string]: string;
             } | null;
+            /**
+             * Tags
+             * @description Tags for the task run. Tags are used to categorize task runs for filtering and reporting.
+             * @default []
+             */
+            tags: string[];
             /** Model Type */
             readonly model_type: string;
         };
