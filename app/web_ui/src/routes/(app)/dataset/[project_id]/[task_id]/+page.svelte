@@ -23,6 +23,7 @@
     | "repairState"
     | "created_at"
   let sortDirection: "asc" | "desc" = "asc"
+  let filter_tags: string[] = []
 
   $: project_id = $page.params.project_id
   $: task_id = $page.params.task_id
@@ -141,12 +142,50 @@
   function sortRuns() {
     runs = runs ? [...runs].sort(sortFunction) : null
   }
+
+  function remove_filter_tag(tag: string) {
+    filter_tags = filter_tags.filter((t) => t !== tag)
+  }
+
+  function add_filter_tag(tag: string) {
+    filter_tags = [...new Set([...filter_tags, tag])]
+  }
+
+  $: available_filter_tags = get_available_filter_tags(runs, filter_tags)
+  function get_available_filter_tags(
+    runs: RunSummary[] | null,
+    filter_tags: string[],
+  ): Record<string, number> {
+    if (!runs) return {}
+
+    const filtered_runs = runs.filter((run) =>
+      filter_tags.every((tag) => run.tags?.includes(tag)),
+    )
+
+    const remaining_tags: Record<string, number> = {}
+    filtered_runs.forEach((run) => {
+      run.tags?.forEach((tag) => {
+        if (filter_tags.includes(tag)) return
+        if (typeof tag === "string") {
+          remaining_tags[tag] = (remaining_tags[tag] || 0) + 1
+        }
+      })
+    })
+    return remaining_tags
+  }
 </script>
 
 <AppPage
   title="Dataset"
   subtitle="Explore sample and ratings for this task."
   action_buttons={[
+    {
+      label: "Filter by Tag",
+      handler() {
+        // @ts-expect-error showModal is not a method on HTMLElement
+        document.getElementById("tags_modal")?.showModal()
+      },
+    },
     {
       label: "Add Data",
       handler() {
@@ -186,30 +225,32 @@
         </thead>
         <tbody>
           {#each runs as run}
-            <tr
-              class="hover cursor-pointer"
-              on:click={() => {
-                goto(`/dataset/${project_id}/${task_id}/${run.id}/run`)
-              }}
-            >
-              <td>
-                {run.rating && run.rating.value
-                  ? run.rating.type === "five_star"
-                    ? "★".repeat(run.rating.value)
-                    : run.rating.value + "(custom score)"
-                  : "Unrated"}
-              </td>
-              <td>{run.repair_state}</td>
-              <td>{run.input_source}</td>
-              <td>
-                {model_name(run.model_name || undefined, $model_info)}
-              </td>
-              <td>{formatDate(run.created_at)}</td>
-              <td>{run.input_preview || "No input"}</td>
-              <td>
-                {run.output_preview || "No output"}
-              </td>
-            </tr>
+            {#if filter_tags.every((tag) => run.tags?.includes(tag))}
+              <tr
+                class="hover cursor-pointer"
+                on:click={() => {
+                  goto(`/dataset/${project_id}/${task_id}/${run.id}/run`)
+                }}
+              >
+                <td>
+                  {run.rating && run.rating.value
+                    ? run.rating.type === "five_star"
+                      ? "★".repeat(run.rating.value)
+                      : run.rating.value + "(custom score)"
+                    : "Unrated"}
+                </td>
+                <td>{run.repair_state}</td>
+                <td>{run.input_source}</td>
+                <td>
+                  {model_name(run.model_name || undefined, $model_info)}
+                </td>
+                <td>{formatDate(run.created_at)}</td>
+                <td>{run.input_preview || "No input"}</td>
+                <td>
+                  {run.output_preview || "No output"}
+                </td>
+              </tr>
+            {/if}
           {/each}
         </tbody>
       </table>
@@ -240,6 +281,53 @@
         Generate Synthetic Data
       </a>
       <a href="/run" class="btn btn-primary"> Manually Add Data </a>
+    </div>
+  </div>
+  <form method="dialog" class="modal-backdrop">
+    <button>close</button>
+  </form>
+</dialog>
+
+<dialog id="tags_modal" class="modal">
+  <div class="modal-box">
+    <form method="dialog">
+      <button
+        class="btn btn-sm text-xl btn-circle btn-ghost absolute right-2 top-2 focus:outline-none"
+        >✕</button
+      >
+    </form>
+    <h3 class="text-lg font-bold mb-4">Filter Tags</h3>
+    <div class="text-sm mb-2 font-medium">
+      Current Filters:
+      {#if filter_tags.length == 0}
+        None
+      {/if}
+    </div>
+    <div class="flex flex-row gap-2 flex-wrap">
+      {#each filter_tags as tag}
+        <div class="badge bg-gray-200 text-gray-500 py-3 px-3 max-w-full">
+          <span class="truncate">{tag}</span>
+          <button
+            class="pl-3 font-medium shrink-0"
+            on:click={() => remove_filter_tag(tag)}>✕</button
+          >
+        </div>
+      {/each}
+    </div>
+
+    <div class="text-sm mt-4 mb-2 font-medium">Add a filter:</div>
+    {#if Object.keys(available_filter_tags).length == 0}
+      <p class="text-sm text-gray-500">
+        Any further filters would show zero results.
+      </p>
+    {/if}
+    <div class="flex flex-row gap-2 flex-wrap">
+      {#each Object.entries(available_filter_tags).sort((a, b) => b[1] - a[1]) as [tag, count]}
+        <button
+          class="badge bg-gray-200 text-gray-500 py-3 px-3 max-w-full"
+          on:click={() => add_filter_tag(tag)}>{tag} ({count})</button
+        >
+      {/each}
     </div>
   </div>
   <form method="dialog" class="modal-backdrop">
