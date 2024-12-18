@@ -1193,6 +1193,19 @@ export interface components {
              */
             provider?: string | null;
         };
+        /**
+         * RequirementRating
+         * @description Rating for a specific requirement within a task output.
+         */
+        RequirementRating: {
+            /**
+             * Value
+             * @description The rating value. Interpretation depends on rating type
+             */
+            value: number;
+            /** @description The type of rating */
+            type: components["schemas"]["TaskOutputRatingType"];
+        };
         /** RunSummary */
         RunSummary: {
             /** Id */
@@ -1357,7 +1370,10 @@ export interface components {
          * TaskOutputRating
          * @description A rating for a task output, including an overall rating and ratings for each requirement.
          *
-         *     Only supports five star ratings for now, but extensible for custom values.
+         *     Supports:
+         *     - five_star: 1-5 star ratings
+         *     - pass_fail: boolean pass/fail (1.0 = pass, 0.0 = fail)
+         *     - pass_fail_critical: tri-state (1.0 = pass, 0.0 = fail, -1.0 = critical fail)
          */
         "TaskOutputRating-Input": {
             /**
@@ -1380,23 +1396,29 @@ export interface components {
             type: components["schemas"]["TaskOutputRatingType"];
             /**
              * Value
-             * @description The overall rating value (typically 1-5 stars).
+             * @description The rating value. Interpretation depends on rating type:
+             *     - five_star: 1-5 stars
+             *     - pass_fail: 1.0 (pass) or 0.0 (fail)
+             *     - pass_fail_critical: 1.0 (pass), 0.0 (fail), or -1.0 (critical fail)
              */
             value?: number | null;
             /**
              * Requirement Ratings
-             * @description The ratings of the requirements of the task. The keys are the ids of the requirements. The values are the ratings (typically 1-5 stars).
+             * @description The ratings of the requirements of the task.
              * @default {}
              */
             requirement_ratings: {
-                [key: string]: number;
+                [key: string]: components["schemas"]["RequirementRating"];
             };
         };
         /**
          * TaskOutputRating
          * @description A rating for a task output, including an overall rating and ratings for each requirement.
          *
-         *     Only supports five star ratings for now, but extensible for custom values.
+         *     Supports:
+         *     - five_star: 1-5 star ratings
+         *     - pass_fail: boolean pass/fail (1.0 = pass, 0.0 = fail)
+         *     - pass_fail_critical: tri-state (1.0 = pass, 0.0 = fail, -1.0 = critical fail)
          */
         "TaskOutputRating-Output": {
             /**
@@ -1419,16 +1441,19 @@ export interface components {
             type: components["schemas"]["TaskOutputRatingType"];
             /**
              * Value
-             * @description The overall rating value (typically 1-5 stars).
+             * @description The rating value. Interpretation depends on rating type:
+             *     - five_star: 1-5 stars
+             *     - pass_fail: 1.0 (pass) or 0.0 (fail)
+             *     - pass_fail_critical: 1.0 (pass), 0.0 (fail), or -1.0 (critical fail)
              */
             value?: number | null;
             /**
              * Requirement Ratings
-             * @description The ratings of the requirements of the task. The keys are the ids of the requirements. The values are the ratings (typically 1-5 stars).
+             * @description The ratings of the requirements of the task.
              * @default {}
              */
             requirement_ratings: {
-                [key: string]: number;
+                [key: string]: components["schemas"]["RequirementRating"];
             };
             /** Model Type */
             readonly model_type: string;
@@ -1438,13 +1463,13 @@ export interface components {
          * @description Defines the types of rating systems available for task outputs.
          * @enum {string}
          */
-        TaskOutputRatingType: "five_star" | "custom";
+        TaskOutputRatingType: "five_star" | "pass_fail" | "pass_fail_critical" | "custom";
         /**
          * TaskRequirement
          * @description Defines a specific requirement that should be met by task outputs.
          *
          *     Includes an identifier, name, description, instruction for meeting the requirement,
-         *     and priority level.
+         *     priority level, and rating type (five_star, pass_fail, pass_fail_critical, custom).
          */
         TaskRequirement: {
             /** Id */
@@ -1460,6 +1485,8 @@ export interface components {
             instruction: string;
             /** @default 2 */
             priority: components["schemas"]["Priority"];
+            /** @default five_star */
+            type: components["schemas"]["TaskOutputRatingType"];
         };
         /**
          * TaskRun
