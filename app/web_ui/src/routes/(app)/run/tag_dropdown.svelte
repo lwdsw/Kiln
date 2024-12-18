@@ -13,7 +13,7 @@
       if (tag === null || tag.length === 0) {
         error = "Tags cannot be empty"
       } else if (tag.includes(" ")) {
-        error = "Tags cannot contain whitespace"
+        error = "Tags cannot contain spaces. Use underscores."
       } else {
         on_select(tag)
         error = null
