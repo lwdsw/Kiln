@@ -65,7 +65,11 @@
       ([req_id, rating]) => {
         let index = task.requirements.findIndex((req) => req.id === req_id)
         if (index !== -1) {
-          requirement_ratings[index] = rating.value
+          const task_req = task.requirements[index]
+          // Only load if the task requirement type matches the rating type. Technically users can switch the rating type, and we don't want to assume a 1 star rating is a "pass"
+          if (task_req.type === rating.type) {
+            requirement_ratings[index] = rating.value
+          }
         }
       },
     )
