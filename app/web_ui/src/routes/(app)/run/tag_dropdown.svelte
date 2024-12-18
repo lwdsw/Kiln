@@ -42,8 +42,9 @@
   />
   <datalist id="tag_options">
     <option value="needs_rating"></option>
-    <option value="synthetic"></option>
     <option value="golden"></option>
+    <option value="manual_run"></option>
+    <option value="synthetic"></option>
   </datalist>
   {#if error}
     <div class="text-error text-sm mt-1">{error}</div>

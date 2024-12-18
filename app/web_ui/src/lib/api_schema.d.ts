@@ -1239,6 +1239,8 @@ export interface components {
             structured_input?: Record<string, never> | null;
             /** Ui Prompt Method */
             ui_prompt_method?: string | null;
+            /** Tags */
+            tags?: string[] | null;
         };
         /**
          * Task
@@ -2590,7 +2592,9 @@ export interface operations {
     };
     save_sample_api_projects__project_id__tasks__task_id__save_sample_post: {
         parameters: {
-            query?: never;
+            query?: {
+                session_id?: string | null;
+            };
             header?: never;
             path: {
                 project_id: string;
