@@ -459,6 +459,10 @@ class TaskRun(KilnParentedModel):
         default=None,
         description="Intermediate outputs from the task run. Keys are the names of the intermediate output steps (cot=chain of thought, etc), values are the output data.",
     )
+    tags: List[str] = Field(
+        default=[],
+        description="Tags for the task run. Tags are used to categorize task runs for filtering and reporting.",
+    )
 
     def parent_task(self) -> Task | None:
         if not isinstance(self.parent, Task):
@@ -518,6 +522,16 @@ class TaskRun(KilnParentedModel):
             return self
         if self.input_source is None:
             raise ValueError("input_source is required when strict mode is enabled")
+        return self
+
+    @model_validator(mode="after")
+    def validate_tags(self) -> Self:
+        for tag in self.tags:
+            if not tag:
+                raise ValueError("Tags cannot be empty strings")
+            if " " in tag:
+                raise ValueError("Tags cannot contain spaces. Try underscores.")
+
         return self
 
 
