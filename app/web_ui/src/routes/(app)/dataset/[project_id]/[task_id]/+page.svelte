@@ -241,12 +241,14 @@
                 </td>
                 <td>{run.repair_state}</td>
                 <td>{run.input_source}</td>
-                <td>
+                <td class="break-words max-w-36">
                   {model_name(run.model_name || undefined, $model_info)}
                 </td>
                 <td>{formatDate(run.created_at)}</td>
-                <td>{run.input_preview || "No input"}</td>
-                <td>
+                <td class="break-words max-w-48">
+                  {run.input_preview || "No input"}
+                </td>
+                <td class="break-words max-w-48">
                   {run.output_preview || "No output"}
                 </td>
               </tr>
