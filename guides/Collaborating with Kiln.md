@@ -7,6 +7,7 @@ Kiln is designed to be a collaborative environment for building AI projects. Thi
 - [Sharing a Kiln Project](#sharing-a-kiln-project)
   - [Use Git](#use-git)
   - [Use Shared Drives for Non-Technical Team Members](#use-shared-drives-for-non-technical-team-members)
+- [Using Tags to Organize Your Dataset](#using-tags-to-organize-your-dataset)
 
 ## Sharing a Kiln Project
 
@@ -30,3 +31,17 @@ Not everyone is familiar with git, and that's okay! Since Kiln projects are just
 You can combine this approach with git for version control on the project: simply host a branch on the shared drive. A technical team member can merge changes from the shared drive into main on occasion. The rest of the team can keep the benefits of git.
 
 Kiln project files will track who created them internally, which can help when many folks are sharing the same drive. It's not as rich as git for tracking changes, but it's the easiest way to get started.
+
+## Using Tags to Organize Your Dataset
+
+Kiln uses tags to organize your dataset. You can add tags to any run/sample, and then filter by tag. This is a great way to organize your dataset and find specific runs.
+
+Some examples of how you might use tags within a team:
+
+- Working with eval teams:
+  - Add the "needs_review" tag when data is ready for review by a human eval team
+  - Ask a human eval team to review the new batch of synthetic data. New synth data is automatically tagged with "synthetic" and "synthetic_session_id".
+- Defining a "golden" dataset: Have QA tag a "golden" data reserved for evals
+- Bug resolution: QA can tag examples of a common issue with a tag (e.g. "issue_unprofessional_tone"). Data scientists can run evals of different methods of fixing the issue.
+- Regression Testing: tag important customer use cases with a tag ("customer_use_case") and run evals to ensure the model doesn't regress on them prior to a new release.
+- Fine-tuning: exclude tags from fine-tuning datasets (golden, customer_use_case, etc), to prevent contamination.
