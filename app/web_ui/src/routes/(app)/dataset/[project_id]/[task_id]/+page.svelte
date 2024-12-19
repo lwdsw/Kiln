@@ -102,8 +102,8 @@
         bValue = b.id
         break
       case "created_at":
-        aValue = a[sortColumn]
-        bValue = b[sortColumn]
+        aValue = a.created_at
+        bValue = b.created_at
         break
       case "rating":
         aValue = a.rating?.value ?? -1
@@ -237,7 +237,7 @@
   subtitle="Explore sample and ratings for this task."
   action_buttons={[
     {
-      label: "Filter by Tag",
+      label: "Filter",
       handler() {
         // @ts-expect-error showModal is not a method on HTMLElement
         document.getElementById("tags_modal")?.showModal()
@@ -357,12 +357,9 @@
       >
     </form>
     <h3 class="text-lg font-bold mb-4">Filter Tags</h3>
-    <div class="text-sm mb-2 font-medium">
-      Current Filters:
-      {#if filter_tags.length == 0}
-        None
-      {/if}
-    </div>
+    {#if filter_tags.length > 0}
+      <div class="text-sm mb-2 font-medium">Current Filters:</div>
+    {/if}
     <div class="flex flex-row gap-2 flex-wrap">
       {#each filter_tags as tag}
         <div class="badge bg-gray-200 text-gray-500 py-3 px-3 max-w-full">
