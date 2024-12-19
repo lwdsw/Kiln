@@ -9,11 +9,12 @@
   import { goto } from "$app/navigation"
   import { page } from "$app/stores"
   import { formatDate } from "$lib/utils/formatters"
+  import { replaceState } from "$app/navigation"
 
   let runs: RunSummary[] | null = null
   let error: KilnError | null = null
   let loading = true
-  let sortColumn:
+  let sortColumn = ($page.url.searchParams.get("sort") || "created_at") as
     | keyof RunSummary
     | "rating"
     | "inputPreview"
@@ -21,9 +22,21 @@
     | "outputPreview"
     | "model"
     | "repairState"
-    | "created_at" = "created_at"
-  let sortDirection: "asc" | "desc" = "desc"
-  let filter_tags: string[] = []
+    | "created_at"
+  let sortDirection = ($page.url.searchParams.get("order") || "desc") as
+    | "asc"
+    | "desc"
+  let filter_tags = ($page.url.searchParams.getAll("tags") || []) as string[]
+  $: {
+    // Update based on live URL
+    const url = new URL(window.location.href)
+    sortColumn = (url.searchParams.get("sort") ||
+      "created_at") as typeof sortColumn
+    sortDirection = (url.searchParams.get("order") ||
+      "desc") as typeof sortDirection
+    filter_tags = url.searchParams.getAll("tags") as string[]
+    sortRuns()
+  }
 
   $: project_id = $page.params.project_id
   $: task_id = $page.params.task_id
@@ -129,26 +142,41 @@
   }
 
   function handleSort(columnString: string) {
-    const column = columnString as typeof sortColumn
-    if (sortColumn === column) {
-      sortDirection = sortDirection === "asc" ? "desc" : "asc"
+    const new_column = columnString as typeof sortColumn
+    let new_direction = "desc"
+    if (sortColumn === new_column) {
+      new_direction = sortDirection === "asc" ? "desc" : "asc"
     } else {
-      sortColumn = column
-      sortDirection = "desc"
+      new_direction = "desc"
     }
-    sortRuns()
+    updateURL({
+      sort: new_column,
+      order: new_direction,
+      tags: filter_tags,
+    })
   }
 
   function sortRuns() {
+    if (!runs) return
     runs = runs ? [...runs].sort(sortFunction) : null
   }
 
   function remove_filter_tag(tag: string) {
-    filter_tags = filter_tags.filter((t) => t !== tag)
+    const newTags = filter_tags.filter((t) => t !== tag)
+    updateURL({
+      sort: sortColumn,
+      order: sortDirection,
+      tags: newTags,
+    })
   }
 
   function add_filter_tag(tag: string) {
-    filter_tags = [...new Set([...filter_tags, tag])]
+    const newTags = [...new Set([...filter_tags, tag])]
+    updateURL({
+      sort: sortColumn,
+      order: sortDirection,
+      tags: newTags,
+    })
   }
 
   $: available_filter_tags = get_available_filter_tags(runs, filter_tags)
@@ -173,6 +201,29 @@
     })
     return remaining_tags
   }
+
+  function updateURL(params: Record<string, string | string[]>) {
+    // update the URL so you can share links
+    const url = new URL(window.location.href)
+
+    // Clear existing params we manage
+    url.searchParams.delete("sort")
+    url.searchParams.delete("order")
+    url.searchParams.delete("tags")
+
+    // Add new params
+    Object.entries(params).forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        value.forEach((v) => url.searchParams.append(key, v))
+      } else {
+        url.searchParams.set(key, value)
+      }
+    })
+
+    // Use replaceState to avoid adding new entries to history
+    replaceState(url, {})
+    sortRuns()
+  }
 </script>
 
 <AppPage
@@ -185,6 +236,7 @@
         // @ts-expect-error showModal is not a method on HTMLElement
         document.getElementById("tags_modal")?.showModal()
       },
+      notice: filter_tags.length > 0,
     },
     {
       label: "Add Data",

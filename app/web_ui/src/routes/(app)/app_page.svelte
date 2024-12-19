@@ -10,6 +10,7 @@
     handler?: () => void
     href?: string
     primary?: boolean
+    notice?: boolean
   }
 
   export let action_buttons: ActionButton[] = []
@@ -42,6 +43,9 @@
             ? 'btn-primary'
             : ''}"
         >
+          {#if action_button.notice}
+            <span class="bg-primary rounded-full w-3 h-3 mr-1" />
+          {/if}
           {action_button.label}
         </button>
       </div>
