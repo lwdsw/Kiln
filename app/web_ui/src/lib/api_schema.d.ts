@@ -1226,6 +1226,8 @@ export interface components {
             model_name?: string | null;
             /** Input Source */
             input_source?: string | null;
+            /** Tags */
+            tags?: string[] | null;
         };
         /** RunTaskRequest */
         RunTaskRequest: {
