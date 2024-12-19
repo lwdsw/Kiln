@@ -12,6 +12,7 @@
   import { replaceState } from "$app/navigation"
 
   let runs: RunSummary[] | null = null
+  let filtered_runs: RunSummary[] | null = null
   let error: KilnError | null = null
   let loading = true
   let sortColumn = ($page.url.searchParams.get("sort") || "created_at") as
@@ -27,6 +28,11 @@
     | "asc"
     | "desc"
   let filter_tags = ($page.url.searchParams.getAll("tags") || []) as string[]
+  let page_number: number = parseInt(
+    $page.url.searchParams.get("page") || "1",
+    10,
+  )
+  const page_size = 1000
   $: {
     // Update based on live URL
     const url = new URL(window.location.href)
@@ -35,6 +41,7 @@
     sortDirection = (url.searchParams.get("order") ||
       "desc") as typeof sortDirection
     filter_tags = url.searchParams.getAll("tags") as string[]
+    page_number = parseInt(url.searchParams.get("page") || "1", 10)
     sortRuns()
   }
 
@@ -152,43 +159,44 @@
     updateURL({
       sort: new_column,
       order: new_direction,
-      tags: filter_tags,
     })
   }
 
   function sortRuns() {
     if (!runs) return
     runs = runs ? [...runs].sort(sortFunction) : null
+    filtered_runs = runs
+      ? [...runs].filter((run) =>
+          filter_tags.every((tag) => run.tags?.includes(tag)),
+        )
+      : null
   }
 
   function remove_filter_tag(tag: string) {
     const newTags = filter_tags.filter((t) => t !== tag)
     updateURL({
-      sort: sortColumn,
-      order: sortDirection,
       tags: newTags,
+      page: 1,
     })
   }
 
   function add_filter_tag(tag: string) {
     const newTags = [...new Set([...filter_tags, tag])]
     updateURL({
-      sort: sortColumn,
-      order: sortDirection,
       tags: newTags,
+      page: 1,
     })
   }
 
-  $: available_filter_tags = get_available_filter_tags(runs, filter_tags)
+  $: available_filter_tags = get_available_filter_tags(
+    filtered_runs,
+    filter_tags,
+  )
   function get_available_filter_tags(
-    runs: RunSummary[] | null,
+    filtered_runs: RunSummary[] | null,
     filter_tags: string[],
   ): Record<string, number> {
-    if (!runs) return {}
-
-    const filtered_runs = runs.filter((run) =>
-      filter_tags.every((tag) => run.tags?.includes(tag)),
-    )
+    if (!filtered_runs) return {}
 
     const remaining_tags: Record<string, number> = {}
     filtered_runs.forEach((run) => {
@@ -202,28 +210,37 @@
     return remaining_tags
   }
 
-  function updateURL(params: Record<string, string | string[]>) {
+  function updateURL(params: Record<string, string | string[] | number>) {
     // update the URL so you can share links
     const url = new URL(window.location.href)
 
-    // Clear existing params we manage
-    url.searchParams.delete("sort")
-    url.searchParams.delete("order")
-    url.searchParams.delete("tags")
+    // we're using multiple tags, so we need to delete the existing tags
+    if (params.tags) {
+      url.searchParams.delete("tags")
+    }
 
-    // Add new params
+    // Add new params to the URL (keep current params)
     Object.entries(params).forEach(([key, value]) => {
       if (Array.isArray(value)) {
         value.forEach((v) => url.searchParams.append(key, v))
       } else {
-        url.searchParams.set(key, value)
+        url.searchParams.set(key, value.toString())
       }
     })
 
     // Update state manually
-    sortColumn = params.sort as typeof sortColumn
-    sortDirection = params.order as typeof sortDirection
-    filter_tags = params.tags as string[]
+    if (params.sort) {
+      sortColumn = params.sort as typeof sortColumn
+    }
+    if (params.order) {
+      sortDirection = params.order as typeof sortDirection
+    }
+    if (params.tags) {
+      filter_tags = params.tags as string[]
+    }
+    if (params.page) {
+      page_number = params.page as number
+    }
 
     // Use replaceState to avoid adding new entries to history
     replaceState(url, {})
@@ -282,39 +299,51 @@
           </tr>
         </thead>
         <tbody>
-          {#each runs as run}
-            {#if filter_tags.every((tag) => run.tags?.includes(tag))}
-              <tr
-                class="hover cursor-pointer"
-                on:click={() => {
-                  goto(`/dataset/${project_id}/${task_id}/${run.id}/run`)
-                }}
-              >
-                <td>
-                  {run.rating && run.rating.value
-                    ? run.rating.type === "five_star"
-                      ? "★".repeat(run.rating.value)
-                      : run.rating.value + "(custom score)"
-                    : "Unrated"}
-                </td>
-                <td>{run.repair_state}</td>
-                <td>{run.input_source}</td>
-                <td class="break-words max-w-36">
-                  {model_name(run.model_name || undefined, $model_info)}
-                </td>
-                <td>{formatDate(run.created_at)}</td>
-                <td class="break-words max-w-48">
-                  {run.input_preview || "No input"}
-                </td>
-                <td class="break-words max-w-48">
-                  {run.output_preview || "No output"}
-                </td>
-              </tr>
-            {/if}
+          {#each (filtered_runs || []).slice((page_number - 1) * page_size, page_number * page_size) as run}
+            <tr
+              class="hover cursor-pointer"
+              on:click={() => {
+                goto(`/dataset/${project_id}/${task_id}/${run.id}/run`)
+              }}
+            >
+              <td>
+                {run.rating && run.rating.value
+                  ? run.rating.type === "five_star"
+                    ? "★".repeat(run.rating.value)
+                    : run.rating.value + "(custom score)"
+                  : "Unrated"}
+              </td>
+              <td>{run.repair_state}</td>
+              <td>{run.input_source}</td>
+              <td class="break-words max-w-36">
+                {model_name(run.model_name || undefined, $model_info)}
+              </td>
+              <td>{formatDate(run.created_at)}</td>
+              <td class="break-words max-w-48">
+                {run.input_preview || "No input"}
+              </td>
+              <td class="break-words max-w-48">
+                {run.output_preview || "No output"}
+              </td>
+            </tr>
           {/each}
         </tbody>
       </table>
     </div>
+    {#if page_number > 1 || (filtered_runs && filtered_runs.length > page_size)}
+      <div class="flex flex-row justify-center mt-10">
+        <div class="join">
+          {#each Array.from({ length: Math.ceil(runs.length / page_size) }, (_, i) => i + 1) as page}
+            <button
+              class="join-item btn {page_number == page ? 'btn-active' : ''}"
+              on:click={() => updateURL({ page: page })}
+            >
+              {page}
+            </button>
+          {/each}
+        </div>
+      </div>
+    {/if}
   {:else if error}
     <div
       class="w-full min-h-[50vh] flex flex-col justify-center items-center gap-2"
