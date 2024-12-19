@@ -2,9 +2,12 @@
 
 [Kiln](https://getkiln.ai) can generate synthetic data for your tasks. 
 
+
 ## Video Walkthrough
 
-<img src="https://github.com/user-attachments/assets/eab36818-2c88-4e52-ac39-a71c40e5cc79" width="520"/>
+<a href="https://github.com/user-attachments/assets/eab36818-2c88-4e52-ac39-a71c40e5cc79">
+<img alt="video walkthrough" src="https://github.com/user-attachments/assets/55607f66-33b6-46a3-a99d-3b90375712f7" />
+</a>
 
 ## Use Cases
 
