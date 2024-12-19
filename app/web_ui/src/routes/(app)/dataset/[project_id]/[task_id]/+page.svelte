@@ -220,8 +220,14 @@
       }
     })
 
+    // Update state manually
+    sortColumn = params.sort as typeof sortColumn
+    sortDirection = params.order as typeof sortDirection
+    filter_tags = params.tags as string[]
+
     // Use replaceState to avoid adding new entries to history
     replaceState(url, {})
+
     sortRuns()
   }
 </script>
