@@ -21,8 +21,8 @@
     | "outputPreview"
     | "model"
     | "repairState"
-    | "created_at"
-  let sortDirection: "asc" | "desc" = "asc"
+    | "created_at" = "created_at"
+  let sortDirection: "asc" | "desc" = "desc"
   let filter_tags: string[] = []
 
   $: project_id = $page.params.project_id

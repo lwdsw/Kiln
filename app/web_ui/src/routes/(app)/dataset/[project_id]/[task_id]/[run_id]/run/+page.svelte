@@ -8,6 +8,7 @@
   import { client } from "$lib/api_client"
   import { createKilnError, KilnError } from "$lib/utils/error_handlers"
   import type { TaskRun } from "$lib/types"
+  import { formatDate } from "$lib/utils/formatters"
 
   $: run_id = $page.params.run_id
   $: task_id = $page.params.task_id
@@ -33,6 +34,7 @@
         "Model Provider": run?.output?.source?.properties?.model_provider,
         "Prompt Builder": run?.output?.source?.properties?.prompt_builder_name,
         "Created By": run?.input_source?.properties?.created_by,
+        "Created At": formatDate(run?.created_at),
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
       }).filter(([_, value]) => value !== undefined),
     )
