@@ -252,7 +252,6 @@
     if (!run_id) return
     const url = `/dataset/${project_id}/${task_id}/${run_id}/run`
     const list = filtered_runs?.map((run) => run.id)
-    //pushState(url, { list_page: list })
     goto(url, { state: { list_page: list } })
   }
 </script>

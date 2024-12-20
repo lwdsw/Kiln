@@ -1,5 +1,6 @@
 <script lang="ts">
   import AppPage from "../../../../../app_page.svelte"
+  import type { ActionButton } from "../../../../../types"
   import Run from "../../../../../run/run.svelte"
   import Output from "../../../../../run/output.svelte"
   import { current_task, model_name, model_info } from "$lib/stores"
@@ -138,12 +139,6 @@
     )
   }
 
-  type ActionButton = {
-    label: string
-    handler: () => void
-    shortcut?: string
-    disabled?: boolean
-  }
   let buttons: ActionButton[] = []
   $: {
     buttons = []
@@ -151,13 +146,13 @@
       const index = list_page.indexOf(run_id)
       if (index !== -1) {
         buttons.push({
-          label: "Prev",
+          icon: "/images/previous.svg",
           handler: prev_run,
           shortcut: "ArrowLeft",
           disabled: index === 0,
         })
         buttons.push({
-          label: "Next",
+          icon: "/images/next.svg",
           handler: next_run,
           shortcut: "ArrowRight",
           disabled: index === list_page.length - 1,

@@ -1,19 +1,10 @@
 <script lang="ts">
   import { goto } from "$app/navigation"
+  import type { ActionButton } from "./types"
 
   export let title: string = ""
   export let subtitle: string = ""
   export let sub_subtitle: string = ""
-
-  type ActionButton = {
-    label: string
-    handler?: () => void
-    href?: string
-    primary?: boolean
-    notice?: boolean
-    shortcut?: string
-    disabled?: boolean
-  }
 
   export let action_buttons: ActionButton[] = []
 
@@ -70,7 +61,14 @@
           {#if action_button.notice}
             <span class="bg-primary rounded-full w-3 h-3 mr-1" />
           {/if}
-          {action_button.label}
+          {action_button.label || ""}
+          {#if action_button.icon}
+            <img
+              alt={action_button.label || ""}
+              src={action_button.icon}
+              class="w-6 h-6"
+            />
+          {/if}
         </button>
       </div>
     {/each}
