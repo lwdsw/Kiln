@@ -4,6 +4,7 @@ export function formatDate(dateString: string | undefined): string {
   }
   const date = new Date(dateString)
   const time_ago = Date.now() - date.getTime()
+
   if (time_ago < 1000 * 60) {
     return "just now"
   }
@@ -12,6 +13,15 @@ export function formatDate(dateString: string | undefined): string {
   }
   if (time_ago < 1000 * 60 * 60) {
     return `${Math.floor(time_ago / (1000 * 60))} minutes ago`
+  }
+  if (date.toDateString() === new Date().toDateString()) {
+    return (
+      date.toLocaleString(undefined, {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      }) + " today"
+    )
   }
 
   const options: Intl.DateTimeFormatOptions = {
