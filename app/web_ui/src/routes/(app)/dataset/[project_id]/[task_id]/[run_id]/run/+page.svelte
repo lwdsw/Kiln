@@ -131,23 +131,45 @@
     load_run()
   }
 
+  function isMac(): boolean {
+    return (
+      typeof window !== "undefined" &&
+      navigator.platform.toUpperCase().indexOf("MAC") >= 0
+    )
+  }
+
   type ActionButton = {
     label: string
     handler: () => void
+    shortcut?: string
+    disabled?: boolean
   }
   let buttons: ActionButton[] = []
   $: {
     buttons = []
     if (list_page.length > 1) {
-      if (list_page.indexOf(run_id) > 0) {
-        buttons.push({ label: "Prev", handler: prev_run })
-      }
-      if (list_page.indexOf(run_id) < list_page.length - 1) {
-        buttons.push({ label: "Next", handler: next_run })
+      const index = list_page.indexOf(run_id)
+      if (index !== -1) {
+        buttons.push({
+          label: "Prev",
+          handler: prev_run,
+          shortcut: "ArrowLeft",
+          disabled: index === 0,
+        })
+        buttons.push({
+          label: "Next",
+          handler: next_run,
+          shortcut: "ArrowRight",
+          disabled: index === list_page.length - 1,
+        })
       }
     }
     if (!deleted) {
-      buttons.push({ label: "Delete Run", handler: deleteRun })
+      buttons.push({
+        label: "Delete Run",
+        handler: deleteRun,
+        shortcut: isMac() ? "Backspace" : "Delete",
+      })
     }
   }
 </script>

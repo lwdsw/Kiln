@@ -11,6 +11,8 @@
     href?: string
     primary?: boolean
     notice?: boolean
+    shortcut?: string
+    disabled?: boolean
   }
 
   export let action_buttons: ActionButton[] = []
@@ -22,7 +24,28 @@
       goto(action_button.href)
     }
   }
+
+  function handle_key_down(event: KeyboardEvent) {
+    // Skip if any input element is focused
+    if (
+      document.activeElement instanceof HTMLInputElement ||
+      document.activeElement instanceof HTMLTextAreaElement ||
+      document.activeElement instanceof HTMLSelectElement
+    ) {
+      return
+    }
+
+    for (const action_button of action_buttons) {
+      if (event.key === action_button.shortcut) {
+        event.preventDefault()
+        run_action_button(action_button)
+        return
+      }
+    }
+  }
 </script>
+
+<svelte:window on:keydown={handle_key_down} />
 
 <div class="flex flex-row">
   <div class="flex flex-col grow">
@@ -42,6 +65,7 @@
           class="btn btn-xs md:btn-md md:px-6 {action_button.primary
             ? 'btn-primary'
             : ''}"
+          disabled={action_button.disabled ?? false}
         >
           {#if action_button.notice}
             <span class="bg-primary rounded-full w-3 h-3 mr-1" />
