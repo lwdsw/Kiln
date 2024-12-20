@@ -39,6 +39,8 @@ If you have an OpenAI compatible server (LiteLLM, vLLM, etc.), you can use it in
 
 To do this, add a "Custom API" in the "AI Providers & Models" section of Settings.
 
-All models supported by this API will appear in the "untested" section of the model dropdown.
+All models supported by this API will appear in the "untested" section of the model dropdown. 
 
-Note: the API must support the `/v1/models` endpoint, so Kiln can access the list of models.
+Notes:
+- The API must support the `/v1/models` endpoint, so Kiln can access the list of models.
+- Many Kiln tasks require structured (JSON) output. These can be hard to get working on custom servers, as each server/model pair ususally needs some configuration to reliably produce structured output (tools vs json_mode vs json parsing, schema format, etc).
