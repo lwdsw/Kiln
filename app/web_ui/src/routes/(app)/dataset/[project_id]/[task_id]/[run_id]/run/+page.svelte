@@ -196,7 +196,9 @@
           >
             {#each Object.entries(model_props) as [key, value]}
               <div class="flex items-center">{key}</div>
-              <div class="flex items-center text-gray-500">{value}</div>
+              <div class="flex items-center text-gray-500 truncate">
+                {value}
+              </div>
             {/each}
           </div>
         </div>
