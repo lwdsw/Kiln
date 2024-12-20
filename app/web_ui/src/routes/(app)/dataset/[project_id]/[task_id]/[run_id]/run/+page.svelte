@@ -9,10 +9,13 @@
   import { createKilnError, KilnError } from "$lib/utils/error_handlers"
   import type { TaskRun } from "$lib/types"
   import { formatDate } from "$lib/utils/formatters"
+  import { goto } from "$app/navigation"
 
   $: run_id = $page.params.run_id
   $: task_id = $page.params.task_id
   $: project_id = $page.params.project_id
+  // @ts-expect-error list_page is not a property of PageState
+  $: list_page = ($page.state.list_page || []) as string[]
 
   // TODO: we need to remove task_id from the URL, or load it by ID. $current_task is a lie
   let run: TaskRun | null = null
@@ -41,6 +44,10 @@
   }
 
   onMount(async () => {
+    await load_run()
+  })
+
+  async function load_run() {
     try {
       const { data, error } = await client.GET(
         "/api/projects/{project_id}/tasks/{task_id}/runs/{run_id}",
@@ -66,7 +73,7 @@
     } finally {
       loading = false
     }
-  })
+  }
 
   let deleted = false
   async function deleteRun() {
@@ -98,15 +105,58 @@
       loading = false
     }
   }
+
+  function next_run() {
+    const index = list_page.indexOf(run_id)
+    if (index < list_page.length - 1) {
+      const next_run_id = list_page[index + 1]
+      load_run_by_id(next_run_id)
+    }
+  }
+
+  function prev_run() {
+    const index = list_page.indexOf(run_id)
+    if (index > 0) {
+      const prev_run_id = list_page[index - 1]
+      load_run_by_id(prev_run_id)
+    }
+  }
+
+  function load_run_by_id(new_run_id: string) {
+    run_id = new_run_id
+    run = null
+    goto(`/dataset/${project_id}/${task_id}/${run_id}/run`, {
+      state: { list_page: list_page },
+    })
+    load_run()
+  }
+
+  type ActionButton = {
+    label: string
+    handler: () => void
+  }
+  let buttons: ActionButton[] = []
+  $: {
+    buttons = []
+    if (list_page.length > 1) {
+      if (list_page.indexOf(run_id) > 0) {
+        buttons.push({ label: "Prev", handler: prev_run })
+      }
+      if (list_page.indexOf(run_id) < list_page.length - 1) {
+        buttons.push({ label: "Next", handler: next_run })
+      }
+    }
+    if (!deleted) {
+      buttons.push({ label: "Delete Run", handler: deleteRun })
+    }
+  }
 </script>
 
 <div class="max-w-[1400px]">
   <AppPage
     title="Dataset Run"
     subtitle={run?.id ? `Run ID: ${run.id}` : undefined}
-    action_buttons={deleted
-      ? []
-      : [{ label: "Delete Run", handler: deleteRun }]}
+    action_buttons={buttons}
   >
     {#if loading}
       <div class="w-full min-h-[50vh] flex justify-center items-center">

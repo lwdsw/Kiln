@@ -247,6 +247,14 @@
 
     sortRuns()
   }
+
+  function open_dataset_run(run_id: string | null) {
+    if (!run_id) return
+    const url = `/dataset/${project_id}/${task_id}/${run_id}/run`
+    const list = filtered_runs?.map((run) => run.id)
+    //pushState(url, { list_page: list })
+    goto(url, { state: { list_page: list } })
+  }
 </script>
 
 <AppPage
@@ -303,7 +311,7 @@
             <tr
               class="hover cursor-pointer"
               on:click={() => {
-                goto(`/dataset/${project_id}/${task_id}/${run.id}/run`)
+                open_dataset_run(run.id)
               }}
             >
               <td>
