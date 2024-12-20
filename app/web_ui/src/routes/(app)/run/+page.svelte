@@ -132,12 +132,12 @@
           bind:model_name
           bind:provider
           bind:run_complete
+          focus_repair_on_appear={true}
         />
       </div>
     {/if}
     {#if run_complete}
       <div class="flex flex-col md:flex-row gap-6 place-content-center mt-10">
-        <p class="text-lg text-gray-500 mt-5">🎉 Ready for your next task?</p>
         <button
           class="btn btn-primary mt-2 min-w-48"
           on:click={() => next_task_run()}

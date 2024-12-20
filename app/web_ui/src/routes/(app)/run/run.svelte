@@ -20,6 +20,8 @@
   export let model_name: string | null = null
   export let provider: string | null = null
   export let run_complete: boolean = false
+  export let focus_repair_on_appear: boolean = false
+
   // note: this run is NOT the main run, but a repair run TaskRun
   let repair_run: TaskRun | null = null
 
@@ -327,7 +329,7 @@
 <div>
   <div class="flex flex-col xl:flex-row gap-8 xl:gap-16">
     <div class="grow">
-      <div class="text-xl font-bold mb-1">Outputs</div>
+      <div class="text-xl font-bold mb-1">Output</div>
       {#if task.output_json_schema}
         <div class="text-xs font-medium text-gray-500 flex flex-row mb-2">
           <svg
@@ -357,6 +359,90 @@
           </div>
         </div>
       </div>
+
+      {#if should_offer_repair || repair_review_available || repair_complete}
+        <div class="grow mt-10">
+          <div class="text-xl font-bold mb-2">Repair Output</div>
+          {#if should_offer_repair}
+            <p class="text-sm text-gray-500 mb-4">
+              Since the output isn't 5-star, provide instructions for the model
+              on how to fix it.
+            </p>
+            <FormContainer
+              submit_label="Attempt Repair"
+              on:submit={attempt_repair}
+              bind:submitting={repair_submitting}
+              bind:error={repair_error}
+              focus_on_mount={focus_repair_on_appear}
+            >
+              <FormElement
+                id="repair_instructions"
+                label="Repair Instructions"
+                inputType="textarea"
+                bind:value={repair_instructions}
+              />
+            </FormContainer>
+          {:else if repair_review_available}
+            <p class="text-sm text-gray-500 mb-4">
+              The model has attempted to fix the output given <span
+                class="tooltip link"
+                data-tip="The instructions you provided to the model: {repair_instructions ||
+                  'No instruction provided'}">your instructions</span
+              >. Review the result.
+            </p>
+            <Output raw_output={repair_run?.output.output || ""} />
+          {:else if repair_complete}
+            <p class="text-sm text-gray-500 mb-4">
+              The model has fixed the output given <span
+                class="tooltip link"
+                data-tip="The instructions you provided to the model: {repair_instructions ||
+                  'No instruction provided'}">your instructions</span
+              >.
+            </p>
+            <Output raw_output={run?.repaired_output?.output || ""} />
+            <div class="mt-2 text-xs text-gray-500 text-right">
+              {#if delete_repair_submitting}
+                <span class="loading loading-spinner loading-sm"></span>
+              {:else if delete_repair_error}
+                <p class="text-error">
+                  Error Deleting Repair:
+                  {delete_repair_error.getMessage()}
+                </p>
+              {:else}
+                <button class="link" on:click={delete_repair}
+                  >Delete Repair</button
+                >
+              {/if}
+            </div>
+          {/if}
+        </div>
+        {#if repair_review_available}
+          <div class="flex flex-row gap-4 mt-4 justify-end">
+            <button class="btn" on:click={() => (repair_run = null)}
+              >Retry Repair</button
+            >
+            <button
+              class="btn btn-primary"
+              on:click={accept_repair}
+              disabled={accept_repair_submitting}
+            >
+              {#if accept_repair_submitting}
+                <span class="loading loading-spinner loading-sm"></span>
+              {:else}
+                Accept Repair (5 Stars)
+              {/if}
+            </button>
+            {#if accept_repair_error}
+              <p class="text-error font-medium text-sm">
+                Error Accepting Repair<br />
+                <span class="text-error text-xs font-normal">
+                  {accept_repair_error.getMessage()}</span
+                >
+              </p>
+            {/if}
+          </div>
+        {/if}
+      {/if}
     </div>
 
     <div class="w-72 2xl:w-96 flex-none">
@@ -480,93 +566,4 @@
       </div>
     </div>
   </div>
-
-  {#if should_offer_repair || repair_review_available || repair_complete}
-    <div class="flex flex-col xl:flex-row gap-8 xl:gap-16 mt-24">
-      <div class="grow">
-        <div class="text-xl font-bold mb-2">Repair</div>
-        {#if should_offer_repair}
-          <p class="text-sm text-gray-500 mb-4">
-            Since the output isn't 5-star, provide instructions for the model on
-            how to fix it.
-          </p>
-          <FormContainer
-            submit_label="Attempt Repair"
-            on:submit={attempt_repair}
-            bind:submitting={repair_submitting}
-            bind:error={repair_error}
-          >
-            <FormElement
-              id="repair_instructions"
-              label="Repair Instructions"
-              inputType="textarea"
-              bind:value={repair_instructions}
-            />
-          </FormContainer>
-        {:else if repair_review_available}
-          <p class="text-sm text-gray-500 mb-4">
-            The model has attempted to fix the output given your instructions.
-            Review the result.
-          </p>
-          <Output raw_output={repair_run?.output.output || ""} />
-          <div>
-            <div class="mt-2 text-sm text-gray-500">
-              Based on the repair instructions: &quot;{repair_instructions ||
-                "No instruction provided"}&quot;
-            </div>
-          </div>
-        {:else if repair_complete}
-          <p class="text-sm text-gray-500 mb-4">
-            The model has fixed the output given your instructions: &quot;{repair_instructions ||
-              run?.repair_instructions ||
-              "No instruction provided"}&quot;
-          </p>
-          <Output raw_output={run?.repaired_output?.output || ""} />
-          <div class="mt-2 text-xs text-gray-500 text-right">
-            {#if delete_repair_submitting}
-              <span class="loading loading-spinner loading-sm"></span>
-            {:else if delete_repair_error}
-              <p class="text-error">
-                Error Deleting Repair:
-                {delete_repair_error.getMessage()}
-              </p>
-            {:else}
-              <button class="link" on:click={delete_repair}
-                >Delete Repair</button
-              >
-            {/if}
-          </div>
-        {/if}
-      </div>
-      <div class="w-72 2xl:w-96 flex-none">
-        {#if repair_review_available}
-          <div class="text-xl font-bold mb-2">Evaluate Repair</div>
-          <div class="flex flex-col gap-4 mt-12">
-            <button
-              class="btn btn-primary"
-              on:click={accept_repair}
-              disabled={accept_repair_submitting}
-            >
-              {#if accept_repair_submitting}
-                <span class="loading loading-spinner loading-sm"></span>
-              {:else}
-                Accept Repair (5 Stars)
-              {/if}
-            </button>
-            {#if accept_repair_error}
-              <p class="text-error font-medium text-sm">
-                Error Accepting Repair<br />
-                <span class="text-error text-xs font-normal">
-                  {accept_repair_error.getMessage()}</span
-                >
-              </p>
-            {/if}
-            <button class="btn" on:click={() => (repair_run = null)}
-              >Retry Repair</button
-            >
-          </div>
-        {/if}
-      </div>
-    </div>
-  {/if}
 </div>
