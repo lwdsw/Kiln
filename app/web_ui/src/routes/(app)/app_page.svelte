@@ -53,9 +53,9 @@
       <div>
         <button
           on:click={() => run_action_button(action_button)}
-          class="btn btn-xs md:btn-md md:px-6 {action_button.primary
-            ? 'btn-primary'
-            : ''}"
+          class="btn btn-xs md:btn-md {!action_button.icon
+            ? 'md:px-6'
+            : ''} {action_button.primary ? 'btn-primary' : ''}"
           disabled={action_button.disabled ?? false}
         >
           {#if action_button.notice}

@@ -142,6 +142,13 @@
   let buttons: ActionButton[] = []
   $: {
     buttons = []
+    if (!deleted) {
+      buttons.push({
+        icon: "/images/delete.svg",
+        handler: deleteRun,
+        shortcut: isMac() ? "Backspace" : "Delete",
+      })
+    }
     if (list_page.length > 1) {
       const index = list_page.indexOf(run_id)
       if (index !== -1) {
@@ -158,13 +165,6 @@
           disabled: index === list_page.length - 1,
         })
       }
-    }
-    if (!deleted) {
-      buttons.push({
-        label: "Delete Run",
-        handler: deleteRun,
-        shortcut: isMac() ? "Backspace" : "Delete",
-      })
     }
   }
 </script>

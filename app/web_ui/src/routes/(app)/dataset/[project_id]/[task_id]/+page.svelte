@@ -261,7 +261,7 @@
   subtitle="Explore sample and ratings for this task."
   action_buttons={[
     {
-      label: "Filter",
+      icon: "/images/filter.svg",
       handler() {
         // @ts-expect-error showModal is not a method on HTMLElement
         document.getElementById("tags_modal")?.showModal()
@@ -269,7 +269,7 @@
       notice: filter_tags.length > 0,
     },
     {
-      label: "Add Data",
+      icon: "/images/add.svg",
       handler() {
         // @ts-expect-error showModal is not a method on HTMLElement
         document.getElementById("add_data_modal")?.showModal()
@@ -371,12 +371,28 @@
         >✕</button
       >
     </form>
-    <h3 class="text-lg font-bold mb-8">Add Data</h3>
-    <div class="flex flex-row gap-6 justify-center flex-col">
-      <a href={`/generate/${project_id}/${task_id}`} class="btn btn-primary">
-        Generate Synthetic Data
-      </a>
-      <a href="/run" class="btn btn-primary"> Manually Add Data </a>
+    <h3 class="text-lg font-bold mb-4">Add Data</h3>
+    <div class="flex flex-col md:flex-row gap-12 md:p-2">
+      <div class="flex-1 flex flex-col">
+        <div class="font-light text-lg mb-1">Synthetic Data</div>
+        <p class="text-sm text-gray-500">
+          Generate many examples using our AI synthetic data generation tool.
+        </p>
+        <div class="md:grow"></div>
+        <div class="mt-4">
+          <a href={`/generate/${project_id}/${task_id}`} class="btn w-full">
+            Synthetic Data
+          </a>
+        </div>
+      </div>
+      <div class="flex-1 flex flex-col">
+        <div class="font-light text-lg mb-1">Manually Add Data</div>
+        <p class="text-sm text-gray-500">Run your task with manual input.</p>
+        <div class="md:grow"></div>
+        <div class="mt-4">
+          <a href="/run" class="btn w-full">Manually Add</a>
+        </div>
+      </div>
     </div>
   </div>
   <form method="dialog" class="modal-backdrop">
@@ -392,7 +408,7 @@
         >✕</button
       >
     </form>
-    <h3 class="text-lg font-bold mb-4">Filter Tags</h3>
+    <h3 class="text-lg font-bold mb-4">Filter by Tag</h3>
     {#if filter_tags.length > 0}
       <div class="text-sm mb-2 font-medium">Current Filters:</div>
     {/if}
