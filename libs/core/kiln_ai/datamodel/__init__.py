@@ -275,6 +275,12 @@ class FineTuneStatusType(str, Enum):
 
 
 class Finetune(KilnParentedModel):
+    """
+    The Kiln fine-tune datamodel.
+
+    Initially holds a reference to a training job, with needed identifiers to update the status. When complete, contains the new model ID.
+    """
+
     name: str = NAME_FIELD
     description: str | None = Field(
         default=None,
