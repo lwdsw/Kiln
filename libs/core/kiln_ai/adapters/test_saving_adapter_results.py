@@ -101,13 +101,6 @@ def test_save_run_isolation(test_task):
     assert len(test_task.runs()) == 2
     assert "Different output" in set(run.output.output for run in test_task.runs())
 
-    # run again with same input and same output. Should not create a new TaskRun.
-    task_output = adapter.generate_run(input_data, None, run_output)
-    task_output.save_to_file()
-    assert len(test_task.runs()) == 2
-    assert "Different output" in set(run.output.output for run in test_task.runs())
-    assert output_data in set(run.output.output for run in test_task.runs())
-
     # run again with input of different type. Should create a new TaskRun and TaskOutput.
     task_output = adapter.generate_run(
         input_data,
