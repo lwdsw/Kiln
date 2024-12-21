@@ -692,7 +692,7 @@ class DatasetSplit(KilnParentedModel):
         if parent is None:
             raise ValueError("DatasetSplit has no parent task")
 
-        runs = parent.runs()
+        runs = parent.runs(readonly=True)
         all_ids = set(run.id for run in runs)
         all_ids_in_splits = set()
         for ids in self.split_contents.values():
