@@ -155,27 +155,6 @@ class BaseAdapter(metaclass=ABCMeta):
             tags=self.default_tags or [],
         )
 
-        exclude_fields = {
-            "id": True,
-            "created_at": True,
-            "updated_at": True,
-            "path": True,
-            "output": {"id": True, "created_at": True, "updated_at": True},
-        }
-        new_run_dump = new_task_run.model_dump(exclude=exclude_fields)
-
-        # Check if the same run already exists
-        existing_task_run = next(
-            (
-                task_run
-                for task_run in self.kiln_task.runs()
-                if task_run.model_dump(exclude=exclude_fields) == new_run_dump
-            ),
-            None,
-        )
-        if existing_task_run:
-            return existing_task_run
-
         return new_task_run
 
     def _properties_for_task_output(self) -> Dict[str, str | int | float]:
