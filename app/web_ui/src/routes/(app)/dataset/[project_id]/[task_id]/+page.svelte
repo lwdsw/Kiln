@@ -255,7 +255,6 @@
     goto(url, { state: { list_page: list } })
   }
 
-  // TODO: clear on pagination?
   let select_mode: boolean = false
   let selected_runs: Set<string> = new Set()
   let select_summary: "all" | "none" | "some" = "none"
