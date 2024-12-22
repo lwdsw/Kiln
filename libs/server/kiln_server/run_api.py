@@ -222,6 +222,54 @@ def connect_run_api(app: FastAPI):
     ) -> TaskRun:
         return await update_run_util(project_id, task_id, run_id, run_data)
 
+    @app.post("/api/projects/{project_id}/tasks/{task_id}/runs/add_tags")
+    async def add_tags(
+        project_id: str, task_id: str, run_ids: list[str], tags: list[str]
+    ):
+        task = task_from_id(project_id, task_id)
+        failed_runs: list[str] = []
+        for run_id in run_ids:
+            run = TaskRun.from_id_and_parent_path(run_id, task.path)
+            if not run:
+                failed_runs.append(run_id)
+            elif any(tag not in run.tags for tag in tags):
+                run.tags = list(set((run.tags or []) + tags))
+                run.save_to_file()
+
+        if failed_runs:
+            raise HTTPException(
+                status_code=500,
+                detail={
+                    "failed_runs": failed_runs,
+                    "error": "Runs not found",
+                },
+            )
+        return {"success": True}
+
+    @app.post("/api/projects/{project_id}/tasks/{task_id}/runs/remove_tags")
+    async def remove_tags(
+        project_id: str, task_id: str, run_ids: list[str], tags: list[str]
+    ):
+        task = task_from_id(project_id, task_id)
+        failed_runs: list[str] = []
+        for run_id in run_ids:
+            run = TaskRun.from_id_and_parent_path(run_id, task.path)
+            if not run:
+                failed_runs.append(run_id)
+            elif any(tag in (run.tags or []) for tag in tags):
+                run.tags = list(set(tag for tag in (run.tags or []) if tag not in tags))
+                run.save_to_file()
+
+        if failed_runs:
+            raise HTTPException(
+                status_code=500,
+                detail={
+                    "failed_runs": failed_runs,
+                    "error": "Runs not found",
+                },
+            )
+        return {"success": True}
+
 
 async def update_run_util(
     project_id: str, task_id: str, run_id: str, run_data: Dict[str, Any]

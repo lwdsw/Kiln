@@ -870,3 +870,286 @@ async def test_delete_multiple_runs_with_exception(client, task_run_setup):
     assert "failed_runs" in result["message"]
     assert task_run.id in result["message"]["failed_runs"]
     assert "Unexpected error" in result["message"]["error"]
+
+
+@pytest.mark.asyncio
+async def test_add_tags_success(client, task_run_setup):
+    project = task_run_setup["project"]
+    task = task_run_setup["task"]
+    task_run = task_run_setup["task_run"]
+
+    # Initial tags
+    task_run.tags = ["existing_tag"]
+    task_run.save_to_file()
+
+    run_ids = [task_run.id]
+    new_tags = ["new_tag1", "new_tag2"]
+
+    with patch("kiln_server.run_api.task_from_id") as mock_task_from_id:
+        mock_task_from_id.return_value = task
+        response = client.post(
+            f"/api/projects/{project.id}/tasks/{task.id}/runs/add_tags",
+            json={"run_ids": run_ids, "tags": new_tags},
+        )
+
+    assert response.status_code == 200
+    assert response.json() == {"success": True}
+
+    # Verify tags were added
+    updated_run = TaskRun.from_id_and_parent_path(task_run.id, task.path)
+    assert set(updated_run.tags) == {"existing_tag", "new_tag1", "new_tag2"}
+
+
+@pytest.mark.asyncio
+async def test_add_tags_duplicate_tags(client, task_run_setup):
+    project = task_run_setup["project"]
+    task = task_run_setup["task"]
+    task_run = task_run_setup["task_run"]
+
+    # Initial tags
+    task_run.tags = ["existing_tag"]
+    task_run.save_to_file()
+
+    run_ids = [task_run.id]
+    new_tags = ["existing_tag", "new_tag"]
+
+    with patch("kiln_server.run_api.task_from_id") as mock_task_from_id:
+        mock_task_from_id.return_value = task
+        response = client.post(
+            f"/api/projects/{project.id}/tasks/{task.id}/runs/add_tags",
+            json={"run_ids": run_ids, "tags": new_tags},
+        )
+
+    assert response.status_code == 200
+    assert response.json() == {"success": True}
+
+    # Verify no duplicate tags were added
+    updated_run = TaskRun.from_id_and_parent_path(task_run.id, task.path)
+    assert set(updated_run.tags) == {"existing_tag", "new_tag"}
+
+
+@pytest.mark.asyncio
+async def test_add_tags_run_not_found(client, task_run_setup):
+    project = task_run_setup["project"]
+    task = task_run_setup["task"]
+
+    run_ids = ["non_existent_run_id"]
+    new_tags = ["new_tag"]
+
+    with patch("kiln_server.run_api.task_from_id") as mock_task_from_id:
+        mock_task_from_id.return_value = task
+        response = client.post(
+            f"/api/projects/{project.id}/tasks/{task.id}/runs/add_tags",
+            json={"run_ids": run_ids, "tags": new_tags},
+        )
+
+    assert response.status_code == 500
+    result = response.json()
+    assert "failed_runs" in result["message"]
+    assert "non_existent_run_id" in result["message"]["failed_runs"]
+    assert result["message"]["error"] == "Runs not found"
+
+
+@pytest.mark.asyncio
+async def test_add_tags_task_not_found(client):
+    run_ids = ["run1"]
+    new_tags = ["new_tag"]
+
+    with patch("kiln_server.run_api.task_from_id") as mock_task_from_id:
+        mock_task_from_id.side_effect = HTTPException(
+            status_code=404, detail="Task not found"
+        )
+        response = client.post(
+            "/api/projects/project1-id/tasks/non_existent_task_id/runs/add_tags",
+            json={"run_ids": run_ids, "tags": new_tags},
+        )
+
+    assert response.status_code == 404
+    assert response.json()["message"] == "Task not found"
+
+
+@pytest.mark.asyncio
+async def test_add_tags_multiple_runs(client, task_run_setup):
+    project = task_run_setup["project"]
+    task = task_run_setup["task"]
+    task_run = task_run_setup["task_run"]
+
+    # Create a second run
+    second_run = TaskRun(
+        parent=task,
+        input="Test input 2",
+        input_source=DataSource(
+            type=DataSourceType.human, properties={"created_by": "Test User"}
+        ),
+        output=TaskOutput(
+            output="Test output 2",
+            source=DataSource(
+                type=DataSourceType.human,
+                properties={"created_by": "Test User"},
+            ),
+        ),
+    )
+    second_run.save_to_file()
+
+    run_ids = [task_run.id, second_run.id]
+    new_tags = ["new_tag"]
+
+    with patch("kiln_server.run_api.task_from_id") as mock_task_from_id:
+        mock_task_from_id.return_value = task
+        response = client.post(
+            f"/api/projects/{project.id}/tasks/{task.id}/runs/add_tags",
+            json={"run_ids": run_ids, "tags": new_tags},
+        )
+
+    assert response.status_code == 200
+    assert response.json() == {"success": True}
+
+    # Verify tags were added to both runs
+    for run_id in run_ids:
+        updated_run = TaskRun.from_id_and_parent_path(run_id, task.path)
+        assert "new_tag" in updated_run.tags
+
+
+@pytest.mark.asyncio
+async def test_remove_tags_success(client, task_run_setup):
+    project = task_run_setup["project"]
+    task = task_run_setup["task"]
+    task_run = task_run_setup["task_run"]
+
+    # Initial tags
+    task_run.tags = ["tag1", "tag2", "tag3"]
+    task_run.save_to_file()
+
+    run_ids = [task_run.id]
+    tags_to_remove = ["tag1", "tag3"]
+
+    with patch("kiln_server.run_api.task_from_id") as mock_task_from_id:
+        mock_task_from_id.return_value = task
+        response = client.post(
+            f"/api/projects/{project.id}/tasks/{task.id}/runs/remove_tags",
+            json={"run_ids": run_ids, "tags": tags_to_remove},
+        )
+
+    assert response.status_code == 200
+    assert response.json() == {"success": True}
+
+    # Verify tags were removed
+    updated_run = TaskRun.from_id_and_parent_path(task_run.id, task.path)
+    assert set(updated_run.tags) == {"tag2"}
+
+
+@pytest.mark.asyncio
+async def test_remove_tags_nonexistent_tags(client, task_run_setup):
+    project = task_run_setup["project"]
+    task = task_run_setup["task"]
+    task_run = task_run_setup["task_run"]
+
+    # Initial tags
+    task_run.tags = ["tag1", "tag2"]
+    task_run.save_to_file()
+
+    run_ids = [task_run.id]
+    tags_to_remove = ["tag3", "tag4"]  # Tags that don't exist
+
+    with patch("kiln_server.run_api.task_from_id") as mock_task_from_id:
+        mock_task_from_id.return_value = task
+        response = client.post(
+            f"/api/projects/{project.id}/tasks/{task.id}/runs/remove_tags",
+            json={"run_ids": run_ids, "tags": tags_to_remove},
+        )
+
+    assert response.status_code == 200
+    assert response.json() == {"success": True}
+
+    # Verify original tags remain unchanged
+    updated_run = TaskRun.from_id_and_parent_path(task_run.id, task.path)
+    assert set(updated_run.tags) == {"tag1", "tag2"}
+
+
+@pytest.mark.asyncio
+async def test_remove_tags_run_not_found(client, task_run_setup):
+    project = task_run_setup["project"]
+    task = task_run_setup["task"]
+
+    run_ids = ["non_existent_run_id"]
+    tags_to_remove = ["tag1"]
+
+    with patch("kiln_server.run_api.task_from_id") as mock_task_from_id:
+        mock_task_from_id.return_value = task
+        response = client.post(
+            f"/api/projects/{project.id}/tasks/{task.id}/runs/remove_tags",
+            json={"run_ids": run_ids, "tags": tags_to_remove},
+        )
+
+    assert response.status_code == 500
+    result = response.json()
+    assert "failed_runs" in result["message"]
+    assert "non_existent_run_id" in result["message"]["failed_runs"]
+    assert result["message"]["error"] == "Runs not found"
+
+
+@pytest.mark.asyncio
+async def test_remove_tags_task_not_found(client):
+    run_ids = ["run1"]
+    tags_to_remove = ["tag1"]
+
+    with patch("kiln_server.run_api.task_from_id") as mock_task_from_id:
+        mock_task_from_id.side_effect = HTTPException(
+            status_code=404, detail="Task not found"
+        )
+        response = client.post(
+            "/api/projects/project1-id/tasks/non_existent_task_id/runs/remove_tags",
+            json={"run_ids": run_ids, "tags": tags_to_remove},
+        )
+
+    assert response.status_code == 404
+    assert response.json()["message"] == "Task not found"
+
+
+@pytest.mark.asyncio
+async def test_remove_tags_multiple_runs(client, task_run_setup):
+    project = task_run_setup["project"]
+    task = task_run_setup["task"]
+    task_run = task_run_setup["task_run"]
+
+    # Create a second run
+    second_run = TaskRun(
+        parent=task,
+        input="Test input 2",
+        input_source=DataSource(
+            type=DataSourceType.human, properties={"created_by": "Test User"}
+        ),
+        output=TaskOutput(
+            output="Test output 2",
+            source=DataSource(
+                type=DataSourceType.human,
+                properties={"created_by": "Test User"},
+            ),
+        ),
+    )
+    second_run.save_to_file()
+
+    # Set initial tags for both runs
+    task_run.tags = ["tag1", "tag2"]
+    second_run.tags = ["tag1", "tag3"]
+    task_run.save_to_file()
+    second_run.save_to_file()
+
+    run_ids = [task_run.id, second_run.id]
+    tags_to_remove = ["tag1"]
+
+    with patch("kiln_server.run_api.task_from_id") as mock_task_from_id:
+        mock_task_from_id.return_value = task
+        response = client.post(
+            f"/api/projects/{project.id}/tasks/{task.id}/runs/remove_tags",
+            json={"run_ids": run_ids, "tags": tags_to_remove},
+        )
+
+    assert response.status_code == 200
+    assert response.json() == {"success": True}
+
+    # Verify tags were removed from both runs
+    updated_run1 = TaskRun.from_id_and_parent_path(task_run.id, task.path)
+    updated_run2 = TaskRun.from_id_and_parent_path(second_run.id, task.path)
+    assert set(updated_run1.tags) == {"tag2"}
+    assert set(updated_run2.tags) == {"tag3"}
