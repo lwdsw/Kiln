@@ -222,6 +222,43 @@ def connect_run_api(app: FastAPI):
     ) -> TaskRun:
         return await update_run_util(project_id, task_id, run_id, run_data)
 
+    @app.post("/api/projects/{project_id}/tasks/{task_id}/runs/edit_tags")
+    async def edit_tags(
+        project_id: str,
+        task_id: str,
+        run_ids: list[str],
+        add_tags: list[str] | None = None,
+        remove_tags: list[str] | None = None,
+    ):
+        task = task_from_id(project_id, task_id)
+        failed_runs: list[str] = []
+        for run_id in run_ids:
+            run = TaskRun.from_id_and_parent_path(run_id, task.path)
+            if not run:
+                failed_runs.append(run_id)
+            else:
+                modified = False
+                if remove_tags and any(tag in (run.tags or []) for tag in remove_tags):
+                    run.tags = list(
+                        set(tag for tag in (run.tags or []) if tag not in remove_tags)
+                    )
+                    modified = True
+                if add_tags and any(tag not in (run.tags or []) for tag in add_tags):
+                    run.tags = list(set((run.tags or []) + add_tags))
+                    modified = True
+                if modified:
+                    run.save_to_file()
+
+        if failed_runs:
+            raise HTTPException(
+                status_code=500,
+                detail={
+                    "failed_runs": failed_runs,
+                    "error": "Runs not found",
+                },
+            )
+        return {"success": True}
+
 
 async def update_run_util(
     project_id: str, task_id: str, run_id: str, run_data: Dict[str, Any]
