@@ -486,36 +486,40 @@
             {selected_runs.size} selected
           </div>
           {#if selected_runs.size > 0}
+            <div class="dropdown dropdown-end">
+              <div tabindex="0" role="button" class="btn btn-mid !px-3">
+                <img alt="tags" src="/images/tag.svg" class="w-5 h-5" />
+              </div>
+              <ul
+                class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow"
+              >
+                <li>
+                  <button tabindex="0" on:click={() => show_add_tags_modal()}>
+                    Add Tags
+                  </button>
+                </li>
+                <li>
+                  <button
+                    tabindex="0"
+                    on:click={() => show_remove_tags_modal()}
+                  >
+                    Remove Tags
+                  </button>
+                </li>
+              </ul>
+            </div>
             <button
-              class="btn btn-sm btn-outline"
-              on:click={() => show_add_tags_modal()}
-            >
-              Add Tags
-            </button>
-            <button
-              class="btn btn-sm btn-outline"
-              on:click={() => show_remove_tags_modal()}
-            >
-              Remove Tags
-            </button>
-            <button
-              class="btn btn-sm btn-outline"
+              class="btn btn-mid !px-3"
               on:click={() => show_delete_modal()}
             >
-              <img alt="delete" src="/images/delete.svg" class="w-4 h-4" />
+              <img alt="delete" src="/images/delete.svg" class="w-5 h-5" />
             </button>
           {/if}
-          <button
-            class="btn btn-sm btn-outline"
-            on:click={() => (select_mode = false)}
-          >
+          <button class="btn btn-mid" on:click={() => (select_mode = false)}>
             Cancel Selection
           </button>
         {:else}
-          <button
-            class="btn btn-sm btn-outline"
-            on:click={() => (select_mode = true)}
-          >
+          <button class="btn btn-mid" on:click={() => (select_mode = true)}>
             Select
           </button>
         {/if}
