@@ -155,6 +155,32 @@ def connect_run_api(app: FastAPI):
             run_summaries.append(summary)
         return run_summaries
 
+    @app.post("/api/projects/{project_id}/tasks/{task_id}/runs/delete")
+    async def delete_runs(project_id: str, task_id: str, run_ids: list[str]):
+        task = task_from_id(project_id, task_id)
+        failed_runs: list[str] = []
+        last_error: Exception | None = None
+        for run_id in run_ids:
+            try:
+                run = TaskRun.from_id_and_parent_path(run_id, task.path)
+                if run:
+                    run.delete()
+                else:
+                    failed_runs.append(run_id)
+                    last_error = Exception("Run not found")
+            except Exception as e:
+                last_error = e
+                failed_runs.append(run_id)
+        if failed_runs:
+            raise HTTPException(
+                status_code=500,
+                detail={
+                    "failed_runs": failed_runs,
+                    "error": str(last_error) if last_error else "Unknown error",
+                },
+            )
+        return {"success": True}
+
     @app.post("/api/projects/{project_id}/tasks/{task_id}/run")
     async def run_task(
         project_id: str, task_id: str, request: RunTaskRequest
