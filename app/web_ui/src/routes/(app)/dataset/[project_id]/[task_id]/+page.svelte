@@ -348,16 +348,15 @@
   let editing_tags_error: KilnError | null = null
   let add_tags: Set<string> = new Set()
   let remove_tags: Set<string> = new Set()
-  let show_add_tag_dropdown = true
+  let show_add_tag_dropdown = false
   let current_tag: string = ""
 
   function show_add_tags_modal() {
     // clear any error so you can use the modal again
     editing_tags_error = null
 
-    // clear remove tags since that's a separate modal
-    remove_tags = new Set()
-    // Don't clear add tags list, they may want to reuse the list
+    // Show the dropdown
+    show_add_tag_dropdown = true
 
     // @ts-expect-error showModal is not a method on HTMLElement
     document.getElementById("add_tags_modal")?.showModal()
@@ -370,6 +369,41 @@
       add_tags.add(current_tag)
       current_tag = ""
     }
+    // Don't accidentially remove tags
+    remove_tags = new Set()
+    edit_tags()
+  }
+
+  let removeable_tags: Record<string, number> = {}
+  function update_removeable_tags() {
+    let selected_run_contents: RunSummary[] = []
+    for (const run of filtered_runs || []) {
+      if (run.id && selected_runs.has(run.id)) {
+        selected_run_contents.push(run)
+      }
+    }
+    removeable_tags = get_available_filter_tags(
+      selected_run_contents,
+      Array.from(remove_tags),
+    )
+  }
+
+  function show_remove_tags_modal() {
+    // clear any error so you can use the modal again
+    editing_tags_error = null
+
+    // clear prior lists
+    remove_tags = new Set()
+
+    update_removeable_tags()
+
+    // @ts-expect-error showModal is not a method on HTMLElement
+    document.getElementById("remove_tags_modal")?.showModal()
+  }
+
+  function remove_selected_tags() {
+    // Don't accidentially add tags
+    add_tags = new Set()
     edit_tags()
   }
 
@@ -392,9 +426,12 @@
         throw error
       }
 
-      // Close modal on success
+      // Close modals on success
       // @ts-expect-error showModal is not a method on HTMLElement
       document.getElementById("add_tags_modal")?.close()
+      // @ts-expect-error showModal is not a method on HTMLElement
+      document.getElementById("remove_tags_modal")?.close()
+      show_add_tag_dropdown = false
     } catch (e) {
       editing_tags_error = createKilnError(e)
     } finally {
@@ -454,6 +491,12 @@
               on:click={() => show_add_tags_modal()}
             >
               Add Tags
+            </button>
+            <button
+              class="btn btn-sm btn-outline"
+              on:click={() => show_remove_tags_modal()}
+            >
+              Remove Tags
             </button>
             <button
               class="btn btn-sm btn-outline"
@@ -805,6 +848,109 @@
           on:click={() => add_selected_tags()}
         >
           Add Tags
+        </button>
+      </div>
+    {/if}
+  </div>
+  <form method="dialog" class="modal-backdrop">
+    <button>close</button>
+  </form>
+</dialog>
+
+<dialog id="remove_tags_modal" class="modal">
+  <div class="modal-box">
+    <form method="dialog">
+      <button
+        class="btn btn-sm text-xl btn-circle btn-ghost absolute right-2 top-2 focus:outline-none"
+        >✕</button
+      >
+    </form>
+    <h3 class="text-lg font-medium mb-1">
+      Remove Tags from
+      {#if selected_runs.size > 1}
+        {selected_runs.size} Runs
+      {:else if selected_runs.size == 1}
+        1 Run
+      {/if}
+    </h3>
+    {#if editing_tags}
+      <div class="flex flex-col items-center justify-center min-h-[100px]">
+        <div class="loading loading-spinner loading-lg"></div>
+      </div>
+    {:else if editing_tags_error}
+      <div class="text-error text-sm">
+        {editing_tags_error.getMessage() || "An unknown error occurred"}
+      </div>
+      <div class="flex flex-row gap-2 justify-end mt-4">
+        <form method="dialog">
+          <button class="btn btn-sm h-10 btn-outline min-w-24">Close</button>
+        </form>
+      </div>
+    {:else}
+      <div>
+        <div class="text-sm font-light text-gray-500 mt-6">
+          Selected tags to remove:
+        </div>
+        {#if remove_tags.size == 0}
+          <div class="text-xs font-medium">No tags selected.</div>
+        {:else}
+          <div class="flex flex-row flex-wrap gap-2 mt-2">
+            {#each Array.from(remove_tags).sort() as tag}
+              <div class="badge bg-gray-200 text-gray-500 py-3 px-3 max-w-full">
+                <span class="truncate">{tag}</span>
+                <button
+                  class="pl-3 font-medium shrink-0"
+                  on:click={() => {
+                    remove_tags.delete(tag)
+                    remove_tags = remove_tags
+                    update_removeable_tags()
+                  }}>✕</button
+                >
+              </div>
+            {/each}
+          </div>
+        {/if}
+        <div class="text-sm font-light text-gray-500 mt-6">Available tags:</div>
+        {#if Object.keys(removeable_tags).length == 0 && remove_tags.size == 0}
+          <div class="text-xs font-medium">No tags on selected runs.</div>
+        {:else if Object.keys(removeable_tags).length == 0}
+          <div class="text-xs font-medium">
+            All available tags already selected.
+          </div>
+        {:else}
+          <div class="flex flex-row flex-wrap gap-2 mt-2">
+            {#each Object.entries(removeable_tags).sort((a, b) => b[1] - a[1]) as [tag, count]}
+              {#if !remove_tags.has(tag)}
+                <div
+                  class="badge bg-gray-200 text-gray-500 py-3 px-3 max-w-full"
+                >
+                  <button
+                    class="truncate"
+                    on:click={() => {
+                      remove_tags.add(tag)
+                      remove_tags = remove_tags
+                      update_removeable_tags()
+                    }}
+                  >
+                    {tag} ({count})
+                  </button>
+                </div>
+              {/if}
+            {/each}
+          </div>
+        {/if}
+      </div>
+
+      <div class="flex flex-row gap-2 justify-end mt-8">
+        <form method="dialog">
+          <button class="btn btn-sm h-10 btn-outline min-w-24">Cancel</button>
+        </form>
+        <button
+          class="btn btn-sm h-10 min-w-24 btn-secondary"
+          disabled={remove_tags.size == 0}
+          on:click={() => remove_selected_tags()}
+        >
+          Remove Tags
         </button>
       </div>
     {/if}
