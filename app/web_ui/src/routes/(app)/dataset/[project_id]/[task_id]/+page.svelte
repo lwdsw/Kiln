@@ -258,7 +258,7 @@
 
 <AppPage
   title="Dataset"
-  subtitle="Explore sample and ratings for this task."
+  subtitle="Explore the dataset for this task."
   action_buttons={[
     {
       icon: "/images/filter.svg",
@@ -286,7 +286,7 @@
       <EmptyInto {project_id} {task_id} />
     </div>
   {:else if runs}
-    <div class="overflow-x-auto">
+    <div class="overflow-x-auto rounded-lg border">
       <table class="table">
         <thead>
           <tr>
