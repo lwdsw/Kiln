@@ -332,99 +332,112 @@
       <EmptyInto {project_id} {task_id} />
     </div>
   {:else if runs}
-    <div class="flex flex-row items-center justify-end mb-4 gap-3">
-      {#if select_mode}
-        <div class="font-light text-sm">
-          {selected_runs.size} selected
-        </div>
-        <button
-          class="btn btn-sm btn-outline"
-          on:click={() => (select_mode = false)}
-        >
-          Cancel Selection
-        </button>
-      {:else}
-        <button
-          class="btn btn-sm btn-outline"
-          on:click={() => (select_mode = true)}
-        >
-          Select
-        </button>
-      {/if}
-    </div>
-    <div class="overflow-x-auto rounded-lg border">
-      <table class="table">
-        <thead>
-          <tr>
-            {#if select_mode}
-              <th>
-                {#key select_summary}
-                  <input
-                    type="checkbox"
-                    class="checkbox checkbox-sm"
-                    checked={select_summary === "all"}
-                    indeterminate={select_summary === "some"}
-                    on:change={(e) => select_all_clicked(e)}
-                  />
-                {/key}
-              </th>
-            {/if}
-            {#each columns as { key, label }}
-              <th
-                on:click={() => handleSort(key)}
-                class="hover:bg-base-200 cursor-pointer"
-              >
-                {label}
-                {sortColumn === key
-                  ? sortDirection === "asc"
-                    ? "▲"
-                    : "▼"
-                  : ""}
-              </th>
-            {/each}
-          </tr>
-        </thead>
-        <tbody>
-          {#each (filtered_runs || []).slice((page_number - 1) * page_size, page_number * page_size) as run}
-            <tr
-              class="hover cursor-pointer"
-              on:click={() => {
-                row_clicked(run.id)
-              }}
-            >
+    <div>
+      <div
+        class="flex flex-row items-center justify-end py-2 gap-3 {select_mode
+          ? 'sticky top-0 z-10 backdrop-blur'
+          : ''}"
+      >
+        {#if select_mode}
+          <div class="font-light text-sm">
+            {selected_runs.size} selected
+          </div>
+          <button
+            class="btn btn-sm btn-outline"
+            on:click={() => (select_mode = false)}
+          >
+            Cancel Selection
+          </button>
+        {:else}
+          <button
+            class="btn btn-sm btn-outline"
+            on:click={() => (select_mode = true)}
+          >
+            Select
+          </button>
+        {/if}
+      </div>
+      <div class="overflow-x-auto rounded-lg border">
+        <table class="table">
+          <thead>
+            <tr>
               {#if select_mode}
-                <td>
-                  <input
-                    type="checkbox"
-                    class="checkbox checkbox-sm"
-                    checked={(run.id && selected_runs.has(run.id)) || false}
-                  />
-                </td>
+                <th>
+                  {#key select_summary}
+                    <input
+                      type="checkbox"
+                      class="checkbox checkbox-sm mt-1"
+                      checked={select_summary === "all"}
+                      indeterminate={select_summary === "some"}
+                      on:change={(e) => select_all_clicked(e)}
+                    />
+                  {/key}
+                </th>
               {/if}
-              <td>
-                {run.rating && run.rating.value
-                  ? run.rating.type === "five_star"
-                    ? "★".repeat(run.rating.value)
-                    : run.rating.value + "(custom score)"
-                  : "Unrated"}
-              </td>
-              <td>{run.repair_state}</td>
-              <td>{run.input_source}</td>
-              <td class="break-words max-w-36">
-                {model_name(run.model_name || undefined, $model_info)}
-              </td>
-              <td>{formatDate(run.created_at)}</td>
-              <td class="break-words max-w-48">
-                {run.input_preview || "No input"}
-              </td>
-              <td class="break-words max-w-48">
-                {run.output_preview || "No output"}
-              </td>
+              {#each columns as { key, label }}
+                <th
+                  on:click={() => handleSort(key)}
+                  class="hover:bg-base-200 cursor-pointer"
+                >
+                  {label}
+                  {sortColumn === key
+                    ? sortDirection === "asc"
+                      ? "▲"
+                      : "▼"
+                    : ""}
+                </th>
+              {/each}
             </tr>
-          {/each}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {#each (filtered_runs || []).slice((page_number - 1) * page_size, page_number * page_size) as run}
+              <tr
+                class="{select_mode
+                  ? ''
+                  : 'hover'} cursor-pointer {select_mode &&
+                run.id &&
+                selected_runs.has(run.id)
+                  ? 'bg-base-200'
+                  : ''}"
+                on:click={() => {
+                  row_clicked(run.id)
+                }}
+              >
+                {#if select_mode}
+                  <td>
+                    <input
+                      type="checkbox"
+                      class="checkbox checkbox-sm"
+                      checked={(run.id && selected_runs.has(run.id)) || false}
+                    />
+                  </td>
+                {/if}
+                <td>
+                  {run.rating && run.rating.value
+                    ? run.rating.type === "five_star"
+                      ? "★".repeat(run.rating.value)
+                      : run.rating.value + "(custom score)"
+                    : "Unrated"}
+                </td>
+                <td>{run.repair_state}</td>
+                <td>{run.input_source}</td>
+                <td class="break-words max-w-36">
+                  {model_name(run.model_name || undefined, $model_info)}
+                </td>
+                <td>{formatDate(run.created_at)}</td>
+                <td class="break-words max-w-48">
+                  {run.input_preview || "No input"}
+                </td>
+                <td class="break-words max-w-48">
+                  {run.output_preview || "No output"}
+                </td>
+              </tr>
+            {/each}
+          </tbody>
+        </table>
+      </div>
     </div>
+
     {#if page_number > 1 || (filtered_runs && filtered_runs.length > page_size)}
       <div class="flex flex-row justify-center mt-10">
         <div class="join">
