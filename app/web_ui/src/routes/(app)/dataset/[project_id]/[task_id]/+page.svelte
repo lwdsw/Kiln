@@ -254,11 +254,99 @@
     const list = filtered_runs?.map((run) => run.id)
     goto(url, { state: { list_page: list } })
   }
+
+  let select_mode: boolean = false
+  let selected_runs: Set<string> = new Set()
+  let select_summary: "all" | "none" | "some" = "none"
+  $: {
+    if (selected_runs.size >= (filtered_runs?.length || 0)) {
+      select_summary = "all"
+    } else if (selected_runs.size > 0) {
+      select_summary = "some"
+    } else {
+      select_summary = "none"
+    }
+  }
+
+  function toggle_selection(run_id: string) {
+    selected_runs.has(run_id)
+      ? selected_runs.delete(run_id)
+      : selected_runs.add(run_id)
+    // Reactivity trigger
+    selected_runs = selected_runs
+  }
+
+  function row_clicked(run_id: string | null) {
+    if (!run_id) return
+    if (select_mode) {
+      toggle_selection(run_id)
+    } else {
+      open_dataset_run(run_id)
+    }
+  }
+
+  function select_all_clicked(event: Event) {
+    // Prevent default checkbox, we're using reactivity
+    event.preventDefault()
+    if (select_summary === "all" || select_summary === "some") {
+      selected_runs.clear()
+    } else {
+      filtered_runs?.forEach((run) => {
+        if (run.id) {
+          selected_runs.add(run.id)
+        }
+      })
+    }
+    selected_runs = selected_runs
+  }
+
+  function show_delete_modal() {
+    // clear any error so you can use the modal again
+    delete_error = null
+
+    // @ts-expect-error showModal is not a method on HTMLElement
+    document.getElementById("delete_modal")?.showModal()
+  }
+
+  let deleting_runs = false
+  let delete_error: KilnError | null = null
+
+  async function delete_runs() {
+    try {
+      deleting_runs = true
+      delete_error = null
+      const { error } = await client.POST(
+        "/api/projects/{project_id}/tasks/{task_id}/runs/delete",
+        {
+          params: {
+            path: { project_id, task_id },
+          },
+          body: Array.from(selected_runs),
+        },
+      )
+      if (error) {
+        throw error
+      }
+
+      // Close modal on success
+      // @ts-expect-error showModal is not a method on HTMLElement
+      document.getElementById("delete_modal")?.close()
+    } catch (e) {
+      delete_error = createKilnError(e)
+    } finally {
+      deleting_runs = false
+
+      // Reload UI, even on failure, as partial delete is possible
+      selected_runs = new Set()
+      select_mode = false
+      await get_runs()
+    }
+  }
 </script>
 
 <AppPage
   title="Dataset"
-  subtitle="Explore sample and ratings for this task."
+  subtitle="Explore the dataset for this task."
   action_buttons={[
     {
       icon: "/images/filter.svg",
@@ -286,57 +374,120 @@
       <EmptyInto {project_id} {task_id} />
     </div>
   {:else if runs}
-    <div class="overflow-x-auto">
-      <table class="table">
-        <thead>
-          <tr>
-            {#each columns as { key, label }}
-              <th
-                on:click={() => handleSort(key)}
-                class="hover:bg-base-200 cursor-pointer"
-              >
-                {label}
-                {sortColumn === key
-                  ? sortDirection === "asc"
-                    ? "▲"
-                    : "▼"
-                  : ""}
-              </th>
-            {/each}
-          </tr>
-        </thead>
-        <tbody>
-          {#each (filtered_runs || []).slice((page_number - 1) * page_size, page_number * page_size) as run}
-            <tr
-              class="hover cursor-pointer"
-              on:click={() => {
-                open_dataset_run(run.id)
-              }}
+    <div>
+      <div
+        class="flex flex-row items-center justify-end py-2 gap-3 {select_mode
+          ? 'sticky top-0 z-10 backdrop-blur'
+          : ''}"
+      >
+        {#if select_mode}
+          <div class="font-light text-sm">
+            {selected_runs.size} selected
+          </div>
+          {#if selected_runs.size > 0}
+            <button
+              class="btn btn-sm btn-outline"
+              on:click={() => show_delete_modal()}
             >
-              <td>
-                {run.rating && run.rating.value
-                  ? run.rating.type === "five_star"
-                    ? "★".repeat(run.rating.value)
-                    : run.rating.value + "(custom score)"
-                  : "Unrated"}
-              </td>
-              <td>{run.repair_state}</td>
-              <td>{run.input_source}</td>
-              <td class="break-words max-w-36">
-                {model_name(run.model_name || undefined, $model_info)}
-              </td>
-              <td>{formatDate(run.created_at)}</td>
-              <td class="break-words max-w-48">
-                {run.input_preview || "No input"}
-              </td>
-              <td class="break-words max-w-48">
-                {run.output_preview || "No output"}
-              </td>
+              <img alt="delete" src="/images/delete.svg" class="w-4 h-4" />
+            </button>
+          {/if}
+          <button
+            class="btn btn-sm btn-outline"
+            on:click={() => (select_mode = false)}
+          >
+            Cancel Selection
+          </button>
+        {:else}
+          <button
+            class="btn btn-sm btn-outline"
+            on:click={() => (select_mode = true)}
+          >
+            Select
+          </button>
+        {/if}
+      </div>
+      <div class="overflow-x-auto rounded-lg border">
+        <table class="table">
+          <thead>
+            <tr>
+              {#if select_mode}
+                <th>
+                  {#key select_summary}
+                    <input
+                      type="checkbox"
+                      class="checkbox checkbox-sm mt-1"
+                      checked={select_summary === "all"}
+                      indeterminate={select_summary === "some"}
+                      on:change={(e) => select_all_clicked(e)}
+                    />
+                  {/key}
+                </th>
+              {/if}
+              {#each columns as { key, label }}
+                <th
+                  on:click={() => handleSort(key)}
+                  class="hover:bg-base-200 cursor-pointer"
+                >
+                  {label}
+                  {sortColumn === key
+                    ? sortDirection === "asc"
+                      ? "▲"
+                      : "▼"
+                    : ""}
+                </th>
+              {/each}
             </tr>
-          {/each}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {#each (filtered_runs || []).slice((page_number - 1) * page_size, page_number * page_size) as run}
+              <tr
+                class="{select_mode
+                  ? ''
+                  : 'hover'} cursor-pointer {select_mode &&
+                run.id &&
+                selected_runs.has(run.id)
+                  ? 'bg-base-200'
+                  : ''}"
+                on:click={() => {
+                  row_clicked(run.id)
+                }}
+              >
+                {#if select_mode}
+                  <td>
+                    <input
+                      type="checkbox"
+                      class="checkbox checkbox-sm"
+                      checked={(run.id && selected_runs.has(run.id)) || false}
+                    />
+                  </td>
+                {/if}
+                <td>
+                  {run.rating && run.rating.value
+                    ? run.rating.type === "five_star"
+                      ? "★".repeat(run.rating.value)
+                      : run.rating.value + "(custom score)"
+                    : "Unrated"}
+                </td>
+                <td>{run.repair_state}</td>
+                <td>{run.input_source}</td>
+                <td class="break-words max-w-36">
+                  {model_name(run.model_name || undefined, $model_info)}
+                </td>
+                <td>{formatDate(run.created_at)}</td>
+                <td class="break-words max-w-48">
+                  {run.input_preview || "No input"}
+                </td>
+                <td class="break-words max-w-48">
+                  {run.output_preview || "No output"}
+                </td>
+              </tr>
+            {/each}
+          </tbody>
+        </table>
+      </div>
     </div>
+
     {#if page_number > 1 || (filtered_runs && filtered_runs.length > page_size)}
       <div class="flex flex-row justify-center mt-10">
         <div class="join">
@@ -438,6 +589,55 @@
         >
       {/each}
     </div>
+  </div>
+  <form method="dialog" class="modal-backdrop">
+    <button>close</button>
+  </form>
+</dialog>
+
+<dialog id="delete_modal" class="modal">
+  <div class="modal-box">
+    <form method="dialog">
+      <button
+        class="btn btn-sm text-xl btn-circle btn-ghost absolute right-2 top-2 focus:outline-none"
+        >✕</button
+      >
+    </form>
+    <h3 class="text-lg font-medium mb-1">
+      Delete
+      {#if selected_runs.size > 1}
+        {selected_runs.size} Runs?
+      {:else if selected_runs.size == 1}
+        1 Run?
+      {/if}
+    </h3>
+    {#if deleting_runs}
+      <div class="flex flex-col items-center justify-center min-h-[100px]">
+        <div class="loading loading-spinner loading-lg"></div>
+      </div>
+    {:else if delete_error}
+      <div class="text-error text-sm">
+        {delete_error.getMessage() || "An unknown error occurred"}
+      </div>
+      <div class="flex flex-row gap-2 justify-end mt-4">
+        <form method="dialog">
+          <button class="btn btn-sm h-10 btn-outline min-w-24">Close</button>
+        </form>
+      </div>
+    {:else}
+      <div class="text-sm font-light text-gray-500">This cannot be undone.</div>
+      <div class="flex flex-row gap-2 justify-end mt-4">
+        <form method="dialog">
+          <button class="btn btn-sm h-10 btn-outline min-w-24">Cancel</button>
+        </form>
+        <button
+          class="btn btn-sm h-10 min-w-24 btn-secondary"
+          on:click={() => delete_runs()}
+        >
+          Delete
+        </button>
+      </div>
+    {/if}
   </div>
   <form method="dialog" class="modal-backdrop">
     <button>close</button>

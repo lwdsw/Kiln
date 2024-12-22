@@ -769,3 +769,104 @@ async def test_get_runs_summaries_task_not_found(client):
 
     assert response.status_code == 404
     assert response.json()["message"] == "Task not found"
+
+
+@pytest.mark.asyncio
+async def test_delete_multiple_runs_success(client, task_run_setup):
+    project = task_run_setup["project"]
+    task = task_run_setup["task"]
+    task_run = task_run_setup["task_run"]
+
+    # Create a second run
+    second_run = TaskRun(
+        parent=task,
+        input="Test input 2",
+        input_source=DataSource(
+            type=DataSourceType.human, properties={"created_by": "Test User"}
+        ),
+        output=TaskOutput(
+            output="Test output 2",
+            source=DataSource(
+                type=DataSourceType.human,
+                properties={"created_by": "Test User"},
+            ),
+        ),
+    )
+    second_run.save_to_file()
+
+    run_ids = [task_run.id, second_run.id]
+
+    with patch("kiln_server.run_api.task_from_id") as mock_task_from_id:
+        mock_task_from_id.return_value = task
+        response = client.post(
+            f"/api/projects/{project.id}/tasks/{task.id}/runs/delete", json=run_ids
+        )
+
+    assert response.status_code == 200
+    assert response.json() == {"success": True}
+    # Verify files were deleted
+    assert not task_run.path.exists()
+    assert not second_run.path.exists()
+
+
+@pytest.mark.asyncio
+async def test_delete_multiple_runs_partial_failure(client, task_run_setup):
+    project = task_run_setup["project"]
+    task = task_run_setup["task"]
+    task_run = task_run_setup["task_run"]
+
+    # Include one valid and one invalid run ID
+    run_ids = [task_run.id, "non_existent_run_id"]
+
+    with patch("kiln_server.run_api.task_from_id") as mock_task_from_id:
+        mock_task_from_id.return_value = task
+        response = client.post(
+            f"/api/projects/{project.id}/tasks/{task.id}/runs/delete", json=run_ids
+        )
+
+    assert response.status_code == 500
+    result = response.json()
+    assert "failed_runs" in result["message"]
+    assert "non_existent_run_id" in result["message"]["failed_runs"]
+    assert "Run not found" in result["message"]["error"]
+
+
+@pytest.mark.asyncio
+async def test_delete_multiple_runs_task_not_found(client):
+    run_ids = ["run1", "run2"]
+
+    with patch("kiln_server.run_api.task_from_id") as mock_task_from_id:
+        mock_task_from_id.side_effect = HTTPException(
+            status_code=404, detail="Task not found"
+        )
+        response = client.post(
+            "/api/projects/project1-id/tasks/non_existent_task_id/runs/delete",
+            json=run_ids,
+        )
+
+    assert response.status_code == 404
+    assert response.json()["message"] == "Task not found"
+
+
+@pytest.mark.asyncio
+async def test_delete_multiple_runs_with_exception(client, task_run_setup):
+    project = task_run_setup["project"]
+    task = task_run_setup["task"]
+    task_run = task_run_setup["task_run"]
+
+    run_ids = [task_run.id]
+
+    with patch("kiln_server.run_api.task_from_id") as mock_task_from_id:
+        mock_task_from_id.return_value = task
+        # Simulate an unexpected error during deletion
+        with patch.object(TaskRun, "delete") as mock_delete:
+            mock_delete.side_effect = Exception("Unexpected error")
+            response = client.post(
+                f"/api/projects/{project.id}/tasks/{task.id}/runs/delete", json=run_ids
+            )
+
+    assert response.status_code == 500
+    result = response.json()
+    assert "failed_runs" in result["message"]
+    assert task_run.id in result["message"]["failed_runs"]
+    assert "Unexpected error" in result["message"]["error"]

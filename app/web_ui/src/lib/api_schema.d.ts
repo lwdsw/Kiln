@@ -228,6 +228,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/projects/{project_id}/tasks/{task_id}/runs/delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Delete Runs */
+        post: operations["delete_runs_api_projects__project_id__tasks__task_id__runs_delete_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/projects/{project_id}/tasks/{task_id}/run": {
         parameters: {
             query?: never;
@@ -875,7 +892,12 @@ export interface components {
          * @enum {string}
          */
         FineTuneStatusType: "unknown" | "pending" | "running" | "completed" | "failed";
-        /** Finetune */
+        /**
+         * Finetune
+         * @description The Kiln fine-tune datamodel.
+         *
+         *     Initially holds a reference to a training job, with needed identifiers to update the status. When complete, contains the new model ID.
+         */
         Finetune: {
             /**
              * V
@@ -2110,6 +2132,42 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RunSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_runs_api_projects__project_id__tasks__task_id__runs_delete_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": string[];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
