@@ -300,6 +300,49 @@
     }
     selected_runs = selected_runs
   }
+
+  function show_delete_modal() {
+    // clear any error so you can use the modal again
+    delete_error = null
+
+    // @ts-expect-error showModal is not a method on HTMLElement
+    document.getElementById("delete_modal")?.showModal()
+  }
+
+  let deleting_runs = false
+  let delete_error: KilnError | null = null
+
+  async function delete_runs() {
+    try {
+      deleting_runs = true
+      delete_error = null
+      const { error } = await client.POST(
+        "/api/projects/{project_id}/tasks/{task_id}/runs/delete",
+        {
+          params: {
+            path: { project_id, task_id },
+          },
+          body: Array.from(selected_runs),
+        },
+      )
+      if (error) {
+        throw error
+      }
+
+      // Close modal on success
+      // @ts-expect-error showModal is not a method on HTMLElement
+      document.getElementById("delete_modal")?.close()
+    } catch (e) {
+      delete_error = createKilnError(e)
+    } finally {
+      deleting_runs = false
+
+      // Reload UI, even on failure, as partial delete is possible
+      selected_runs = new Set()
+      select_mode = false
+      await get_runs()
+    }
+  }
 </script>
 
 <AppPage
@@ -342,6 +385,14 @@
           <div class="font-light text-sm">
             {selected_runs.size} selected
           </div>
+          {#if selected_runs.size > 0}
+            <button
+              class="btn btn-sm btn-outline"
+              on:click={() => show_delete_modal()}
+            >
+              <img alt="delete" src="/images/delete.svg" class="w-4 h-4" />
+            </button>
+          {/if}
           <button
             class="btn btn-sm btn-outline"
             on:click={() => (select_mode = false)}
@@ -539,6 +590,55 @@
         >
       {/each}
     </div>
+  </div>
+  <form method="dialog" class="modal-backdrop">
+    <button>close</button>
+  </form>
+</dialog>
+
+<dialog id="delete_modal" class="modal">
+  <div class="modal-box">
+    <form method="dialog">
+      <button
+        class="btn btn-sm text-xl btn-circle btn-ghost absolute right-2 top-2 focus:outline-none"
+        >✕</button
+      >
+    </form>
+    <h3 class="text-lg font-medium mb-1">
+      Delete
+      {#if selected_runs.size > 1}
+        {selected_runs.size} Runs?
+      {:else if selected_runs.size == 1}
+        1 Run?
+      {/if}
+    </h3>
+    {#if deleting_runs}
+      <div class="flex flex-col items-center justify-center min-h-[100px]">
+        <div class="loading loading-spinner loading-lg"></div>
+      </div>
+    {:else if delete_error}
+      <div class="text-error text-sm">
+        {delete_error.getMessage() || "An unknown error occurred"}
+      </div>
+      <div class="flex flex-row gap-2 justify-end mt-4">
+        <form method="dialog">
+          <button class="btn btn-sm h-10 btn-outline min-w-24">Close</button>
+        </form>
+      </div>
+    {:else}
+      <div class="text-sm font-light text-gray-500">This cannot be undone.</div>
+      <div class="flex flex-row gap-2 justify-end mt-4">
+        <form method="dialog">
+          <button class="btn btn-sm h-10 btn-outline min-w-24">Cancel</button>
+        </form>
+        <button
+          class="btn btn-sm h-10 min-w-24 btn-secondary"
+          on:click={() => delete_runs()}
+        >
+          Delete
+        </button>
+      </div>
+    {/if}
   </div>
   <form method="dialog" class="modal-backdrop">
     <button>close</button>
