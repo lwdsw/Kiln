@@ -254,6 +254,26 @@
     const list = filtered_runs?.map((run) => run.id)
     goto(url, { state: { list_page: list } })
   }
+
+  let select_mode: boolean = false
+  let selected_runs: Set<string> = new Set()
+
+  function toggle_selection(run_id: string) {
+    selected_runs.has(run_id)
+      ? selected_runs.delete(run_id)
+      : selected_runs.add(run_id)
+    // Reactivity trigger
+    selected_runs = selected_runs
+  }
+
+  function row_clicked(run_id: string | null) {
+    if (!run_id) return
+    if (select_mode) {
+      toggle_selection(run_id)
+    } else {
+      open_dataset_run(run_id)
+    }
+  }
 </script>
 
 <AppPage
@@ -286,10 +306,23 @@
       <EmptyInto {project_id} {task_id} />
     </div>
   {:else if runs}
+    <div class="flex flex-row justify-end mb-4">
+      <button
+        class="btn btn-sm btn-outline"
+        on:click={() => (select_mode = !select_mode)}
+      >
+        {select_mode ? "Cancel Selection" : "Select"}
+      </button>
+    </div>
     <div class="overflow-x-auto rounded-lg border">
       <table class="table">
         <thead>
           <tr>
+            {#if select_mode}
+              <th>
+                <input type="checkbox" class="checkbox checkbox-sm" />
+              </th>
+            {/if}
             {#each columns as { key, label }}
               <th
                 on:click={() => handleSort(key)}
@@ -310,9 +343,18 @@
             <tr
               class="hover cursor-pointer"
               on:click={() => {
-                open_dataset_run(run.id)
+                row_clicked(run.id)
               }}
             >
+              {#if select_mode}
+                <td>
+                  <input
+                    type="checkbox"
+                    class="checkbox checkbox-sm"
+                    checked={(run.id && selected_runs.has(run.id)) || false}
+                  />
+                </td>
+              {/if}
               <td>
                 {run.rating && run.rating.value
                   ? run.rating.type === "five_star"
