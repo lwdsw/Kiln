@@ -255,8 +255,19 @@
     goto(url, { state: { list_page: list } })
   }
 
+  // TODO: clear on pagination?
   let select_mode: boolean = false
   let selected_runs: Set<string> = new Set()
+  let select_summary: "all" | "none" | "some" = "none"
+  $: {
+    if (selected_runs.size >= (filtered_runs?.length || 0)) {
+      select_summary = "all"
+    } else if (selected_runs.size > 0) {
+      select_summary = "some"
+    } else {
+      select_summary = "none"
+    }
+  }
 
   function toggle_selection(run_id: string) {
     selected_runs.has(run_id)
@@ -273,6 +284,21 @@
     } else {
       open_dataset_run(run_id)
     }
+  }
+
+  function select_all_clicked(event: Event) {
+    // Prevent default checkbox, we're using reactivity
+    event.preventDefault()
+    if (select_summary === "all" || select_summary === "some") {
+      selected_runs.clear()
+    } else {
+      filtered_runs?.forEach((run) => {
+        if (run.id) {
+          selected_runs.add(run.id)
+        }
+      })
+    }
+    selected_runs = selected_runs
   }
 </script>
 
@@ -306,13 +332,25 @@
       <EmptyInto {project_id} {task_id} />
     </div>
   {:else if runs}
-    <div class="flex flex-row justify-end mb-4">
-      <button
-        class="btn btn-sm btn-outline"
-        on:click={() => (select_mode = !select_mode)}
-      >
-        {select_mode ? "Cancel Selection" : "Select"}
-      </button>
+    <div class="flex flex-row items-center justify-end mb-4 gap-3">
+      {#if select_mode}
+        <div class="font-light text-sm">
+          {selected_runs.size} selected
+        </div>
+        <button
+          class="btn btn-sm btn-outline"
+          on:click={() => (select_mode = false)}
+        >
+          Cancel Selection
+        </button>
+      {:else}
+        <button
+          class="btn btn-sm btn-outline"
+          on:click={() => (select_mode = true)}
+        >
+          Select
+        </button>
+      {/if}
     </div>
     <div class="overflow-x-auto rounded-lg border">
       <table class="table">
@@ -320,7 +358,15 @@
           <tr>
             {#if select_mode}
               <th>
-                <input type="checkbox" class="checkbox checkbox-sm" />
+                {#key select_summary}
+                  <input
+                    type="checkbox"
+                    class="checkbox checkbox-sm"
+                    checked={select_summary === "all"}
+                    indeterminate={select_summary === "some"}
+                    on:change={(e) => select_all_clicked(e)}
+                  />
+                {/key}
               </th>
             {/if}
             {#each columns as { key, label }}
