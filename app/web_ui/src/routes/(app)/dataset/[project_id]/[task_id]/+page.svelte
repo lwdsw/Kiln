@@ -183,6 +183,9 @@
 
   function add_filter_tag(tag: string) {
     const newTags = [...new Set([...filter_tags, tag])]
+    // Selections confusing as filters change
+    select_mode = false
+    selected_runs = new Set()
     updateURL({
       tags: newTags,
       page: 1,
