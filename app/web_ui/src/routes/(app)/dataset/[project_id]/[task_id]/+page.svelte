@@ -10,6 +10,7 @@
   import { page } from "$app/stores"
   import { formatDate } from "$lib/utils/formatters"
   import { replaceState } from "$app/navigation"
+  import TagDropdown from "../../../run/tag_dropdown.svelte"
 
   let runs: RunSummary[] | null = null
   let filtered_runs: RunSummary[] | null = null
@@ -342,6 +343,69 @@
       await get_runs()
     }
   }
+
+  let editing_tags = false
+  let editing_tags_error: KilnError | null = null
+  let add_tags: Set<string> = new Set()
+  let remove_tags: Set<string> = new Set()
+  let show_add_tag_dropdown = true
+  let current_tag: string = ""
+
+  function show_add_tags_modal() {
+    // clear any error so you can use the modal again
+    editing_tags_error = null
+
+    // clear remove tags since that's a separate modal
+    remove_tags = new Set()
+    // Don't clear add tags list, they may want to reuse the list
+
+    // @ts-expect-error showModal is not a method on HTMLElement
+    document.getElementById("add_tags_modal")?.showModal()
+  }
+
+  function add_selected_tags() {
+    // Special case for this UI - consider the partly filled tag in the input
+    // as a tag to add
+    if (current_tag.length > 0) {
+      add_tags.add(current_tag)
+      current_tag = ""
+    }
+    edit_tags()
+  }
+
+  async function edit_tags() {
+    try {
+      editing_tags = true
+      editing_tags_error = null
+      const { error } = await client.POST(
+        "/api/projects/{project_id}/tasks/{task_id}/runs/edit_tags",
+        {
+          params: { path: { project_id, task_id } },
+          body: {
+            run_ids: Array.from(selected_runs),
+            add_tags: Array.from(add_tags),
+            remove_tags: Array.from(remove_tags),
+          },
+        },
+      )
+      if (error) {
+        throw error
+      }
+
+      // Close modal on success
+      // @ts-expect-error showModal is not a method on HTMLElement
+      document.getElementById("add_tags_modal")?.close()
+    } catch (e) {
+      editing_tags_error = createKilnError(e)
+    } finally {
+      editing_tags = false
+
+      // Reload UI, even on failure, as partial delete is possible
+      selected_runs = new Set()
+      select_mode = false
+      await get_runs()
+    }
+  }
 </script>
 
 <AppPage
@@ -385,6 +449,12 @@
             {selected_runs.size} selected
           </div>
           {#if selected_runs.size > 0}
+            <button
+              class="btn btn-sm btn-outline"
+              on:click={() => show_add_tags_modal()}
+            >
+              Add Tags
+            </button>
             <button
               class="btn btn-sm btn-outline"
               on:click={() => show_delete_modal()}
@@ -635,6 +705,106 @@
           on:click={() => delete_runs()}
         >
           Delete
+        </button>
+      </div>
+    {/if}
+  </div>
+  <form method="dialog" class="modal-backdrop">
+    <button>close</button>
+  </form>
+</dialog>
+
+<dialog id="add_tags_modal" class="modal">
+  <div class="modal-box">
+    <form method="dialog">
+      <button
+        class="btn btn-sm text-xl btn-circle btn-ghost absolute right-2 top-2 focus:outline-none"
+        >✕</button
+      >
+    </form>
+    <h3 class="text-lg font-medium mb-1">
+      Add Tags to
+      {#if selected_runs.size > 1}
+        {selected_runs.size} Runs
+      {:else if selected_runs.size == 1}
+        1 Run
+      {/if}
+    </h3>
+    {#if editing_tags}
+      <div class="flex flex-col items-center justify-center min-h-[100px]">
+        <div class="loading loading-spinner loading-lg"></div>
+      </div>
+    {:else if editing_tags_error}
+      <div class="text-error text-sm">
+        {editing_tags_error.getMessage() || "An unknown error occurred"}
+      </div>
+      <div class="flex flex-row gap-2 justify-end mt-4">
+        <form method="dialog">
+          <button class="btn btn-sm h-10 btn-outline min-w-24">Close</button>
+        </form>
+      </div>
+    {:else}
+      <div>
+        <div class="text-sm font-light text-gray-500 mb-2">
+          Tags can be used to organize you dataset.
+        </div>
+        <div class="flex flex-row flex-wrap gap-2 mt-2">
+          {#each Array.from(add_tags).sort() as tag}
+            <div class="badge bg-gray-200 text-gray-500 py-3 px-3 max-w-full">
+              <span class="truncate">{tag}</span>
+              <button
+                class="pl-3 font-medium shrink-0"
+                on:click={() => {
+                  add_tags.delete(tag)
+                  add_tags = add_tags
+                }}>✕</button
+              >
+            </div>
+          {/each}
+          <button
+            class="badge bg-gray-200 text-gray-500 p-3 font-medium {show_add_tag_dropdown
+              ? 'hidden'
+              : ''}"
+            on:click={() => (show_add_tag_dropdown = true)}>+</button
+          >
+        </div>
+        {#if show_add_tag_dropdown}
+          <div
+            class="mt-3 flex flex-row gap-2 items-center {show_add_tag_dropdown
+              ? ''
+              : 'hidden'}"
+          >
+            <TagDropdown
+              bind:tag={current_tag}
+              on_select={(tag) => {
+                add_tags.add(tag)
+                add_tags = add_tags
+                show_add_tag_dropdown = false
+                current_tag = ""
+              }}
+              on_escape={() => (show_add_tag_dropdown = false)}
+              focus_on_mount={true}
+            />
+            <div class="flex-none">
+              <button
+                class="btn btn-sm btn-circle text-xl font-medium"
+                on:click={() => (show_add_tag_dropdown = false)}>✕</button
+              >
+            </div>
+          </div>
+        {/if}
+      </div>
+
+      <div class="flex flex-row gap-2 justify-end mt-8">
+        <form method="dialog">
+          <button class="btn btn-sm h-10 btn-outline min-w-24">Cancel</button>
+        </form>
+        <button
+          class="btn btn-sm h-10 min-w-24 btn-secondary"
+          disabled={add_tags.size == 0 && !current_tag}
+          on:click={() => add_selected_tags()}
+        >
+          Add Tags
         </button>
       </div>
     {/if}
