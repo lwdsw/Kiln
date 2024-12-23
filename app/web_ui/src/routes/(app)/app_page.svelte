@@ -5,6 +5,7 @@
   export let title: string = ""
   export let subtitle: string = ""
   export let sub_subtitle: string = ""
+  export let no_y_padding: boolean = false
 
   export let action_buttons: ActionButton[] = []
 
@@ -75,6 +76,6 @@
   </div>
 </div>
 
-<div class="mt-8 mb-12">
+<div class={no_y_padding ? "" : "mt-8 mb-12"}>
   <slot />
 </div>

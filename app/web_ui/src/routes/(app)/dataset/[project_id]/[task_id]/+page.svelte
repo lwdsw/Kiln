@@ -448,11 +448,7 @@
   }
 </script>
 
-<AppPage
-  title="Dataset"
-  subtitle="Explore the dataset for this task."
-  action_buttons={[]}
->
+<AppPage title="Dataset" no_y_padding>
   {#if loading}
     <div class="w-full min-h-[50vh] flex justify-center items-center">
       <div class="loading loading-spinner loading-lg"></div>
@@ -462,7 +458,7 @@
       <EmptyInto {project_id} {task_id} />
     </div>
   {:else if runs}
-    <div>
+    <div class="mb-4">
       <div
         class="flex flex-row items-center justify-end py-2 gap-3 {select_mode
           ? 'sticky top-0 z-10 backdrop-blur'
