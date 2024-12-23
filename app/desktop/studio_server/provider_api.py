@@ -567,10 +567,14 @@ class OpenAICompatibleProviderCache:
     providers: List[AvailableModels]
     last_updated: datetime | None = None
     openai_compat_config_when_cached: Any | None = None
+    had_error: bool = False
 
     # Cache for 60 minutes, or if the config changes
     def is_stale(self) -> bool:
         if self.last_updated is None:
+            return True
+
+        if self.had_error:
             return True
 
         if datetime.now() - self.last_updated > timedelta(minutes=60):
@@ -594,23 +598,26 @@ def openai_compatible_providers() -> List[AvailableModels]:
         or _openai_compatible_providers_cache.is_stale()
     ):
         # Load values and cache them
-        provider_config = Config.shared().openai_compatible_providers
-        providers = openai_compatible_providers_uncached(provider_config)
-        _openai_compatible_providers_cache = OpenAICompatibleProviderCache(
-            providers=providers,
-            last_updated=datetime.now(),
-            openai_compat_config_when_cached=provider_config,
-        )
+        cache = openai_compatible_providers_load_cache()
+        _openai_compatible_providers_cache = cache
+
+    if _openai_compatible_providers_cache is None:
+        return []
 
     return _openai_compatible_providers_cache.providers
 
 
-def openai_compatible_providers_uncached(providers: List[Any]) -> List[AvailableModels]:
-    if not providers or len(providers) == 0:
-        return []
+def openai_compatible_providers_load_cache() -> OpenAICompatibleProviderCache | None:
+    provider_config = Config.shared().openai_compatible_providers
+    if not provider_config or len(provider_config) == 0:
+        return None
+
+    # Errors that can be retried, like network issues, are tracked in cache.
+    # We retry populating the cache on each call
+    has_error = False
 
     openai_compatible_models: List[AvailableModels] = []
-    for provider in providers:
+    for provider in provider_config:
         models: List[ModelDetails] = []
         base_url = provider.get("base_url")
         if not base_url or not base_url.startswith("http"):
@@ -650,9 +657,14 @@ def openai_compatible_providers_uncached(providers: List[Any]) -> List[Available
             )
         except Exception as e:
             print(f"Error connecting to OpenAI compatible provider {name}: {e}")
+            has_error = True
             continue
 
-    if len(openai_compatible_models) == 0:
-        return []
+    cache = OpenAICompatibleProviderCache(
+        providers=openai_compatible_models,
+        last_updated=datetime.now(),
+        openai_compat_config_when_cached=provider_config,
+        had_error=has_error,
+    )
 
-    return openai_compatible_models
+    return cache

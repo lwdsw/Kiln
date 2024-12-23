@@ -1,6 +1,6 @@
 import json
 from datetime import datetime, timedelta
-from unittest.mock import AsyncMock, MagicMock, Mock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 from fastapi import FastAPI, HTTPException
@@ -30,7 +30,7 @@ from app.desktop.studio_server.provider_api import (
     custom_models,
     model_from_ollama_tag,
     openai_compatible_providers,
-    openai_compatible_providers_uncached,
+    openai_compatible_providers_load_cache,
 )
 
 
@@ -1191,31 +1191,35 @@ def test_openai_compatible_providers():
     with (
         patch("app.desktop.studio_server.provider_api.Config.shared") as mock_config,
         patch(
-            "app.desktop.studio_server.provider_api.openai_compatible_providers_uncached"
+            "app.desktop.studio_server.provider_api.openai_compatible_providers_load_cache"
         ) as mock_uncached,
     ):
         mock_config.return_value.openai_compatible_providers = mock_provider_config
-        mock_uncached.return_value = [
-            AvailableModels(
-                provider_id=ModelProviderName.openai_compatible,
-                provider_name="test_provider",
-                models=[
-                    ModelDetails(
-                        id="test_provider::model1",
-                        name="model1",
-                        supports_structured_output=False,
-                        supports_data_gen=False,
-                        untested_model=True,
-                    )
-                ],
-            )
-        ]
+        mock_uncached.return_value = OpenAICompatibleProviderCache(
+            providers=[
+                AvailableModels(
+                    provider_id=ModelProviderName.openai_compatible,
+                    provider_name="test_provider",
+                    models=[
+                        ModelDetails(
+                            id="test_provider::model1",
+                            name="model1",
+                            supports_structured_output=False,
+                            supports_data_gen=False,
+                            untested_model=True,
+                        )
+                    ],
+                ),
+            ],
+            last_updated=datetime.now(),
+            openai_compat_config_when_cached=mock_provider_config,
+        )
 
         # First call should create cache
         result1 = openai_compatible_providers()
         assert len(result1) == 1
         assert result1[0].provider_name == "test_provider"
-        mock_uncached.assert_called_once_with(mock_provider_config)
+        mock_uncached.assert_called_once()
 
         # Second call should use cache
         mock_uncached.reset_mock()
@@ -1253,8 +1257,12 @@ def test_openai_compatible_providers_uncached():
     mock_client = MagicMock()
     mock_client.models.list = mock_models_list
 
-    with patch("openai.OpenAI", return_value=mock_client):
-        result = openai_compatible_providers_uncached(mock_providers)
+    with (
+        patch("openai.OpenAI", return_value=mock_client),
+        patch("app.desktop.studio_server.provider_api.Config.shared") as mock_config,
+    ):
+        mock_config.return_value.openai_compatible_providers = mock_providers
+        result = openai_compatible_providers_load_cache().providers
 
         assert len(result) == 1
         assert result[0].provider_name == "test_provider"
@@ -1266,8 +1274,12 @@ def test_openai_compatible_providers_uncached():
 
 
 def test_openai_compatible_providers_uncached_empty_providers():
-    assert openai_compatible_providers_uncached([]) == []
-    assert openai_compatible_providers_uncached(None) == []
+    with (
+        patch("app.desktop.studio_server.provider_api.Config.shared") as mock_config,
+    ):
+        mock_config.return_value.openai_compatible_providers = []
+        cached = openai_compatible_providers_load_cache()
+        assert cached is None
 
 
 def test_openai_compatible_providers_uncached_invalid_provider():
@@ -1282,9 +1294,13 @@ def test_openai_compatible_providers_uncached_invalid_provider():
         {"name": "test", "api_key": "key"},  # No base_url
     ]
 
-    with patch("openai.OpenAI") as mock_openai:
-        result = openai_compatible_providers_uncached(invalid_providers)
-        assert result == []
+    with (
+        patch("openai.OpenAI") as mock_openai,
+        patch("app.desktop.studio_server.provider_api.Config.shared") as mock_config,
+    ):
+        mock_config.return_value.openai_compatible_providers = invalid_providers
+        result = openai_compatible_providers_load_cache()
+        assert result.providers == []
         mock_openai.assert_not_called()
 
 
@@ -1297,7 +1313,15 @@ def test_openai_compatible_providers_uncached_api_error():
         }
     ]
 
-    with patch("openai.OpenAI") as mock_openai:
+    with (
+        patch("openai.OpenAI") as mock_openai,
+        patch("app.desktop.studio_server.provider_api.Config.shared") as mock_config,
+    ):
+        mock_config.return_value.openai_compatible_providers = mock_providers
         mock_openai.return_value.models.list.side_effect = Exception("API Error")
-        result = openai_compatible_providers_uncached(mock_providers)
-        assert result == []
+        result = openai_compatible_providers_load_cache()
+        assert result.providers == []
+
+        # Confirm the cache knows about the error and reports stale
+        assert result.had_error
+        assert result.is_stale()
