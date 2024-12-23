@@ -451,23 +451,7 @@
 <AppPage
   title="Dataset"
   subtitle="Explore the dataset for this task."
-  action_buttons={[
-    {
-      icon: "/images/filter.svg",
-      handler() {
-        // @ts-expect-error showModal is not a method on HTMLElement
-        document.getElementById("tags_modal")?.showModal()
-      },
-      notice: filter_tags.length > 0,
-    },
-    {
-      icon: "/images/add.svg",
-      handler() {
-        // @ts-expect-error showModal is not a method on HTMLElement
-        document.getElementById("add_data_modal")?.showModal()
-      },
-    },
-  ]}
+  action_buttons={[]}
 >
   {#if loading}
     <div class="w-full min-h-[50vh] flex justify-center items-center">
@@ -524,6 +508,19 @@
         {:else}
           <button class="btn btn-mid" on:click={() => (select_mode = true)}>
             Select
+          </button>
+          <button
+            class="btn btn-mid !px-3"
+            on:click={() =>
+              // @ts-expect-error showModal is not a method on HTMLElement
+              document.getElementById("tags_modal")?.showModal()}
+          >
+            <img alt="filter" src="/images/filter.svg" class="w-5 h-5" />
+            {#if filter_tags.length > 0}
+              <span class="badge badge-primary badge-sm"
+                >{filter_tags.length}</span
+              >
+            {/if}
           </button>
         {/if}
       </div>
@@ -633,43 +630,6 @@
     </div>
   {/if}
 </AppPage>
-
-<dialog id="add_data_modal" class="modal">
-  <div class="modal-box">
-    <form method="dialog">
-      <button
-        class="btn btn-sm text-xl btn-circle btn-ghost absolute right-2 top-2 focus:outline-none"
-        >✕</button
-      >
-    </form>
-    <h3 class="text-lg font-bold mb-4">Add Data</h3>
-    <div class="flex flex-col md:flex-row gap-12 md:p-2">
-      <div class="flex-1 flex flex-col">
-        <div class="font-light text-lg mb-1">Synthetic Data</div>
-        <p class="text-sm text-gray-500">
-          Generate many examples using our AI synthetic data generation tool.
-        </p>
-        <div class="md:grow"></div>
-        <div class="mt-4">
-          <a href={`/generate/${project_id}/${task_id}`} class="btn w-full">
-            Synthetic Data
-          </a>
-        </div>
-      </div>
-      <div class="flex-1 flex flex-col">
-        <div class="font-light text-lg mb-1">Manually Add Data</div>
-        <p class="text-sm text-gray-500">Run your task with manual input.</p>
-        <div class="md:grow"></div>
-        <div class="mt-4">
-          <a href="/run" class="btn w-full">Manually Add</a>
-        </div>
-      </div>
-    </div>
-  </div>
-  <form method="dialog" class="modal-backdrop">
-    <button>close</button>
-  </form>
-</dialog>
 
 <dialog id="tags_modal" class="modal">
   <div class="modal-box">
