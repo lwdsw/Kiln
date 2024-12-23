@@ -8,6 +8,7 @@ Models come in a range of flavours, from very easy to use, to advanced methods f
 - [Custom Ollama models](#custom-ollama-models)
 - [Custom models from existing providers](#custom-models-from-existing-providers)
 - [Custom OpenAI compatible servers](#custom-openai-compatible-servers)
+  - [LiteLLM](#litellm) - Anthropic, Huggingface, VertexAI, TogetherAI, and more.
 
 ## Included models [Recommended]
 
@@ -44,3 +45,7 @@ All models supported by this API will appear in the "untested" section of the mo
 Notes:
 - The API must support the `/v1/models` endpoint, so Kiln can access the list of models.
 - Many Kiln tasks require structured (JSON) output. These can be hard to get working on custom servers, as each server/model pair usually needs some configuration to reliably produce structured output (tools vs json_mode vs json parsing, schema format, etc).
+
+### LiteLLM
+
+Kiln works with [LiteLLM](https://github.com/BerriAI/litellm), an open source proxy which exposes an OpenAI compatible API to over 100 model providers. If your preferred provider isn't built in, try LiteLLM! Simply add your LiteLLM URL in the "Custom API" section of Settings. 
