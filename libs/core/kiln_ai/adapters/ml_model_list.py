@@ -40,6 +40,7 @@ class ModelFamily(str, Enum):
     claude = "claude"
     mixtral = "mixtral"
     qwen = "qwen"
+    deepseek = "deepseek"
 
 
 # Where models have instruct and raw versions, instruct is default and raw is specified
@@ -74,6 +75,7 @@ class ModelName(str, Enum):
     mixtral_8x7b = "mixtral_8x7b"
     qwen_2p5_7b = "qwen_2p5_7b"
     qwen_2p5_72b = "qwen_2p5_72b"
+    deepseek_3 = "deepseek_3"
 
 
 class KilnModelProvider(BaseModel):
@@ -174,6 +176,18 @@ built_in_models: List[KilnModel] = [
             KilnModelProvider(
                 name=ModelProviderName.openrouter,
                 provider_options={"model": "anthropic/claude-3.5-sonnet"},
+            ),
+        ],
+    ),
+    # DeepSeek 3
+    KilnModel(
+        family=ModelFamily.deepseek,
+        name=ModelName.deepseek_3,
+        friendly_name="DeepSeek v3",
+        providers=[
+            KilnModelProvider(
+                name=ModelProviderName.openrouter,
+                provider_options={"model": "deepseek/deepseek-chat"},
             ),
         ],
     ),
