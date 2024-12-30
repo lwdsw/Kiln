@@ -119,7 +119,7 @@ _Note: We collect anonymous usage metrics via Posthog analytics (never including
 
 [![PyPI - Version](https://img.shields.io/pypi/v/kiln-server.svg?logo=pypi&label=PyPI&logoColor=gold)](https://pypi.org/project/kiln-server/) [![Docs](https://img.shields.io/badge/docs-OpenAPI-blue)](https://kiln-ai.github.io/Kiln/kiln_server_openapi_docs/index.html)
 
-We offer a self-hostable REST API for Kiln based on FastAPI. [Read the docs](https://kiln-ai.github.io/Kiln/kiln_server_openapi_docs/index.htm).
+We offer a self-hostable REST API for Kiln based on FastAPI. [Read the docs](https://kiln-ai.github.io/Kiln/kiln_server_openapi_docs/index.html).
 
 The REST API supports OpenAPI, so you can generate client libraries for almost [any](https://github.com/swagger-api/swagger-codegen) [language](https://openapi-generator.tech/docs/generators).
 
