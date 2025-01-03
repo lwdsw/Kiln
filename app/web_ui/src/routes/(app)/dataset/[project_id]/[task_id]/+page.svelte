@@ -272,26 +272,75 @@
     }
   }
 
-  function toggle_selection(run_id: string) {
-    selected_runs.has(run_id)
-      ? selected_runs.delete(run_id)
-      : selected_runs.add(run_id)
+  function toggle_selection(run_id: string): boolean {
+    const was_selected = selected_runs.has(run_id)
+    if (was_selected) {
+      selected_runs.delete(run_id)
+    } else {
+      selected_runs.add(run_id)
+    }
     // Reactivity trigger
     selected_runs = selected_runs
+
+    return !was_selected
   }
 
-  function row_clicked(run_id: string | null) {
-    if (!run_id) return
+  let last_selected_id: string | null = null
+  function row_clicked(run_id: string | null, event: MouseEvent) {
+    if (!run_id) {
+      last_selected_id = null
+      return
+    }
     if (select_mode) {
-      toggle_selection(run_id)
+      const selected = toggle_selection(run_id)
+
+      // Potentially select a range of runs if SHIFT-click
+      if (selected) {
+        select_range(run_id, event)
+      }
+      last_selected_id = selected ? run_id : null
     } else {
       open_dataset_run(run_id)
     }
   }
 
+  // Select a range of runs if SHIFT-click
+  function select_range(run_id: string, event: MouseEvent) {
+    if (!last_selected_id) return
+    // return unless shift key is down
+    if (!event.shiftKey) return
+
+    // select all runs between last_selected_id and run_id
+    const last_selected_index = runs?.findIndex(
+      (run) => run.id === last_selected_id,
+    )
+    const run_index = runs?.findIndex((run) => run.id === run_id)
+    if (
+      last_selected_index === -1 ||
+      run_index === -1 ||
+      last_selected_index === undefined ||
+      run_index === undefined
+    )
+      return
+    const start_index = Math.min(last_selected_index, run_index)
+    const end_index = Math.max(last_selected_index, run_index)
+    for (let i = start_index; i <= end_index; i++) {
+      const id = runs?.[i]?.id
+      if (id) {
+        selected_runs.add(id)
+      }
+    }
+    // Reactivity trigger
+    selected_runs = selected_runs
+  }
+
   function select_all_clicked(event: Event) {
     // Prevent default checkbox, we're using reactivity
     event.preventDefault()
+
+    // Clear the last selected id, it no longer makes sense
+    last_selected_id = null
+
     if (select_summary === "all" || select_summary === "some") {
       selected_runs.clear()
     } else {
@@ -562,8 +611,8 @@
                 selected_runs.has(run.id)
                   ? 'bg-base-200'
                   : ''}"
-                on:click={() => {
-                  row_clicked(run.id)
+                on:click={(event) => {
+                  row_clicked(run.id, event)
                 }}
               >
                 {#if select_mode}
