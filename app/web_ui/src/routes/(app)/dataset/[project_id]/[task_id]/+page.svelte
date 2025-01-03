@@ -171,6 +171,9 @@
           filter_tags.every((tag) => run.tags?.includes(tag)),
         )
       : null
+
+    // Clear the last selected id, as it's moved
+    last_selected_id = null
   }
 
   function remove_filter_tag(tag: string) {
