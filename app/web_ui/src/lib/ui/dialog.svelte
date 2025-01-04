@@ -5,6 +5,7 @@
     label: string
     action?: () => void
     isCancel?: boolean
+    keepOpenAfterAction?: boolean
   }
   export let action_buttons: ActionButton[] = []
 
@@ -16,6 +17,13 @@
   export function close() {
     // @ts-expect-error close is not a method on HTMLElement
     document.getElementById(id)?.close()
+  }
+
+  function perform_button_action(button: ActionButton) {
+    button.action?.()
+    if (!button.keepOpenAfterAction) {
+      close()
+    }
   }
 </script>
 
@@ -44,7 +52,7 @@
           {:else}
             <button
               class="btn btn-sm h-10 min-w-24 btn-secondary"
-              on:click={button.action}
+              on:click={() => perform_button_action(button)}
             >
               {button.label || "Confirm"}
             </button>

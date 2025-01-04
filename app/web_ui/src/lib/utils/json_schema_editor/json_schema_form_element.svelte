@@ -100,9 +100,6 @@
     // Convert the schema model to a pretty JSON Schema string
     const json_schema_format = schema_from_model(schema_model)
     raw_schema = JSON.stringify(json_schema_format, null, 2)
-
-    // @ts-expect-error close is not a method on HTMLElement
-    document.getElementById("raw_json_schema_modal")?.close()
   }
 
   function switch_to_visual_schema() {
@@ -206,7 +203,7 @@
     </div>
   {/if}
 {:else}
-  <div class="flex flex-col gap-8 pt-6" {id}>
+  <div class="flex flex-col gap-4 pt-6" {id}>
     <FormElement
       id={"raw_schema"}
       label="Raw JSON Schema"
