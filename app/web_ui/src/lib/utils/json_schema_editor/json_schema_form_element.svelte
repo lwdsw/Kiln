@@ -94,12 +94,15 @@
     raw_json_schema_dialog?.show()
   }
 
-  function switch_to_raw_schema() {
+  function switch_to_raw_schema(): boolean {
     raw = true
 
     // Convert the schema model to a pretty JSON Schema string
     const json_schema_format = schema_from_model(schema_model)
     raw_schema = JSON.stringify(json_schema_format, null, 2)
+
+    // Close the dialog
+    return true
   }
 
   function switch_to_visual_schema() {
