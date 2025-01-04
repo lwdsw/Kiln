@@ -101,6 +101,16 @@
     // @ts-expect-error close is not a method on HTMLElement
     document.getElementById("raw_json_schema_modal")?.close()
   }
+
+  function switch_to_visual_schema() {
+    if (
+      confirm(
+        "Revert to the visual schema editor?\n\nChanges made to the raw JSON schema will be lost.",
+      )
+    ) {
+      raw = false
+    }
+  }
 </script>
 
 {#if !raw}
@@ -202,6 +212,10 @@
       tall={true}
       bind:value={raw_schema}
     />
+    <button
+      class="link text-gray-500 text-sm text-right"
+      on:click={() => switch_to_visual_schema()}>Revert to Visual Editor</button
+    >
   </div>
 {/if}
 
