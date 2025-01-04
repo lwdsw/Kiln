@@ -9,6 +9,7 @@
     asyncAction?: () => Promise<boolean>
     action?: () => boolean
     isCancel?: boolean
+    disabled?: boolean
   }
   export let action_buttons: ActionButton[] = []
   let action_running = false
@@ -91,6 +92,7 @@
             {:else}
               <button
                 class="btn btn-sm h-10 min-w-24 btn-secondary"
+                disabled={button.disabled}
                 on:click={() => perform_button_action(button)}
               >
                 {button.label || "Confirm"}
