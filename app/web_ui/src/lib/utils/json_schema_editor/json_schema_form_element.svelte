@@ -4,6 +4,7 @@
     type SchemaModel,
     schema_from_model,
   } from "$lib/utils/json_schema_editor/json_schema_templates"
+  import Dialog from "$lib/ui/dialog.svelte"
 
   let validation_errors: string[] = []
   let id = Math.random().toString(36)
@@ -72,6 +73,8 @@
     }
   }
 
+  let raw_json_schema_dialog: Dialog | null = null
+
   // We have some types in the drop down we don't actually support.
   // When selected, we want to show the raw JSON Schema modal to give users a choice.
   const unsupported_types = ["array", "object", "enum", "other"]
@@ -87,8 +90,8 @@
     const prior_value = schema_model.properties[index].type
     target.value = prior_value
 
-    // @ts-expect-error showModal is not a method on HTMLElement
-    document.getElementById("raw_json_schema_modal")?.showModal()
+    // Show the dialog so the user can choose
+    raw_json_schema_dialog?.show()
   }
 
   function switch_to_raw_schema() {
@@ -219,43 +222,25 @@
   </div>
 {/if}
 
-<dialog id="raw_json_schema_modal" class="modal">
-  <div class="modal-box">
-    <form method="dialog">
-      <button
-        class="btn btn-sm text-xl btn-circle btn-ghost absolute right-2 top-2 focus:outline-none"
-        >✕</button
-      >
-    </form>
-    <h3 class="text-lg font-medium mb-1">
-      Not Supported by our Visual Editor.
-    </h3>
-    <h4 class="mt-4">Switch to Raw JSON Schema?</h4>
+<Dialog
+  bind:this={raw_json_schema_dialog}
+  title="Not Supported by the Visual Editor"
+  action_buttons={[
+    { label: "Cancel", isCancel: true },
+    { label: "Switch to Raw JSON Schema", action: switch_to_raw_schema },
+  ]}
+>
+  <h4 class="mt-4">Switch to Raw JSON Schema?</h4>
 
-    <div class="text-sm font-light text-gray-500">
-      <a href="https://json-schema.org/learn" target="_blank" class="link"
-        >Raw JSON Schema</a
-      > will give you more control over the structure of your data, including arrays,
-      nested objects, enums and more.
-    </div>
-    <h4 class="mt-4">Advanced Users Only</h4>
-    <div class="text-sm font-light text-gray-500 mt-1">
-      Raw JSON Schema provides advanced functionality, but requires technical
-      expertise. Invalid schemas will cause task failures.
-    </div>
-    <div class="flex flex-row gap-2 justify-end mt-6">
-      <form method="dialog">
-        <button class="btn btn-sm h-10 btn-outline min-w-24">Cancel</button>
-      </form>
-      <button
-        class="btn btn-sm h-10 min-w-24 btn-secondary"
-        on:click={switch_to_raw_schema}
-      >
-        Switch to Raw JSON Schema
-      </button>
-    </div>
+  <div class="text-sm font-light text-gray-500">
+    <a href="https://json-schema.org/learn" target="_blank" class="link"
+      >Raw JSON Schema</a
+    > will give you more control over the structure of your data, including arrays,
+    nested objects, enums and more.
   </div>
-  <form method="dialog" class="modal-backdrop">
-    <button>close</button>
-  </form>
-</dialog>
+  <h4 class="mt-4">Advanced Users Only</h4>
+  <div class="text-sm font-light text-gray-500 mt-1">
+    Raw JSON Schema provides advanced functionality, but requires technical
+    expertise. Invalid schemas will cause task failures.
+  </div>
+</Dialog>
