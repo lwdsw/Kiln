@@ -346,7 +346,7 @@
       </button>
       <div class="text-sm text-gray-500">
         Read out <a
-          href="https://github.com/Kiln-AI/Kiln/blob/main/guides/Synthetic%20Data%20Generation.md"
+          href="https://docs.getkiln.ai/docs/synthetic-data-generation"
           class="link"
           target="_blank">synthetic data guide</a
         >
