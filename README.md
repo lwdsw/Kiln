@@ -50,25 +50,27 @@ The Kiln desktop app is completely free. Available on MacOS, Windows and Linux.
 
 [<img width="220" alt="Download button" src="https://github.com/user-attachments/assets/a5d51b8b-b30a-4a16-a902-ab6ef1d58dc0">](https://github.com/Kiln-AI/Kiln/releases/latest)
 
-## Install Python Library
-
-[![PyPI - Version](https://img.shields.io/pypi/v/kiln-ai.svg?logo=pypi&label=PyPI&logoColor=gold)](https://pypi.org/project/kiln-ai/) [![Docs](https://img.shields.io/badge/docs-pdoc-blue)](https://kiln-ai.github.io/Kiln/kiln_core_docs/index.html)
-
-Our open-source [python library](https://pypi.org/project/kiln-ai/) allows you to integrate Kiln datasets into your own workflows, build fine tunes, use Kiln in Notebooks, build custom tools, and much more! [Read the docs](https://kiln-ai.github.io/Kiln/kiln_core_docs/index.html).
-
-```bash
-pip install kiln-ai
-```
-
 ## Guides
 
 - [Fine Tuning LLM Models](https://docs.getkiln.ai/docs/fine-tuning-guide)
 - [Synthetic Data Generation](https://docs.getkiln.ai/docs/synthetic-data-generation)
 - [Collaborating with Kiln](https://docs.getkiln.ai/docs/collaboration) - How to share Kiln projects with your team.
 - [How to use any AI model or provider in Kiln](https://docs.getkiln.ai/docs/models-and-ai-providers)
+- [Structure Data / JSON](https://docs.getkiln.ai/docs/structured-data-json)
 - [Organizing Kiln Datasets](https://docs.getkiln.ai/docs/organizing-datasets)
 - [Rating and Labeling Data](https://docs.getkiln.ai/docs/reviewing-and-rating)
 - [Using the Kiln Python Library](https://kiln-ai.github.io/Kiln/kiln_core_docs/kiln_ai.html) - Includes how to load datasets into Kiln, or using Kiln datasets in your own projects/notebooks.
+- [Privacy Overview](https://docs.getkiln.ai/docs/privacy) - we can't access your dataset
+
+## Install Python Library
+
+[![PyPI - Version](https://img.shields.io/pypi/v/kiln-ai.svg?logo=pypi&label=PyPI&logoColor=gold)](https://pypi.org/project/kiln-ai/) [![Docs](https://img.shields.io/badge/docs-pdoc-blue)](https://kiln-ai.github.io/Kiln/kiln_core_docs/index.html)
+
+Our open-source [python library](https://pypi.org/project/kiln-ai/) allows you to integrate Kiln datasets into your own workflows, build fine tunes, use Kiln in Notebooks, build custom tools, and much more! [Read the docs](https://kiln-ai.github.io/Kiln/kiln_core_docs/index.html) for examples.
+
+```bash
+pip install kiln-ai
+```
 
 ## Learn More
 
@@ -88,7 +90,7 @@ When building AI products, there’s usually a subject matter expert who knows t
 
 Subject matter experts can use our easy to use desktop apps to generate structured datasets and ratings, without coding or using technical tools. No command line or GPU required.
 
-Data-scientists can consume the dataset created by subject matter experts, using the UI, or dive deep with our python library.
+Data-scientists can consume the dataset created by subject matter experts, using the UI, or deep dive with our python library.
 
 QA and PM can easily identify issues sooner and help generate the dataset content needed to fix the issue at the model layer.
 
@@ -103,38 +105,9 @@ Our current beta supports:
 - Various prompting techniques: basic, few-shot, multi-shot, repair & feedback
 - Many models: GPT, Llama, Claude, Gemini, Mistral, Gemma, Phi
 - Chain of thought prompting, with optional custom “thinking” instructions
+- Fine Tuning: create custom models using your Kiln dataset
 
-In the future, we plan to add more powerful no-code options like fine tuning, lora, evals, and RAG. For experienced data-scientists, you can create these techniques today using Kiln datasets and our python library.
-
-### Structured Data
-
-We prioritize data correctness, which makes integrating into AI products easier. No data gets into the dataset without first passing validation, which keeps the dataset clean.
-
-Our easy to use schema UI lets you create and use structured schemas, without knowing JSON-schema formatting. For technical users, we support any valid JSON-schema for inputs and outputs.
-
-### Privacy
-
-Your data stays completely private and local to your machine. We never collect or have access to:
-
-- Datasets / Training Data
-- API keys
-- Model inputs/outputs (runs)
-
-You can run completely locally using Ollama, or bring your own keys for OpenAI, OpenRouter, Groq, AWS, etc.
-
-_Note: We collect anonymous usage metrics via Posthog analytics (never including dataset content or PII). This can be blocked with standard ad-blockers._
-
-## REST API
-
-[![PyPI - Version](https://img.shields.io/pypi/v/kiln-server.svg?logo=pypi&label=PyPI&logoColor=gold)](https://pypi.org/project/kiln-server/) [![Docs](https://img.shields.io/badge/docs-OpenAPI-blue)](https://kiln-ai.github.io/Kiln/kiln_server_openapi_docs/index.html)
-
-We offer a self-hostable REST API for Kiln based on FastAPI. [Read the docs](https://kiln-ai.github.io/Kiln/kiln_server_openapi_docs/index.html).
-
-The REST API supports OpenAPI, so you can generate client libraries for almost [any](https://github.com/swagger-api/swagger-codegen) [language](https://openapi-generator.tech/docs/generators).
-
-```bash
-pip install kiln_server
-```
+In the future, we plan to add more powerful no-code options like evals, and RAG. For experienced data-scientists, you can create these techniques today using Kiln datasets and our python library.
 
 ## Contributing & Development
 
