@@ -50,17 +50,25 @@ The Kiln desktop app is completely free. Available on MacOS, Windows and Linux.
 
 [<img width="220" alt="Download button" src="https://github.com/user-attachments/assets/a5d51b8b-b30a-4a16-a902-ab6ef1d58dc0">](https://github.com/Kiln-AI/Kiln/releases/latest)
 
-## Guides
+## Docs & Guides
 
+Kiln is quite intuitive, so we suggest launching the desktop app and diving in. However if you have any questions or want to learn more, our [docs are here to help](https://docs.getkiln.ai).
+
+- [Quick Start](https://docs.getkiln.ai/getting-started/quickstart)
+- [How to use any AI model or provider in Kiln](https://docs.getkiln.ai/docs/models-and-ai-providers)
 - [Fine Tuning LLM Models](https://docs.getkiln.ai/docs/fine-tuning-guide)
 - [Synthetic Data Generation](https://docs.getkiln.ai/docs/synthetic-data-generation)
-- [Collaborating with Kiln](https://docs.getkiln.ai/docs/collaboration) - How to share Kiln projects with your team.
-- [How to use any AI model or provider in Kiln](https://docs.getkiln.ai/docs/models-and-ai-providers)
-- [Structure Data / JSON](https://docs.getkiln.ai/docs/structured-data-json)
-- [Organizing Kiln Datasets](https://docs.getkiln.ai/docs/organizing-datasets)
+- [Collaborating with Kiln](https://docs.getkiln.ai/docs/collaboration)
 - [Rating and Labeling Data](https://docs.getkiln.ai/docs/reviewing-and-rating)
-- [Using the Kiln Python Library](https://kiln-ai.github.io/Kiln/kiln_core_docs/kiln_ai.html) - Includes how to load datasets into Kiln, or using Kiln datasets in your own projects/notebooks.
-- [Privacy Overview](https://docs.getkiln.ai/docs/privacy) - we can't access your dataset
+- [Prompt Styles](https://docs.getkiln.ai/docs/prompts)
+- [Structure Data / JSON](https://docs.getkiln.ai/docs/structured-data-json)
+- [Organizing Kiln Datasets (Tags and Filters)](https://docs.getkiln.ai/docs/organizing-datasets)
+- [Our Data Model](https://docs.getkiln.ai/docs/kiln-datamodel)
+- [Repairing Responses](https://docs.getkiln.ai/docs/repairing-responses)
+- [Keyboard Shortcuts](https://docs.getkiln.ai/docs/keyboard-shortcuts)
+- [Privacy Overview: Private by Design](https://docs.getkiln.ai/docs/privacy)
+
+For developers, see our [Kiln Python Library Docs](https://kiln-ai.github.io/Kiln/kiln_core_docs/kiln_ai.html). These include how to load datasets into Kiln, or using Kiln datasets in your own code-base/notebooks.
 
 ## Install Python Library
 
