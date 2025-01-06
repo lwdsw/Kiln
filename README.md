@@ -62,11 +62,13 @@ pip install kiln-ai
 
 ## Guides
 
-- [Fine Tuning LLM Models](guides/Fine%20Tuning%20LLM%20Models%20Guide.md)
-- [Synthetic Data Generation](guides/Synthetic%20Data%20Generation.md)
-- [Collaborating with Kiln](guides/Collaborating%20with%20Kiln.md) - How to share Kiln projects with your team.
+- [Fine Tuning LLM Models](https://docs.getkiln.ai/docs/fine-tuning-guide)
+- [Synthetic Data Generation](https://docs.getkiln.ai/docs/synthetic-data-generation)
+- [Collaborating with Kiln](https://docs.getkiln.ai/docs/collaboration) - How to share Kiln projects with your team.
+- [How to use any AI model or provider in Kiln](https://docs.getkiln.ai/docs/models-and-ai-providers)
+- [Organizing Kiln Datasets](https://docs.getkiln.ai/docs/organizing-datasets)
+- [Rating and Labeling Data](https://docs.getkiln.ai/docs/reviewing-and-rating)
 - [Using the Kiln Python Library](https://kiln-ai.github.io/Kiln/kiln_core_docs/kiln_ai.html) - Includes how to load datasets into Kiln, or using Kiln datasets in your own projects/notebooks.
-- [Model Support](guides/Model%20Support.md) - Included models, and how to add more.
 
 ## Learn More
 
