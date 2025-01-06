@@ -1,5 +1,16 @@
 # Model Support
 
+
+---
+
+# This guide as moved to [our docs](https://docs.getkiln.ai/docs/models-and-ai-providers). This page may be out of date.
+
+We suggest reading the [latest version](https://docs.getkiln.ai/docs/models-and-ai-providers).
+
+---
+
+## Original Content
+
 Kiln can use essentially any LLM model.
 
 Models come in a range of flavours, from very easy to use, to advanced methods for expert users

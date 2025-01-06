@@ -4,8 +4,15 @@
     </picture>
 </p>
 <h3 align="center">
-    The easiest tool for fine-tuning LLM models, synthetic data generation, and collaborating on datasets.
+    Rapid AI Prototyping and Dataset Collaboration Tool
 </h3>
+
+<p align="center">
+  <a href="https://docs.getkiln.ai/docs/fine-tuning-guide"><strong>Fine Tuning</strong></a> •
+  <a href="https://docs.getkiln.ai/docs/synthetic-data-generation"><strong>Synthetic Data Generation</strong></a> • 
+  <a href="https://docs.getkiln.ai/docs/collaboration"><strong>Dataset Collaboration</strong></a> • 
+  <a href="https://docs.getkiln.ai"><strong>Docs</strong></a>
+</p>
 
 |         |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -14,7 +21,7 @@
 | Meta    | [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv) [![linting - Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff) [![Hatch project](https://img.shields.io/badge/%F0%9F%A5%9A-Hatch-4051b5.svg)](https://github.com/pypa/hatch) [![types - Pyright](https://img.shields.io/badge/types-pyright-blue.svg)](https://github.com/microsoft/pyright) [![Docs](https://img.shields.io/badge/docs-pdoc-blue)](https://kiln-ai.github.io/Kiln/kiln_core_docs/index.html)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | Apps    | [![MacOS](https://img.shields.io/badge/MacOS-black?logo=apple)](https://github.com/Kiln-AI/Kiln/releases/latest) [![Windows](https://img.shields.io/badge/Windows-0067b8.svg?logo=data:image/svg%2bxml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPHN2ZyBmaWxsPSIjZmZmIiB2aWV3Qm94PSIwIDAgMzIgMzIiIHZlcnNpb249IjEuMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE2Ljc0MiAxNi43NDJ2MTQuMjUzaDE0LjI1M3YtMTQuMjUzek0xLjAwNCAxNi43NDJ2MTQuMjUzaDE0LjI1NnYtMTQuMjUzek0xNi43NDIgMS4wMDR2MTQuMjU2aDE0LjI1M3YtMTQuMjU2ek0xLjAwNCAxLjAwNHYxNC4yNTZoMTQuMjU2di0xNC4yNTZ6Ij48L3BhdGg+Cjwvc3ZnPg==)](https://github.com/Kiln-AI/Kiln/releases/latest) [![Linux](https://img.shields.io/badge/Linux-444444?logo=linux&logoColor=ffffff)](https://github.com/Kiln-AI/Kiln/releases/latest)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 
-[<img width="220" alt="Download button" src="https://github.com/user-attachments/assets/a5d51b8b-b30a-4a16-a902-ab6ef1d58dc0">](https://github.com/Kiln-AI/Kiln/releases/latest)
+[<img width="220" alt="Download button" src="https://github.com/user-attachments/assets/a5d51b8b-b30a-4a16-a902-ab6ef1d58dc0">](https://github.com/Kiln-AI/Kiln/releases/latest) [<img width="220" alt="Quick start button" src="https://github.com/user-attachments/assets/aff1b35f-72c0-4286-9b28-40a415558359">](https://docs.getkiln.ai/getting-started/quickstart)
 
 ## Key Features
 
@@ -55,11 +62,13 @@ pip install kiln-ai
 
 ## Guides
 
-- [Fine Tuning LLM Models](guides/Fine%20Tuning%20LLM%20Models%20Guide.md)
-- [Synthetic Data Generation](guides/Synthetic%20Data%20Generation.md)
-- [Collaborating with Kiln](guides/Collaborating%20with%20Kiln.md) - How to share Kiln projects with your team.
+- [Fine Tuning LLM Models](https://docs.getkiln.ai/docs/fine-tuning-guide)
+- [Synthetic Data Generation](https://docs.getkiln.ai/docs/synthetic-data-generation)
+- [Collaborating with Kiln](https://docs.getkiln.ai/docs/collaboration) - How to share Kiln projects with your team.
+- [How to use any AI model or provider in Kiln](https://docs.getkiln.ai/docs/models-and-ai-providers)
+- [Organizing Kiln Datasets](https://docs.getkiln.ai/docs/organizing-datasets)
+- [Rating and Labeling Data](https://docs.getkiln.ai/docs/reviewing-and-rating)
 - [Using the Kiln Python Library](https://kiln-ai.github.io/Kiln/kiln_core_docs/kiln_ai.html) - Includes how to load datasets into Kiln, or using Kiln datasets in your own projects/notebooks.
-- [Model Support](guides/Model%20Support.md) - Included models, and how to add more.
 
 ## Learn More
 
