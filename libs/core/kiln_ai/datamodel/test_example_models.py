@@ -325,6 +325,12 @@ def test_task_output_schema_validation(tmp_path):
         task_output.output.output = '{"name": "John Doe", "age": "thirty"}'
         task_output.save_to_file()
 
+    # changing to invalid output from loaded model
+    loaded_task_output = TaskRun.load_from_file(task_output.path)
+    with pytest.raises(ValueError, match="does not match task output schema"):
+        loaded_task_output.output.output = '{"name": "John Doe", "age": "forty"}'
+        loaded_task_output.save_to_file()
+
     # Invalid case: output does not match task output schema
     with pytest.raises(ValueError, match="does not match task output schema"):
         task_output = TaskRun(
@@ -385,6 +391,12 @@ def test_task_input_schema_validation(tmp_path):
     with pytest.raises(ValueError, match="does not match task input schema"):
         valid_task_output.input = '{"name": "John Doe", "age": "thirty"}'
         valid_task_output.save_to_file()
+
+    # loading from file, then changing to invalid input
+    loaded_task_output = TaskRun.load_from_file(valid_task_output.path)
+    with pytest.raises(ValueError, match="does not match task input schema"):
+        loaded_task_output.input = '{"name": "John Doe", "age": "thirty"}'
+        loaded_task_output.save_to_file()
 
     # Invalid case: input does not match task input schema
     with pytest.raises(ValueError, match="does not match task input schema"):

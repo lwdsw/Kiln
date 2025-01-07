@@ -482,7 +482,22 @@ class TaskRun(KilnParentedModel):
         return self.parent
 
     @model_validator(mode="after")
-    def validate_input_format(self) -> Self:
+    def validate_input_format(self, info: ValidationInfo) -> Self:
+        # Don't validate if loading from file (not new). Too slow.
+        # We don't allow changing task schema, so this is redundant validation.
+        # Note: we still validate if editing a loaded model
+        if self.loading_from_file(info):
+            # Consider loading an existing model as validated.
+            self._last_validated_input = self.input
+            return self
+
+        # Don't validate if input has not changed. Too slow to run this every time.
+        if (
+            hasattr(self, "_last_validated_input")
+            and self.input == self._last_validated_input
+        ):
+            return self
+
         task = self.parent_task()
         if task is None:
             # don't validate this relationship until we have a path or parent. Give them time to build it (but will catch it before saving)
@@ -496,15 +511,33 @@ class TaskRun(KilnParentedModel):
                 raise ValueError("Input is not a valid JSON object")
             except jsonschema.exceptions.ValidationError as e:
                 raise ValueError(f"Input does not match task input schema: {e}")
+        self._last_validated_input = self.input
         return self
 
     @model_validator(mode="after")
-    def validate_output_format(self) -> Self:
+    def validate_output_format(self, info: ValidationInfo) -> Self:
+        # Don't validate if loading from file (not new). Too slow.
+        # Note: we still validate if editing a loaded model's output.
+        if self.loading_from_file(info):
+            # Consider loading an existing model as validated.
+            self._last_validated_output = self.output.output if self.output else None
+            return self
+
+        # Don't validate unless output has changed since last validation.
+        # The validator is slow and costly, don't want it running when setting other fields.
+        if (
+            hasattr(self, "_last_validated_output")
+            and self.output is not None
+            and self.output.output == self._last_validated_output
+        ):
+            return self
+
         task = self.parent_task()
         if task is None:
             return self
 
         self.output.validate_output_format(task)
+        self._last_validated_output = self.output.output if self.output else None
         return self
 
     @model_validator(mode="after")

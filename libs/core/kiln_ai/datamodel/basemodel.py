@@ -169,13 +169,20 @@ class KilnBaseModel(BaseModel):
         # Two methods of indicated it's loaded from file:
         # 1) info.context.get("loading_from_file") -> During actual loading, before we can set _loaded_from_file
         # 2) self._loaded_from_file -> After loading, set by the loader
+        if self.loading_from_file(info):
+            return True
+        return self._loaded_from_file
+
+    # indicates the model is currently being loaded from file (not mutating it after)
+    def loading_from_file(self, info: ValidationInfo | None = None) -> bool:
+        # info.context.get("loading_from_file") -> During actual loading, before we can set _loaded_from_file
         if (
             info is not None
             and info.context is not None
             and info.context.get("loading_from_file", False)
         ):
             return True
-        return self._loaded_from_file
+        return False
 
     def save_to_file(self) -> None:
         """Save the model instance to a file.
