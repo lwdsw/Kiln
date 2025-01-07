@@ -49,7 +49,7 @@ test_json_schema = """{
 
 @pytest.fixture
 def task_run(tmp_path):
-    # Setup basic output source for validation
+    # setup a valid project/task/task_run for testing
     output_source = DataSource(
         type=DataSourceType.synthetic,
         properties={
@@ -72,7 +72,6 @@ def task_run(tmp_path):
 
     task.save_to_file()
 
-    # Test 1: Creating without source should work when strict mode is off
     task_output = TaskOutput(
         output='{"setup": "Why did the chicken cross the road?", "punchline": "To get to the other side"}',
         source=DataSource(
