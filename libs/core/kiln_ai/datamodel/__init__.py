@@ -482,30 +482,62 @@ class TaskRun(KilnParentedModel):
         return self.parent
 
     @model_validator(mode="after")
-    def validate_input_format(self) -> Self:
-        task = self.parent_task()
-        if task is None:
-            # don't validate this relationship until we have a path or parent. Give them time to build it (but will catch it before saving)
-            return self
+    def validate_input_format(self, info: ValidationInfo) -> Self:
+        try:
+            # Don't validate if loading from file (not new). Too slow.
+            # We don't allow changing task schema, so this is redundant validation.
+            # Note: we still validate if editing a loaded model
+            if self.loading_from_file(info):
+                return self
 
-        # validate output
-        if task.input_json_schema is not None:
-            try:
-                validate_schema(json.loads(self.input), task.input_json_schema)
-            except json.JSONDecodeError:
-                raise ValueError("Input is not a valid JSON object")
-            except jsonschema.exceptions.ValidationError as e:
-                raise ValueError(f"Input does not match task input schema: {e}")
-        return self
+            # Don't validate if input has not changed. Too slow to run this every time.
+            if hasattr(self, "_previous_input") and self.input == self._previous_input:
+                return self
+
+            task = self.parent_task()
+            if task is None:
+                # don't validate this relationship until we have a path or parent. Give them time to build it (but will catch it before saving)
+                return self
+
+            # validate output
+            if task.input_json_schema is not None:
+                try:
+                    validate_schema(json.loads(self.input), task.input_json_schema)
+                except json.JSONDecodeError:
+                    raise ValueError("Input is not a valid JSON object")
+                except jsonschema.exceptions.ValidationError as e:
+                    raise ValueError(f"Input does not match task input schema: {e}")
+            return self
+        finally:
+            # Store current output for future change detection
+            self._previous_input = self.input
 
     @model_validator(mode="after")
-    def validate_output_format(self) -> Self:
-        task = self.parent_task()
-        if task is None:
-            return self
+    def validate_output_format(self, info: ValidationInfo) -> Self:
+        try:
+            # Don't validate if loading from file (not new). Too slow.
+            # We don't allow changing task schema, so this is redundant validation.
+            # Note: we still validate if editing a loaded model.
+            if self.loading_from_file(info):
+                return self
 
-        self.output.validate_output_format(task)
-        return self
+            # Don't validate unless output has changed. The validator is slow and costly, don't want it running when setting other fields.
+            if (
+                hasattr(self, "_previous_output_output")
+                and self.output is not None
+                and self.output.output == self._previous_output_output
+            ):
+                return self
+
+            task = self.parent_task()
+            if task is None:
+                return self
+
+            self.output.validate_output_format(task)
+            return self
+        finally:
+            # Store current output for future change detection
+            self._previous_output_output = self.output.output if self.output else None
 
     @model_validator(mode="after")
     def validate_repaired_output(self) -> Self:
