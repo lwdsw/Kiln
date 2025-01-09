@@ -313,8 +313,7 @@ def system_message_from_request(
                 detail="System message generator is required when custom system message is not provided",
             )
         try:
-            prompt_builder_class = prompt_builder_from_ui_name(system_message_generator)
-            prompt_builder = prompt_builder_class(task)
+            prompt_builder = prompt_builder_from_ui_name(system_message_generator, task)
             system_message = prompt_builder.build_prompt()
         except Exception as e:
             raise HTTPException(

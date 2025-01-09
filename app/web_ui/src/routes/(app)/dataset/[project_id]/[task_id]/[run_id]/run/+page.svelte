@@ -36,7 +36,8 @@
           $model_info,
         ),
         "Model Provider": run?.output?.source?.properties?.model_provider,
-        "Prompt Builder": run?.output?.source?.properties?.prompt_builder_name,
+        "Prompt Generator":
+          run?.output?.source?.properties?.prompt_builder_name,
         "Created By": run?.input_source?.properties?.created_by,
         "Created At": formatDate(run?.created_at),
         // eslint-disable-next-line @typescript-eslint/no-unused-vars

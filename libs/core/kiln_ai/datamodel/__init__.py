@@ -398,8 +398,14 @@ class DataSource(BaseModel):
             required_for=[DataSourceType.synthetic],
             not_allowed_for=[DataSourceType.human],
         ),
+        # First for generators, second for saved prompts
         DataSourceProperty(
             name="prompt_builder_name",
+            type=str,
+            not_allowed_for=[DataSourceType.human],
+        ),
+        DataSourceProperty(
+            name="prompt_id",
             type=str,
             not_allowed_for=[DataSourceType.human],
         ),
@@ -824,14 +830,14 @@ class Task(
     def runs(self, readonly: bool = False) -> list[TaskRun]:
         return super().runs(readonly=readonly)  # type: ignore
 
-    def dataset_splits(self) -> list[DatasetSplit]:
-        return super().dataset_splits()  # type: ignore
+    def dataset_splits(self, readonly: bool = False) -> list[DatasetSplit]:
+        return super().dataset_splits(readonly=readonly)  # type: ignore
 
-    def finetunes(self) -> list[Finetune]:
-        return super().finetunes()  # type: ignore
+    def finetunes(self, readonly: bool = False) -> list[Finetune]:
+        return super().finetunes(readonly=readonly)  # type: ignore
 
-    def prompts(self) -> list[Prompt]:
-        return super().prompts()  # type: ignore
+    def prompts(self, readonly: bool = False) -> list[Prompt]:
+        return super().prompts(readonly=readonly)  # type: ignore
 
 
 class Project(KilnParentModel, parent_of={"tasks": Task}):

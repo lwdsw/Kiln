@@ -305,26 +305,33 @@ def test_prompt_builder_name():
     assert RepairsPromptBuilder.prompt_builder_name() == "repairs_prompt_builder"
 
 
-def test_prompt_builder_from_ui_name():
-    assert prompt_builder_from_ui_name("basic") == SimplePromptBuilder
-    assert prompt_builder_from_ui_name("few_shot") == FewShotPromptBuilder
-    assert prompt_builder_from_ui_name("many_shot") == MultiShotPromptBuilder
-    assert prompt_builder_from_ui_name("repairs") == RepairsPromptBuilder
-    assert (
-        prompt_builder_from_ui_name("simple_chain_of_thought")
-        == SimpleChainOfThoughtPromptBuilder
+def test_prompt_builder_from_ui_name(task_with_examples):
+    task = task_with_examples
+    assert isinstance(prompt_builder_from_ui_name("basic", task), SimplePromptBuilder)
+    assert isinstance(
+        prompt_builder_from_ui_name("few_shot", task), FewShotPromptBuilder
     )
-    assert (
-        prompt_builder_from_ui_name("few_shot_chain_of_thought")
-        == FewShotChainOfThoughtPromptBuilder
+    assert isinstance(
+        prompt_builder_from_ui_name("many_shot", task), MultiShotPromptBuilder
     )
-    assert (
-        prompt_builder_from_ui_name("multi_shot_chain_of_thought")
-        == MultiShotChainOfThoughtPromptBuilder
+    assert isinstance(
+        prompt_builder_from_ui_name("repairs", task), RepairsPromptBuilder
+    )
+    assert isinstance(
+        prompt_builder_from_ui_name("simple_chain_of_thought", task),
+        SimpleChainOfThoughtPromptBuilder,
+    )
+    assert isinstance(
+        prompt_builder_from_ui_name("few_shot_chain_of_thought", task),
+        FewShotChainOfThoughtPromptBuilder,
+    )
+    assert isinstance(
+        prompt_builder_from_ui_name("multi_shot_chain_of_thought", task),
+        MultiShotChainOfThoughtPromptBuilder,
     )
 
     with pytest.raises(ValueError, match="Unknown prompt builder: invalid_name"):
-        prompt_builder_from_ui_name("invalid_name")
+        prompt_builder_from_ui_name("invalid_name", task)
 
 
 def test_example_count():

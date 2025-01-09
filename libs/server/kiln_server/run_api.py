@@ -187,15 +187,15 @@ def connect_run_api(app: FastAPI):
     ) -> TaskRun:
         task = task_from_id(project_id, task_id)
 
-        prompt_builder_class = prompt_builder_from_ui_name(
-            request.ui_prompt_method or "basic"
+        prompt_builder = prompt_builder_from_ui_name(
+            request.ui_prompt_method or "basic",
+            task,
         )
-        if prompt_builder_class is None:
+        if prompt_builder is None:
             raise HTTPException(
                 status_code=400,
                 detail=f"Unknown prompt method: {request.ui_prompt_method}",
             )
-        prompt_builder = prompt_builder_class(task)
         adapter = adapter_for_task(
             task,
             model_name=request.model_name,

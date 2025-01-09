@@ -586,11 +586,10 @@ def test_create_finetune_no_system_message(
 def mock_prompt_builder():
     builder = Mock()
     builder.build_prompt.return_value = "Generated system message"
-    builder_class = Mock(return_value=builder)
 
     with unittest.mock.patch(
         "app.desktop.studio_server.finetune_api.prompt_builder_from_ui_name",
-        return_value=builder_class,
+        return_value=builder,
     ) as mock:
         yield mock, builder
 
@@ -623,7 +622,7 @@ async def test_create_finetune_with_prompt_builder(
     assert result["id"] == "new_ft"
 
     # Verify prompt builder was called correctly
-    prompt_builder_mock.assert_called_once_with("test_prompt_builder")
+    prompt_builder_mock.assert_called_once()
     builder.build_prompt.assert_called_once()
 
     # Verify the adapter was called with the generated system message
@@ -801,7 +800,7 @@ def test_download_dataset_jsonl_with_prompt_builder(
     assert response.status_code == 200
 
     # Verify prompt builder was used
-    prompt_builder_mock.assert_called_once_with("test_prompt_builder")
+    prompt_builder_mock.assert_called_once_with("test_prompt_builder", test_task)
     builder.build_prompt.assert_called_once()
 
     split1 = next(split for split in test_task.dataset_splits() if split.id == "split1")

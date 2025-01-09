@@ -244,6 +244,32 @@ class MultiShotChainOfThoughtPromptBuilder(MultiShotPromptBuilder):
         return chain_of_thought_prompt(self.task)
 
 
+class SavedPromptBuilder(BasePromptBuilder):
+    """A prompt builder that looks up a static prompt."""
+
+    def __init__(self, task: Task, prompt_id: str):
+        super().__init__(task)
+        prompt_model = next(
+            (
+                prompt
+                for prompt in task.prompts(readonly=True)
+                if prompt.id == prompt_id
+            ),
+            None,
+        )
+        if not prompt_model:
+            raise ValueError(f"Prompt ID not found: {prompt_id}")
+        self.prompt_model = prompt_model
+
+    def build_prompt(self) -> str:
+        """Returns a saved prompt.
+
+        Returns:
+            str: The prompt string.
+        """
+        return self.prompt_model.prompt
+
+
 prompt_builder_registry = {
     "simple_prompt_builder": SimplePromptBuilder,
     "multi_shot_prompt_builder": MultiShotPromptBuilder,
@@ -256,7 +282,7 @@ prompt_builder_registry = {
 
 
 # Our UI has some names that are not the same as the class names, which also hint parameters.
-def prompt_builder_from_ui_name(ui_name: str) -> type[BasePromptBuilder]:
+def prompt_builder_from_ui_name(ui_name: str, task: Task) -> BasePromptBuilder:
     """Convert a name used in the UI to the corresponding prompt builder class.
 
     Args:
@@ -268,20 +294,26 @@ def prompt_builder_from_ui_name(ui_name: str) -> type[BasePromptBuilder]:
     Raises:
         ValueError: If the UI name is not recognized.
     """
+
+    # Saved prompts are prefixed with "id::"
+    if ui_name.startswith("id::"):
+        prompt_id = ui_name[4:]
+        return SavedPromptBuilder(task, prompt_id)
+
     match ui_name:
         case "basic":
-            return SimplePromptBuilder
+            return SimplePromptBuilder(task)
         case "few_shot":
-            return FewShotPromptBuilder
+            return FewShotPromptBuilder(task)
         case "many_shot":
-            return MultiShotPromptBuilder
+            return MultiShotPromptBuilder(task)
         case "repairs":
-            return RepairsPromptBuilder
+            return RepairsPromptBuilder(task)
         case "simple_chain_of_thought":
-            return SimpleChainOfThoughtPromptBuilder
+            return SimpleChainOfThoughtPromptBuilder(task)
         case "few_shot_chain_of_thought":
-            return FewShotChainOfThoughtPromptBuilder
+            return FewShotChainOfThoughtPromptBuilder(task)
         case "multi_shot_chain_of_thought":
-            return MultiShotChainOfThoughtPromptBuilder
+            return MultiShotChainOfThoughtPromptBuilder(task)
         case _:
             raise ValueError(f"Unknown prompt builder: {ui_name}")

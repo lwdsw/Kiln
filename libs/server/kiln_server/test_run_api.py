@@ -16,7 +16,13 @@ from kiln_ai.datamodel import (
 )
 
 from kiln_server.custom_errors import connect_custom_errors
-from kiln_server.run_api import RunSummary, connect_run_api, deep_update, run_from_id
+from kiln_server.run_api import (
+    RunSummary,
+    RunTaskRequest,
+    connect_run_api,
+    deep_update,
+    run_from_id,
+)
 
 
 @pytest.fixture

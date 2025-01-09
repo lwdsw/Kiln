@@ -4,6 +4,7 @@
   import type { PromptResponse } from "$lib/types"
 
   export let prompt_method: string
+
   export let exclude_cot = false
   export let custom_prompt_name: string | undefined = undefined
   export let description: string | undefined = undefined
@@ -43,7 +44,7 @@
       if (!prompt.id) {
         continue
       }
-      static_prompts.push([prompt.id, prompt.name])
+      static_prompts.push(["id::" + prompt.id, prompt.name])
     }
     if (static_prompts.length > 0) {
       grouped_options.push(["Saved Prompts", static_prompts])
