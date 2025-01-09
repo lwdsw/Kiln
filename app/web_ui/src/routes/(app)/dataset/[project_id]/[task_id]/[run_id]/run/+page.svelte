@@ -30,13 +30,16 @@
 
   let model_props: Record<string, string | number | undefined> = {}
   $: {
-    // Attempt to lookup a nice name for the generator
+    // Attempt to lookup a nice name for the prompt
+    let prompt_name = $current_task_prompts?.prompts.find(
+      (prompt) => prompt.id === run?.output?.source?.properties?.prompt_id,
+    )?.name
     let prompt_generator_name = $current_task_prompts?.generators.find(
       (generator) =>
         generator.ui_id ===
         run?.output?.source?.properties?.prompt_builder_name,
     )?.name
-    if (!prompt_generator_name) {
+    if (!prompt_generator_name && !prompt_name) {
       prompt_generator_name =
         "" + run?.output?.source?.properties?.prompt_builder_name
     }
@@ -54,6 +57,7 @@
         ),
         "Model Provider": run?.output?.source?.properties?.model_provider,
         "Prompt Generator": prompt_generator_name,
+        Prompt: prompt_name,
         "Created By": run?.input_source?.properties?.created_by,
         "Created At": formatDate(run?.created_at),
         // eslint-disable-next-line @typescript-eslint/no-unused-vars

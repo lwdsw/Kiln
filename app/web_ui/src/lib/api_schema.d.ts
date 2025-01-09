@@ -1283,7 +1283,7 @@ export interface components {
             /** Prompt */
             prompt: string;
             /** Chain Of Thought Instructions */
-            chain_of_thought_instructions: string | null;
+            chain_of_thought_instructions?: string | null;
         };
         /** PromptGenerator */
         PromptGenerator: {

@@ -22,6 +22,7 @@ class AdapterInfo:
     model_name: str
     model_provider: str
     prompt_builder_name: str
+    prompt_id: str | None = None
 
 
 @dataclass
@@ -166,5 +167,7 @@ class BaseAdapter(metaclass=ABCMeta):
         props["model_name"] = adapter_info.model_name
         props["model_provider"] = adapter_info.model_provider
         props["prompt_builder_name"] = adapter_info.prompt_builder_name
+        if adapter_info.prompt_id is not None:
+            props["prompt_id"] = adapter_info.prompt_id
 
         return props

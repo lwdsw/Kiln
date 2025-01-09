@@ -20,6 +20,14 @@ class BasePromptBuilder(metaclass=ABCMeta):
         """
         self.task = task
 
+    def prompt_id(self) -> str | None:
+        """Returns the ID of the prompt, scoped to this builder.
+
+        Returns:
+            str | None: The ID of the prompt, or None if not set.
+        """
+        return None
+
     @abstractmethod
     def build_prompt(self) -> str:
         """Build and return the complete prompt string.
@@ -260,6 +268,9 @@ class SavedPromptBuilder(BasePromptBuilder):
         if not prompt_model:
             raise ValueError(f"Prompt ID not found: {prompt_id}")
         self.prompt_model = prompt_model
+
+    def prompt_id(self) -> str | None:
+        return self.prompt_model.id
 
     def build_prompt(self) -> str:
         """Returns a saved prompt.
