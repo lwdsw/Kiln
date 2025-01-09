@@ -270,6 +270,8 @@ class SavedPromptBuilder(BasePromptBuilder):
         return self.prompt_model.prompt
 
 
+# TODO P2: we end up with 2 IDs for these: the keys here (ui_name) and the prompt_builder_name from the class
+# We end up maintaining this in _prompt_generators as well.
 prompt_builder_registry = {
     "simple_prompt_builder": SimplePromptBuilder,
     "multi_shot_prompt_builder": MultiShotPromptBuilder,

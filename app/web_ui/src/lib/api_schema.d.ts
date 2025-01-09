@@ -1282,6 +1282,8 @@ export interface components {
         PromptGenerator: {
             /** Id */
             id: string;
+            /** Ui Id */
+            ui_id: string;
             /** Short Description */
             short_description: string;
             /** Description */

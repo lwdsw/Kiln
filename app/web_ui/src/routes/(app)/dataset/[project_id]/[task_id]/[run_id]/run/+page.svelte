@@ -3,7 +3,12 @@
   import type { ActionButton } from "../../../../../types"
   import Run from "../../../../../run/run.svelte"
   import Output from "../../../../../run/output.svelte"
-  import { current_task, model_name, model_info } from "$lib/stores"
+  import {
+    current_task,
+    model_name,
+    model_info,
+    current_task_prompts,
+  } from "$lib/stores"
   import { page } from "$app/stores"
   import { onMount } from "svelte"
   import { client } from "$lib/api_client"
@@ -25,6 +30,17 @@
 
   let model_props: Record<string, string | number | undefined> = {}
   $: {
+    // Attempt to lookup a nice name for the generator
+    let prompt_generator_name = $current_task_prompts?.generators.find(
+      (generator) =>
+        generator.ui_id ===
+        run?.output?.source?.properties?.prompt_builder_name,
+    )?.name
+    if (!prompt_generator_name) {
+      prompt_generator_name =
+        "" + run?.output?.source?.properties?.prompt_builder_name
+    }
+
     model_props = Object.fromEntries(
       Object.entries({
         "Input Source":
@@ -36,8 +52,7 @@
           $model_info,
         ),
         "Model Provider": run?.output?.source?.properties?.model_provider,
-        "Prompt Generator":
-          run?.output?.source?.properties?.prompt_builder_name,
+        "Prompt Generator": prompt_generator_name,
         "Created By": run?.input_source?.properties?.created_by,
         "Created At": formatDate(run?.created_at),
         // eslint-disable-next-line @typescript-eslint/no-unused-vars

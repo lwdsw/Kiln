@@ -47,7 +47,7 @@
           <Output raw_output={prompt_model.prompt} />
         </div>
         <div class="w-72 2xl:w-96 flex-none flex flex-col gap-4">
-          <div class="text-xl font-bold">Parameters</div>
+          <div class="text-xl font-bold">Details</div>
           <div
             class="grid grid-cols-[auto,1fr] gap-y-2 gap-x-4 text-sm 2xl:text-base"
           >
