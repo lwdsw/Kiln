@@ -103,7 +103,7 @@ class SimplePromptBuilder(BasePromptBuilder):
             )
             # iterate requirements, formatting them in numbereed list like 1) task.instruction\n2)...
             for i, requirement in enumerate(self.task.requirements):
-                base_prompt += f"{i+1}) {requirement.instruction}\n"
+                base_prompt += f"{i + 1}) {requirement.instruction}\n"
 
         return base_prompt
 
@@ -126,12 +126,12 @@ class MultiShotPromptBuilder(BasePromptBuilder):
         Returns:
             str: The constructed prompt string with examples.
         """
-        base_prompt = f"# Instruction\n\n{ self.task.instruction }\n\n"
+        base_prompt = f"# Instruction\n\n{self.task.instruction}\n\n"
 
         if len(self.task.requirements) > 0:
             base_prompt += "# Requirements\n\nYour response should respect the following requirements:\n"
             for i, requirement in enumerate(self.task.requirements):
-                base_prompt += f"{i+1}) {requirement.instruction}\n"
+                base_prompt += f"{i + 1}) {requirement.instruction}\n"
             base_prompt += "\n"
 
         valid_examples = self.collect_examples()
@@ -148,7 +148,7 @@ class MultiShotPromptBuilder(BasePromptBuilder):
     def prompt_section_for_example(self, index: int, example: TaskRun) -> str:
         # Prefer repaired output if it exists, otherwise use the regular output
         output = example.repaired_output or example.output
-        return f"## Example {index+1}\n\nInput: {example.input}\nOutput: {output.output}\n\n"
+        return f"## Example {index + 1}\n\nInput: {example.input}\nOutput: {output.output}\n\n"
 
     def collect_examples(self) -> list[TaskRun]:
         valid_examples: list[TaskRun] = []
@@ -206,7 +206,7 @@ class RepairsPromptBuilder(MultiShotPromptBuilder):
         ):
             return super().prompt_section_for_example(index, example)
 
-        prompt_section = f"## Example {index+1}\n\nInput: {example.input}\n\n"
+        prompt_section = f"## Example {index + 1}\n\nInput: {example.input}\n\n"
         prompt_section += (
             f"Initial Output Which Was Insufficient: {example.output.output}\n\n"
         )

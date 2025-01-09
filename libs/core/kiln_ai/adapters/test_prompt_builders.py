@@ -241,14 +241,14 @@ def test_few_shot_prompt_builder(tmp_path):
     # Create 6 examples (2 repaired, 4 high-quality)
     for i in range(6):
         run = TaskRun(
-            input=f'{{"subject": "Subject {i+1}"}}',
+            input=f'{{"subject": "Subject {i + 1}"}}',
             input_source=DataSource(
                 type=DataSourceType.human,
                 properties={"created_by": "john_doe"},
             ),
             parent=task,
             output=TaskOutput(
-                output=f'{{"joke": "Joke Initial Output {i+1}"}}',
+                output=f'{{"joke": "Joke Initial Output {i + 1}"}}',
                 source=DataSource(
                     type=DataSourceType.human,
                     properties={"created_by": "john_doe"},
@@ -262,7 +262,7 @@ def test_few_shot_prompt_builder(tmp_path):
                 update={
                     "repair_instructions": "Fix the joke",
                     "repaired_output": TaskOutput(
-                        output=f'{{"joke": "Repaired Joke {i+1}"}}',
+                        output=f'{{"joke": "Repaired Joke {i + 1}"}}',
                         source=DataSource(
                             type=DataSourceType.human,
                             properties={"created_by": "jane_doe"},
@@ -334,6 +334,9 @@ def test_prompt_builder_from_ui_name(task_with_examples):
 
     with pytest.raises(ValueError, match="Unknown prompt builder: invalid_name"):
         prompt_builder_from_ui_name("invalid_name", task)
+
+    with pytest.raises(ValueError, match="Prompt ID not found: 123"):
+        prompt_builder_from_ui_name("id::123", task)
 
 
 def test_example_count():
