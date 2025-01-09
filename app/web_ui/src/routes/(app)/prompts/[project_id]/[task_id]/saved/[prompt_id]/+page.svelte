@@ -18,6 +18,9 @@
         ID: prompt_model?.id,
         "Created By": prompt_model?.created_by,
         "Created At": formatDate(prompt_model?.created_at),
+        "Chain of Thought": prompt_model?.chain_of_thought_instructions
+          ? "Yes"
+          : "No",
       }).filter(([_, value]) => value !== undefined),
     )
   }
@@ -45,6 +48,12 @@
         <div class="grow">
           <div class="text-xl font-bold mb-2">Prompt</div>
           <Output raw_output={prompt_model.prompt} />
+          {#if prompt_model.chain_of_thought_instructions}
+            <div class="text-xl font-bold mt-10 mb-2">
+              Chain of Thought Instructions
+            </div>
+            <Output raw_output={prompt_model.chain_of_thought_instructions} />
+          {/if}
         </div>
         <div class="w-72 2xl:w-96 flex-none flex flex-col gap-4">
           <div class="text-xl font-bold">Details</div>

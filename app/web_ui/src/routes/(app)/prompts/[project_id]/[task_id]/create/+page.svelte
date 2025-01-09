@@ -14,7 +14,9 @@
 
   let prompt_name = ""
   let prompt = ""
-
+  let is_chain_of_thought = false
+  let chain_of_thought_instructions =
+    "Think step by step, explaining your reasoning."
   let create_error: KilnError | null = null
   let create_loading = false
 
@@ -34,6 +36,9 @@
           body: {
             name: prompt_name,
             prompt: prompt,
+            chain_of_thought_instructions: is_chain_of_thought
+              ? chain_of_thought_instructions
+              : null,
           },
         },
       )
@@ -71,6 +76,7 @@
           description="A short name to uniquely identify this prompt."
           max_length={60}
         />
+
         <FormElement
           label="Prompt"
           id="prompt"
@@ -80,6 +86,26 @@
           description="A prompt to use for this task."
           info_description="A LLM prompt such as 'You are a helpful assistant.'. This prompt is specific to this task. To use this prompt after creation, select it from the prompts dropdown."
         />
+        <FormElement
+          label="Chain of Thought"
+          id="is_chain_of_thought"
+          bind:value={is_chain_of_thought}
+          description="Should this prompt use chain of thought?"
+          inputType="select"
+          select_options={[
+            [false, "Disabled"],
+            [true, "Enabled"],
+          ]}
+        />
+        {#if is_chain_of_thought}
+          <FormElement
+            label="Chain of Thought Instructions"
+            id="chain_of_thought_instructions"
+            bind:value={chain_of_thought_instructions}
+            inputType="textarea"
+            description="Instructions for the model's 'thinking' prior to answering. Required for chain of thought prompting."
+          />
+        {/if}
       </FormContainer>
     </div>
   </AppPage>

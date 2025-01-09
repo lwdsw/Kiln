@@ -1259,6 +1259,11 @@ export interface components {
              * @description The prompt for the task.
              */
             prompt: string;
+            /**
+             * Chain Of Thought Instructions
+             * @description Instructions for the model 'thinking' about the requirement prior to answering. Used for chain of thought style prompting. COT will not be used unless this is provided.
+             */
+            chain_of_thought_instructions?: string | null;
             /** Model Type */
             readonly model_type: string;
         };
@@ -1277,6 +1282,8 @@ export interface components {
             name: string;
             /** Prompt */
             prompt: string;
+            /** Chain Of Thought Instructions */
+            chain_of_thought_instructions: string | null;
         };
         /** PromptGenerator */
         PromptGenerator: {

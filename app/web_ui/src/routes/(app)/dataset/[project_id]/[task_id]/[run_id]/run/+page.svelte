@@ -43,6 +43,7 @@
 
     model_props = Object.fromEntries(
       Object.entries({
+        ID: run?.id || undefined,
         "Input Source":
           "" +
           run?.input_source?.type.charAt(0).toUpperCase() +

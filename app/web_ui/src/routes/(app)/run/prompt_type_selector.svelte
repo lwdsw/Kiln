@@ -44,6 +44,9 @@
       if (!prompt.id) {
         continue
       }
+      if (prompt.chain_of_thought_instructions && exclude_cot) {
+        continue
+      }
       static_prompts.push(["id::" + prompt.id, prompt.name])
     }
     if (static_prompts.length > 0) {

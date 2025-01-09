@@ -8,6 +8,7 @@ from kiln_server.task_api import task_from_id
 class PromptCreateRequest(BaseModel):
     name: str
     prompt: str
+    chain_of_thought_instructions: str | None = None
 
 
 class PromptGenerator(BaseModel):
@@ -34,6 +35,7 @@ def connect_prompt_api(app: FastAPI):
             parent=parent_task,
             name=prompt_data.name,
             prompt=prompt_data.prompt,
+            chain_of_thought_instructions=prompt_data.chain_of_thought_instructions,
         )
         prompt.save_to_file()
         return prompt
