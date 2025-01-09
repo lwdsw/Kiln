@@ -338,6 +338,19 @@ def test_prompt_builder_from_ui_name(task_with_examples):
     with pytest.raises(ValueError, match="Prompt ID not found: 123"):
         prompt_builder_from_ui_name("id::123", task)
 
+    prompt = Prompt(
+        name="test_prompt_name",
+        prompt="test_prompt",
+        chain_of_thought_instructions="coti",
+        parent=task,
+    )
+    prompt.save_to_file()
+    pb = prompt_builder_from_ui_name("id::" + prompt.id, task)
+    assert isinstance(pb, SavedPromptBuilder)
+    assert pb.prompt_id() == prompt.id
+    assert pb.build_prompt() == "test_prompt"
+    assert pb.chain_of_thought_prompt() == "coti"
+
 
 def test_example_count():
     assert FewShotPromptBuilder.example_count() == 4
