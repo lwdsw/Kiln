@@ -9,6 +9,7 @@ from kiln_ai.adapters.prompt_builders import (
     MultiShotChainOfThoughtPromptBuilder,
     MultiShotPromptBuilder,
     RepairsPromptBuilder,
+    SavedPromptBuilder,
     SimpleChainOfThoughtPromptBuilder,
     SimplePromptBuilder,
     chain_of_thought_prompt,
@@ -20,6 +21,7 @@ from kiln_ai.datamodel import (
     DataSource,
     DataSourceType,
     Project,
+    Prompt,
     Task,
     TaskOutput,
     TaskOutputRating,
@@ -433,3 +435,38 @@ def test_build_prompt_for_ui(tmp_path):
     assert custom_cot_builder.build_prompt() in ui_prompt_custom
     assert "# Thinking Instructions" in ui_prompt_custom
     assert custom_instruction in ui_prompt_custom
+
+
+def test_saved_prompt_builder(tmp_path):
+    task = build_test_task(tmp_path)
+
+    prompt = Prompt(
+        name="test_prompt_name",
+        prompt="test_prompt",
+        parent=task,
+    )
+    prompt.save_to_file()
+
+    builder = SavedPromptBuilder(task=task, prompt_id=prompt.id)
+    assert builder.build_prompt() == "test_prompt"
+    assert builder.chain_of_thought_prompt() is None
+    assert builder.build_prompt_for_ui() == "test_prompt"
+    assert builder.prompt_id() == prompt.id
+
+
+def test_saved_prompt_builder_with_chain_of_thought(tmp_path):
+    task = build_test_task(tmp_path)
+
+    prompt = Prompt(
+        name="test_prompt_name",
+        prompt="test_prompt",
+        chain_of_thought_instructions="Think step by step",
+        parent=task,
+    )
+    prompt.save_to_file()
+
+    builder = SavedPromptBuilder(task=task, prompt_id=prompt.id)
+    assert builder.build_prompt() == "test_prompt"
+    assert builder.chain_of_thought_prompt() == "Think step by step"
+    assert "Think step by step" in builder.build_prompt_for_ui()
+    assert builder.prompt_id() == prompt.id
