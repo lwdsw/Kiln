@@ -1232,40 +1232,7 @@ export interface components {
          * Prompt
          * @description A prompt for a task.
          */
-        "Prompt-Input": {
-            /**
-             * V
-             * @default 1
-             */
-            v: number;
-            /** Id */
-            id?: string | null;
-            /** Path */
-            path?: string | null;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at?: string;
-            /** Created By */
-            created_by?: string;
-            parent?: components["schemas"]["KilnBaseModel"] | null;
-            /**
-             * Name
-             * @description A name for this entity.
-             */
-            name: string;
-            /**
-             * Prompt
-             * @description The prompt for the task.
-             */
-            prompt: string;
-        };
-        /**
-         * Prompt
-         * @description A prompt for a task.
-         */
-        "Prompt-Output": {
+        Prompt: {
             /**
              * V
              * @default 1
@@ -1304,6 +1271,13 @@ export interface components {
             /** Ui Generator Name */
             ui_generator_name: string;
         };
+        /** PromptCreateRequest */
+        PromptCreateRequest: {
+            /** Name */
+            name: string;
+            /** Prompt */
+            prompt: string;
+        };
         /** PromptGenerator */
         PromptGenerator: {
             /** Id */
@@ -1322,7 +1296,7 @@ export interface components {
             /** Generators */
             generators: components["schemas"]["PromptGenerator"][];
             /** Prompts */
-            prompts: components["schemas"]["Prompt-Output"][];
+            prompts: components["schemas"]["Prompt"][];
         };
         /** ProviderModel */
         ProviderModel: {
@@ -2137,7 +2111,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["Prompt-Input"];
+                "application/json": components["schemas"]["PromptCreateRequest"];
             };
         };
         responses: {
@@ -2147,7 +2121,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Prompt-Output"];
+                    "application/json": components["schemas"]["Prompt"];
                 };
             };
             /** @description Validation Error */

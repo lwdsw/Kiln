@@ -17,6 +17,11 @@
         label: "Docs",
         href: "https://docs.getkiln.ai/docs/prompts",
       },
+      {
+        label: "Create Prompt",
+        href: `/prompts/${project_id}/${task_id}/create`,
+        primary: true,
+      },
     ]}
   >
     {#if !$current_task_prompts}
@@ -76,14 +81,24 @@
             <thead>
               <tr>
                 <th>Name</th>
-                <th>Preview</th>
+                <th>Prompt Preview</th>
               </tr>
             </thead>
             <tbody>
               {#each $current_task_prompts.prompts as prompt}
-                <tr>
+                <tr
+                  class="hover:bg-base-200 cursor-pointer"
+                  on:click={() =>
+                    goto(
+                      `/prompts/${project_id}/${task_id}/saved/${prompt.id}`,
+                    )}
+                >
                   <td class="font-medium">{prompt.name}</td>
-                  <td>{prompt.prompt.slice(0, 100)}...</td>
+                  <td>
+                    {prompt.prompt.length > 100
+                      ? prompt.prompt.slice(0, 100) + "..."
+                      : prompt.prompt}
+                  </td>
                 </tr>
               {/each}
             </tbody>
@@ -91,7 +106,11 @@
         </div>
       {:else}
         <div class="font-light text-gray-500 text-sm">
-          No saved prompts found for this task.
+          No saved prompts found for this task.{" "}
+          <a href={`/prompts/${project_id}/${task_id}/create`} class="link">
+            Create one now
+          </a>
+          .
         </div>
       {/if}
     {/if}

@@ -7,6 +7,11 @@ from pydantic import BaseModel
 from kiln_server.task_api import task_from_id
 
 
+class PromptCreateRequest(BaseModel):
+    name: str
+    prompt: str
+
+
 class PromptGenerator(BaseModel):
     id: str
     short_description: str
@@ -23,7 +28,7 @@ class PromptResponse(BaseModel):
 def connect_prompt_api(app: FastAPI):
     @app.post("/api/projects/{project_id}/task/{task_id}/prompt")
     async def create_prompt(
-        project_id: str, task_id: str, prompt_data: Prompt
+        project_id: str, task_id: str, prompt_data: PromptCreateRequest
     ) -> Prompt:
         parent_task = task_from_id(project_id, task_id)
         prompt = Prompt(
@@ -74,10 +79,10 @@ _prompt_generators = [
         chain_of_thought=False,
     ),
     PromptGenerator(
-        id="chain_of_thought",
+        id="simple_chain_of_thought",
         name="Chain of Thought",
         short_description="Gives the LLM time to 'think' before replying.",
-        description="A chain of thought prompt generator that gives the LLM time to 'think' before replying. It will use the thinking_instruction from your task definition if it exists, or a standard 'step by step' instruction. It also includes the instructions and requirements from your task definition.",
+        description="A chain of thought prompt generator that gives the LLM time to 'think' before replying. It will use the thinking_instruction from your task definition if it exists, or a standard 'step by step' instruction. The result will only include the final answer, not the 'thinking' tokens. The 'thinking' tokens will be available in the data model. It also includes the instructions and requirements from your task definition.",
         chain_of_thought=True,
     ),
     PromptGenerator(

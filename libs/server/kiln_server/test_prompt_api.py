@@ -114,6 +114,6 @@ def test_prompt_generators_content():
     assert basic.chain_of_thought is False
     assert "zero-shot" in basic.description.lower()
 
-    cot = next(g for g in _prompt_generators if g.id == "chain_of_thought")
+    cot = next(g for g in _prompt_generators if g.id == "simple_chain_of_thought")
     assert cot.chain_of_thought is True
     assert "Chain of Thought" in cot.name
