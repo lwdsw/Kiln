@@ -10,6 +10,7 @@ from kiln_ai.datamodel import (
     DataSourceType,
     Finetune,
     Project,
+    Prompt,
     Task,
     TaskOutput,
     TaskRun,
@@ -488,3 +489,27 @@ def test_task_run_tags_validation():
             tags=["valid_tag", "invalid tag"],
         )
     assert "Tags cannot contain spaces. Try underscores." in str(exc_info.value)
+
+
+def test_prompt_validation():
+    prompt = Prompt(name="Test Prompt Name", prompt="Test Prompt")
+    assert prompt.name == "Test Prompt Name"
+    assert prompt.prompt == "Test Prompt"
+
+    with pytest.raises(ValidationError):
+        Prompt(name="Test Prompt")
+
+    with pytest.raises(ValidationError):
+        Prompt(name="Test Prompt", prompt=None)
+
+    with pytest.raises(ValidationError):
+        Prompt(name="Test Prompt", prompt="")
+
+    with pytest.raises(ValidationError):
+        Prompt(prompt="Test Prompt")
+
+
+def test_prompt_parent_task():
+    task = Task(name="Test Task", instruction="Test Instruction")
+    prompt = Prompt(name="Test Prompt", prompt="Test Prompt", parent=task)
+    assert prompt.parent == task

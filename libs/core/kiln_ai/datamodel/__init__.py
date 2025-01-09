@@ -734,6 +734,18 @@ class DatasetSplit(KilnParentedModel):
         return len(missing)
 
 
+class Prompt(KilnParentedModel):
+    """
+    A prompt for a task.
+    """
+
+    name: str = NAME_FIELD
+    prompt: str = Field(
+        description="The prompt for the task.",
+        min_length=1,
+    )
+
+
 class TaskRequirement(BaseModel):
     """
     Defines a specific requirement that should be met by task outputs.
@@ -771,6 +783,7 @@ class Task(
         "runs": TaskRun,
         "dataset_splits": DatasetSplit,
         "finetunes": Finetune,
+        "prompts": Prompt,
     },
 ):
     """
@@ -807,7 +820,7 @@ class Task(
             return None
         return schema_from_json_str(self.input_json_schema)
 
-    # Needed for typechecking. TODO P2: fix this in KilnParentModel
+    # These wrappers help for typechecking. TODO P2: fix this in KilnParentModel
     def runs(self, readonly: bool = False) -> list[TaskRun]:
         return super().runs(readonly=readonly)  # type: ignore
 
@@ -816,6 +829,9 @@ class Task(
 
     def finetunes(self) -> list[Finetune]:
         return super().finetunes()  # type: ignore
+
+    def prompts(self) -> list[Prompt]:
+        return super().prompts()  # type: ignore
 
 
 class Project(KilnParentModel, parent_of={"tasks": Task}):
