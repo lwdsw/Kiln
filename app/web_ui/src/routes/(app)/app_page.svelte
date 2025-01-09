@@ -13,7 +13,12 @@
     if (action_button.handler) {
       action_button.handler()
     } else if (action_button.href) {
-      goto(action_button.href)
+      if (action_button.href.startsWith("http")) {
+        // Open in new tab + goto doesn't work for external links
+        window.open(action_button.href, "_blank")
+      } else {
+        goto(action_button.href)
+      }
     }
   }
 

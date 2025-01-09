@@ -12,6 +12,12 @@
   <AppPage
     title="Prompts"
     subtitle={`Explore prompts for the task "${$current_task?.name}"`}
+    action_buttons={[
+      {
+        label: "Docs",
+        href: "https://docs.getkiln.ai/docs/prompts",
+      },
+    ]}
   >
     {#if !$current_task_prompts}
       <div class="w-full min-h-[50vh] flex justify-center items-center">
