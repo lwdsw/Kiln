@@ -219,6 +219,21 @@ def test_dataset_formatter_dump_to_temp_file(mock_dataset):
         assert len(lines) == 2
 
 
+def test_dataset_formatter_dump_to_temp_file_non_ascii(mock_dataset):
+    formatter = DatasetFormatter(mock_dataset, "你好")
+
+    result_path = formatter.dump_to_file("train", DatasetFormat.OPENAI_CHAT_JSONL)
+
+    assert result_path.exists()
+    assert result_path.parent == Path(tempfile.gettempdir())
+    assert result_path.name.startswith("test_dataset_train_")
+    assert result_path.name.endswith(".jsonl")
+    # Verify file contains unescaped non-ascii characters
+    with open(result_path) as f:
+        content = f.read()
+        assert "你好" in content
+
+
 def test_dataset_formatter_dump_to_file_tool_format(mock_dataset, tmp_path):
     formatter = DatasetFormatter(mock_dataset, "system message")
     output_path = tmp_path / "output.jsonl"

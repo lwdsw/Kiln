@@ -154,6 +154,10 @@ class DatasetFormatter:
 
         Returns:
             Path to the generated file
+
+        Note:
+            The output is written in UTF-8 encoding with ensure_ascii=False to properly
+            support international text content while maintaining readability.
         """
         if format_type not in FORMAT_GENERATORS:
             raise ValueError(f"Unsupported format: {format_type}")
@@ -182,6 +186,8 @@ class DatasetFormatter:
                     )
 
                 example = generator(task_run, self.system_message)
-                f.write(json.dumps(example) + "\n")
+                # Allow non-ascii characters in the dataset.
+                # Better readability for non-English users. If you don't support UTF-8... you should.
+                f.write(json.dumps(example, ensure_ascii=False) + "\n")
 
         return output_path
