@@ -175,6 +175,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/projects/{project_id}/task/{task_id}/prompt": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Prompt */
+        post: operations["create_prompt_api_projects__project_id__task__task_id__prompt_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/projects/{project_id}/task/{task_id}/prompts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Prompts */
+        get: operations["get_prompts_api_projects__project_id__task__task_id__prompts_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/projects/{project_id}/tasks/{task_id}/runs/{run_id}": {
         parameters: {
             query?: never;
@@ -1106,7 +1140,7 @@ export interface components {
          *     Where models have instruct and raw versions, instruct is default and raw is specified.
          * @enum {string}
          */
-        ModelName: "llama_3_1_8b" | "llama_3_1_70b" | "llama_3_1_405b" | "llama_3_2_1b" | "llama_3_2_3b" | "llama_3_2_11b" | "llama_3_2_90b" | "llama_3_3_70b" | "gpt_4o_mini" | "gpt_4o" | "phi_3_5" | "mistral_large" | "mistral_nemo" | "gemma_2_2b" | "gemma_2_9b" | "gemma_2_27b" | "claude_3_5_haiku" | "claude_3_5_sonnet" | "gemini_1_5_flash" | "gemini_1_5_flash_8b" | "gemini_1_5_pro" | "nemotron_70b" | "mixtral_8x7b" | "qwen_2p5_7b" | "qwen_2p5_72b";
+        ModelName: "llama_3_1_8b" | "llama_3_1_70b" | "llama_3_1_405b" | "llama_3_2_1b" | "llama_3_2_3b" | "llama_3_2_11b" | "llama_3_2_90b" | "llama_3_3_70b" | "gpt_4o_mini" | "gpt_4o" | "phi_3_5" | "mistral_large" | "mistral_nemo" | "gemma_2_2b" | "gemma_2_9b" | "gemma_2_27b" | "claude_3_5_haiku" | "claude_3_5_sonnet" | "gemini_1_5_flash" | "gemini_1_5_flash_8b" | "gemini_1_5_pro" | "nemotron_70b" | "mixtral_8x7b" | "qwen_2p5_7b" | "qwen_2p5_72b" | "deepseek_3";
         /** OllamaConnection */
         OllamaConnection: {
             /** Message */
@@ -1194,6 +1228,73 @@ export interface components {
             /** Model Type */
             readonly model_type: string;
         };
+        /**
+         * Prompt
+         * @description A prompt for a task.
+         */
+        "Prompt-Input": {
+            /**
+             * V
+             * @default 1
+             */
+            v: number;
+            /** Id */
+            id?: string | null;
+            /** Path */
+            path?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /** Created By */
+            created_by?: string;
+            parent?: components["schemas"]["KilnBaseModel"] | null;
+            /**
+             * Name
+             * @description A name for this entity.
+             */
+            name: string;
+            /**
+             * Prompt
+             * @description The prompt for the task.
+             */
+            prompt: string;
+        };
+        /**
+         * Prompt
+         * @description A prompt for a task.
+         */
+        "Prompt-Output": {
+            /**
+             * V
+             * @default 1
+             */
+            v: number;
+            /** Id */
+            id?: string | null;
+            /** Path */
+            path?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /** Created By */
+            created_by?: string;
+            /**
+             * Name
+             * @description A name for this entity.
+             */
+            name: string;
+            /**
+             * Prompt
+             * @description The prompt for the task.
+             */
+            prompt: string;
+            /** Model Type */
+            readonly model_type: string;
+        };
         /** PromptApiResponse */
         PromptApiResponse: {
             /** Prompt */
@@ -1202,6 +1303,24 @@ export interface components {
             prompt_builder_name: string;
             /** Ui Generator Name */
             ui_generator_name: string;
+        };
+        /** PromptGenerator */
+        PromptGenerator: {
+            /** Id */
+            id: string;
+            /** Description */
+            description: string;
+            /** Name */
+            name: string;
+            /** Chain Of Thought */
+            chain_of_thought: boolean;
+        };
+        /** PromptResponse */
+        PromptResponse: {
+            /** Generators */
+            generators: components["schemas"]["PromptGenerator"][];
+            /** Prompts */
+            prompts: components["schemas"]["Prompt-Output"][];
         };
         /** ProviderModel */
         ProviderModel: {
@@ -1991,6 +2110,74 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Task"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_prompt_api_projects__project_id__task__task_id__prompt_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Prompt-Input"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Prompt-Output"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_prompts_api_projects__project_id__task__task_id__prompts_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromptResponse"];
                 };
             };
             /** @description Validation Error */

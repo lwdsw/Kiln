@@ -604,7 +604,7 @@
             description="The system message to use for fine-tuning. Choose the prompt you want to use with your fine-tuned model."
             info_description="There are tradeoffs to consider when choosing a system prompt for fine-tuning. Read more: https://platform.openai.com/docs/guides/fine-tuning/#crafting-prompts"
             exclude_cot={true}
-            show_custom={true}
+            custom_prompt_name="Custom Fine Tuning Prompt"
           />
           {#if system_prompt_method === "custom"}
             <FormElement
