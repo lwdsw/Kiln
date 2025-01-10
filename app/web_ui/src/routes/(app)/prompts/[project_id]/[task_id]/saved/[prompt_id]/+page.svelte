@@ -69,7 +69,7 @@
           </div>
           <p class="mt-4 text-sm text-gray-500">
             Note: Prompts can't be edited to ensure consistency with prior runs.
-            Instead, copy this prompt and create a new one.
+            Instead, copy this prompt and create a new copy.
           </p>
         </div>
       </div>

@@ -33,7 +33,9 @@
       }
       generators.push([generator.id, generator.name])
     }
-    grouped_options.push(["Prompt Generators", generators])
+    if (generators.length > 0) {
+      grouped_options.push(["Prompt Generators", generators])
+    }
 
     if (custom_prompt_name) {
       grouped_options.push(["Custom Prompt", [["custom", custom_prompt_name]]])

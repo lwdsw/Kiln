@@ -486,3 +486,10 @@ def test_saved_prompt_builder_with_chain_of_thought(tmp_path):
     assert builder.chain_of_thought_prompt() == "Think step by step"
     assert "Think step by step" in builder.build_prompt_for_ui()
     assert builder.prompt_id() == prompt.id
+
+
+def test_saved_prompt_builder_not_found(tmp_path):
+    task = build_test_task(tmp_path)
+
+    with pytest.raises(ValueError, match="Prompt ID not found: 123"):
+        SavedPromptBuilder(task=task, prompt_id="123")

@@ -39,7 +39,7 @@
       {#if $current_task_prompts.generators.length > 0}
         <div class="font-light text-gray-500 text-sm">
           Generators build prompts dynamically based on the task's dataset. For
-          example, incorporating highly rated samples as examples.
+          example, building multi-shot prompts from highly rated samples.
         </div>
         <div class="overflow-x-auto rounded-lg border mt-4">
           <table class="table">
@@ -75,6 +75,9 @@
       {#if $current_task_prompts.prompts.length > 0}
         <div class="font-light text-gray-500 text-sm">
           Manually created prompts.
+          <a href={`/prompts/${project_id}/${task_id}/create`} class="link">
+            Create a new prompt.
+          </a>
         </div>
         <div class="overflow-x-auto rounded-lg border mt-4">
           <table class="table">
