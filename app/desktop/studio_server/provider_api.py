@@ -633,6 +633,10 @@ def openai_compatible_providers_load_cache() -> OpenAICompatibleProviderCache | 
         openai_client = openai.OpenAI(
             api_key=api_key,
             base_url=base_url,
+            # Important: max_retries must be 0 for performance.
+            # It's common for these servers to be down sometimes (could be local app that isn't running)
+            # OpenAI client will retry a few times, with a sleep in between! Big loading perf hit.
+            max_retries=0,
         )
 
         try:
