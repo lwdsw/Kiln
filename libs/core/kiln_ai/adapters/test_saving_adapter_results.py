@@ -22,6 +22,7 @@ class MockAdapter(BaseAdapter):
             model_name="mock_model",
             model_provider="mock_provider",
             prompt_builder_name="mock_prompt_builder",
+            prompt_id="mock_prompt_id",
         )
 
 
@@ -91,7 +92,7 @@ def test_save_run_isolation(test_task):
         reloaded_output.source.properties["prompt_builder_name"]
         == "mock_prompt_builder"
     )
-
+    assert reloaded_output.source.properties["prompt_id"] == "mock_prompt_id"
     # Run again, with same input and different output. Should create a new TaskRun.
     different_run_output = RunOutput(
         output="Different output", intermediate_outputs=None

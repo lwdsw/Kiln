@@ -121,7 +121,7 @@ def connect_data_gen_api(app: FastAPI):
     ) -> TaskRun:
         task = task_from_id(project_id, task_id)
 
-        prompt_builder = prompt_builder_from_ui_name(sample.prompt_method)(task)
+        prompt_builder = prompt_builder_from_ui_name(sample.prompt_method, task)
 
         tags = ["synthetic"]
         if session_id:

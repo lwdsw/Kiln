@@ -16,7 +16,12 @@ from kiln_ai.datamodel import (
 )
 
 from kiln_server.custom_errors import connect_custom_errors
-from kiln_server.run_api import RunSummary, connect_run_api, deep_update, run_from_id
+from kiln_server.run_api import (
+    RunSummary,
+    connect_run_api,
+    deep_update,
+    run_from_id,
+)
 
 
 @pytest.fixture
@@ -457,12 +462,12 @@ async def test_update_run(client, tmp_path):
                 json=case["updates"],
             )
 
-            assert (
-                response.status_code == case["expected_status"]
-            ), f"Failed on case: {case['name']}"
-            assert (
-                response.json()["message"] == case["expected_detail"]
-            ), f"Failed on case: {case['name']}"
+            assert response.status_code == case["expected_status"], (
+                f"Failed on case: {case['name']}"
+            )
+            assert response.json()["message"] == case["expected_detail"], (
+                f"Failed on case: {case['name']}"
+            )
 
 
 @pytest.fixture

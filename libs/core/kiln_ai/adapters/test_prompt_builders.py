@@ -9,6 +9,7 @@ from kiln_ai.adapters.prompt_builders import (
     MultiShotChainOfThoughtPromptBuilder,
     MultiShotPromptBuilder,
     RepairsPromptBuilder,
+    SavedPromptBuilder,
     SimpleChainOfThoughtPromptBuilder,
     SimplePromptBuilder,
     chain_of_thought_prompt,
@@ -20,6 +21,7 @@ from kiln_ai.datamodel import (
     DataSource,
     DataSourceType,
     Project,
+    Prompt,
     Task,
     TaskOutput,
     TaskOutputRating,
@@ -239,14 +241,14 @@ def test_few_shot_prompt_builder(tmp_path):
     # Create 6 examples (2 repaired, 4 high-quality)
     for i in range(6):
         run = TaskRun(
-            input=f'{{"subject": "Subject {i+1}"}}',
+            input=f'{{"subject": "Subject {i + 1}"}}',
             input_source=DataSource(
                 type=DataSourceType.human,
                 properties={"created_by": "john_doe"},
             ),
             parent=task,
             output=TaskOutput(
-                output=f'{{"joke": "Joke Initial Output {i+1}"}}',
+                output=f'{{"joke": "Joke Initial Output {i + 1}"}}',
                 source=DataSource(
                     type=DataSourceType.human,
                     properties={"created_by": "john_doe"},
@@ -260,7 +262,7 @@ def test_few_shot_prompt_builder(tmp_path):
                 update={
                     "repair_instructions": "Fix the joke",
                     "repaired_output": TaskOutput(
-                        output=f'{{"joke": "Repaired Joke {i+1}"}}',
+                        output=f'{{"joke": "Repaired Joke {i + 1}"}}',
                         source=DataSource(
                             type=DataSourceType.human,
                             properties={"created_by": "jane_doe"},
@@ -305,26 +307,49 @@ def test_prompt_builder_name():
     assert RepairsPromptBuilder.prompt_builder_name() == "repairs_prompt_builder"
 
 
-def test_prompt_builder_from_ui_name():
-    assert prompt_builder_from_ui_name("basic") == SimplePromptBuilder
-    assert prompt_builder_from_ui_name("few_shot") == FewShotPromptBuilder
-    assert prompt_builder_from_ui_name("many_shot") == MultiShotPromptBuilder
-    assert prompt_builder_from_ui_name("repairs") == RepairsPromptBuilder
-    assert (
-        prompt_builder_from_ui_name("simple_chain_of_thought")
-        == SimpleChainOfThoughtPromptBuilder
+def test_prompt_builder_from_ui_name(task_with_examples):
+    task = task_with_examples
+    assert isinstance(prompt_builder_from_ui_name("basic", task), SimplePromptBuilder)
+    assert isinstance(
+        prompt_builder_from_ui_name("few_shot", task), FewShotPromptBuilder
     )
-    assert (
-        prompt_builder_from_ui_name("few_shot_chain_of_thought")
-        == FewShotChainOfThoughtPromptBuilder
+    assert isinstance(
+        prompt_builder_from_ui_name("many_shot", task), MultiShotPromptBuilder
     )
-    assert (
-        prompt_builder_from_ui_name("multi_shot_chain_of_thought")
-        == MultiShotChainOfThoughtPromptBuilder
+    assert isinstance(
+        prompt_builder_from_ui_name("repairs", task), RepairsPromptBuilder
+    )
+    assert isinstance(
+        prompt_builder_from_ui_name("simple_chain_of_thought", task),
+        SimpleChainOfThoughtPromptBuilder,
+    )
+    assert isinstance(
+        prompt_builder_from_ui_name("few_shot_chain_of_thought", task),
+        FewShotChainOfThoughtPromptBuilder,
+    )
+    assert isinstance(
+        prompt_builder_from_ui_name("multi_shot_chain_of_thought", task),
+        MultiShotChainOfThoughtPromptBuilder,
     )
 
     with pytest.raises(ValueError, match="Unknown prompt builder: invalid_name"):
-        prompt_builder_from_ui_name("invalid_name")
+        prompt_builder_from_ui_name("invalid_name", task)
+
+    with pytest.raises(ValueError, match="Prompt ID not found: 123"):
+        prompt_builder_from_ui_name("id::123", task)
+
+    prompt = Prompt(
+        name="test_prompt_name",
+        prompt="test_prompt",
+        chain_of_thought_instructions="coti",
+        parent=task,
+    )
+    prompt.save_to_file()
+    pb = prompt_builder_from_ui_name("id::" + prompt.id, task)
+    assert isinstance(pb, SavedPromptBuilder)
+    assert pb.prompt_id() == prompt.id
+    assert pb.build_prompt() == "test_prompt"
+    assert pb.chain_of_thought_prompt() == "coti"
 
 
 def test_example_count():
@@ -426,3 +451,45 @@ def test_build_prompt_for_ui(tmp_path):
     assert custom_cot_builder.build_prompt() in ui_prompt_custom
     assert "# Thinking Instructions" in ui_prompt_custom
     assert custom_instruction in ui_prompt_custom
+
+
+def test_saved_prompt_builder(tmp_path):
+    task = build_test_task(tmp_path)
+
+    prompt = Prompt(
+        name="test_prompt_name",
+        prompt="test_prompt",
+        parent=task,
+    )
+    prompt.save_to_file()
+
+    builder = SavedPromptBuilder(task=task, prompt_id=prompt.id)
+    assert builder.build_prompt() == "test_prompt"
+    assert builder.chain_of_thought_prompt() is None
+    assert builder.build_prompt_for_ui() == "test_prompt"
+    assert builder.prompt_id() == prompt.id
+
+
+def test_saved_prompt_builder_with_chain_of_thought(tmp_path):
+    task = build_test_task(tmp_path)
+
+    prompt = Prompt(
+        name="test_prompt_name",
+        prompt="test_prompt",
+        chain_of_thought_instructions="Think step by step",
+        parent=task,
+    )
+    prompt.save_to_file()
+
+    builder = SavedPromptBuilder(task=task, prompt_id=prompt.id)
+    assert builder.build_prompt() == "test_prompt"
+    assert builder.chain_of_thought_prompt() == "Think step by step"
+    assert "Think step by step" in builder.build_prompt_for_ui()
+    assert builder.prompt_id() == prompt.id
+
+
+def test_saved_prompt_builder_not_found(tmp_path):
+    task = build_test_task(tmp_path)
+
+    with pytest.raises(ValueError, match="Prompt ID not found: 123"):
+        SavedPromptBuilder(task=task, prompt_id="123")

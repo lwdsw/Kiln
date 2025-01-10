@@ -60,6 +60,7 @@ __all__ = [
     "TaskRequirement",
     "strict_mode",
     "set_strict_mode",
+    "Prompt",
 ]
 
 
@@ -403,6 +404,12 @@ class DataSource(BaseModel):
             type=str,
             not_allowed_for=[DataSourceType.human],
         ),
+        DataSourceProperty(
+            # Optional prompt builders with IDs (like static prompts)
+            name="prompt_id",
+            type=str,
+            not_allowed_for=[DataSourceType.human],
+        ),
     ]
 
     @model_validator(mode="after")
@@ -734,6 +741,22 @@ class DatasetSplit(KilnParentedModel):
         return len(missing)
 
 
+class Prompt(KilnParentedModel):
+    """
+    A prompt for a task.
+    """
+
+    name: str = NAME_FIELD
+    prompt: str = Field(
+        description="The prompt for the task.",
+        min_length=1,
+    )
+    chain_of_thought_instructions: str | None = Field(
+        default=None,
+        description="Instructions for the model 'thinking' about the requirement prior to answering. Used for chain of thought style prompting. COT will not be used unless this is provided.",
+    )
+
+
 class TaskRequirement(BaseModel):
     """
     Defines a specific requirement that should be met by task outputs.
@@ -771,6 +794,7 @@ class Task(
         "runs": TaskRun,
         "dataset_splits": DatasetSplit,
         "finetunes": Finetune,
+        "prompts": Prompt,
     },
 ):
     """
@@ -807,15 +831,18 @@ class Task(
             return None
         return schema_from_json_str(self.input_json_schema)
 
-    # Needed for typechecking. TODO P2: fix this in KilnParentModel
+    # These wrappers help for typechecking. TODO P2: fix this in KilnParentModel
     def runs(self, readonly: bool = False) -> list[TaskRun]:
         return super().runs(readonly=readonly)  # type: ignore
 
-    def dataset_splits(self) -> list[DatasetSplit]:
-        return super().dataset_splits()  # type: ignore
+    def dataset_splits(self, readonly: bool = False) -> list[DatasetSplit]:
+        return super().dataset_splits(readonly=readonly)  # type: ignore
 
-    def finetunes(self) -> list[Finetune]:
-        return super().finetunes()  # type: ignore
+    def finetunes(self, readonly: bool = False) -> list[Finetune]:
+        return super().finetunes(readonly=readonly)  # type: ignore
+
+    def prompts(self, readonly: bool = False) -> list[Prompt]:
+        return super().prompts(readonly=readonly)  # type: ignore
 
 
 class Project(KilnParentModel, parent_of={"tasks": Task}):
