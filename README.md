@@ -29,12 +29,18 @@
 - 🎛️ **Fine Tuning**: Zero-code fine-tuning for Llama, GPT4o, and Mixtral. Automatic serverless deployment of models.
 - 🤖 **Synthetic Data Generation**: Generate training data with our interactive visual tooling.
 - 🤝 **Team Collaboration**: Git-based version control for your AI datasets. Intuitive UI makes it easy to collaborate with QA, PM, and subject matter experts on structured data (examples, prompts, ratings, feedback, issues, etc.).
-- 📝 **Auto-Prompts**: Generate a variety of prompts from your data, including chain-of-thought, few-shot, and multi-shot.
+- 📝 **Prompt Generation**: Automatically generate prompts from your data, including chain-of-thought, few-shot, and multi-shot, and more.
 - 🌐 **Wide Model and Provider Support**: Use any model via Ollama, OpenAI, OpenRouter, Fireworks, Groq, AWS, or any OpenAI compatible API.
 - 🧑‍💻 **Open-Source Library and API**: Our Python library and OpenAPI REST API are MIT open source.
 - 🔒 **Privacy-First**: We can't see your data. Bring your own API keys or run locally with Ollama.
 - 🗃️ **Structured Data**: Build AI tasks that speak JSON.
 - 💰 **Free**: Our apps are free, and our library is open-source.
+
+## Download Kiln Desktop Apps
+
+The Kiln desktop app is completely free. Available on MacOS, Windows and Linux.
+
+[<img width="220" alt="Download button" src="https://github.com/user-attachments/assets/a5d51b8b-b30a-4a16-a902-ab6ef1d58dc0">](https://github.com/Kiln-AI/Kiln/releases/latest)
 
 ## Demo
 
@@ -43,12 +49,6 @@ In this demo, I create 9 fine-tuned models (including Llama 3.x, Mixtral, and GP
 <a href="guides/Fine%20Tuning%20LLM%20Models%20Guide.md">
 <img alt="Kiln Preview" src="https://github.com/user-attachments/assets/51db632b-be98-4fc6-a31c-0ba6fd54dcbb">
 </a>
-
-## Download Kiln Desktop Apps
-
-The Kiln desktop app is completely free. Available on MacOS, Windows and Linux.
-
-[<img width="220" alt="Download button" src="https://github.com/user-attachments/assets/a5d51b8b-b30a-4a16-a902-ab6ef1d58dc0">](https://github.com/Kiln-AI/Kiln/releases/latest)
 
 ## Docs & Guides
 

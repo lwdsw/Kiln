@@ -60,6 +60,7 @@ __all__ = [
     "TaskRequirement",
     "strict_mode",
     "set_strict_mode",
+    "Prompt",
 ]
 
 
