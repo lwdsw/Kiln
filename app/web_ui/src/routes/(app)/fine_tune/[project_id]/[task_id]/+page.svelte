@@ -101,7 +101,7 @@
       <EmptyFinetune {project_id} {task_id} />
     </div>
   {:else if finetunes}
-    <div class="overflow-x-auto">
+    <div class="overflow-x-auto rounded-lg border">
       <table class="table">
         <thead>
           <tr>
