@@ -4,7 +4,6 @@ from pathlib import Path
 from unittest.mock import Mock
 
 import pytest
-
 from kiln_ai.adapters.fine_tune.dataset_formatter import (
     DatasetFormat,
     DatasetFormatter,
@@ -127,6 +126,50 @@ def test_generate_chat_message_toolcall():
                         "function": {
                             "name": "task_response",
                             "arguments": '{"key": "value"}',
+                        },
+                    }
+                ],
+            },
+        ]
+    }
+
+
+def test_generate_chat_message_toolcall_non_ascii():
+    task_run = TaskRun(
+        id="run1",
+        input="test input with 你好",
+        input_source=DataSource(
+            type=DataSourceType.human, properties={"created_by": "test"}
+        ),
+        output=TaskOutput(
+            output='{"key": "你好"}',
+            source=DataSource(
+                type=DataSourceType.synthetic,
+                properties={
+                    "model_name": "test",
+                    "model_provider": "test",
+                    "adapter_name": "test",
+                },
+            ),
+        ),
+    )
+
+    result = generate_chat_message_toolcall(task_run, "system message with 你好")
+
+    assert result == {
+        "messages": [
+            {"role": "system", "content": "system message with 你好"},
+            {"role": "user", "content": "test input with 你好"},
+            {
+                "role": "assistant",
+                "content": None,
+                "tool_calls": [
+                    {
+                        "id": "call_1",
+                        "type": "function",
+                        "function": {
+                            "name": "task_response",
+                            "arguments": '{"key": "你好"}',
                         },
                     }
                 ],
