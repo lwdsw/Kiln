@@ -68,7 +68,7 @@ def generate_chat_message_toolcall(
                         "function": {
                             "name": "task_response",
                             # Yes we parse then dump again. This ensures it's valid JSON, and ensures it goes to 1 line
-                            "arguments": json.dumps(arguments),
+                            "arguments": json.dumps(arguments, ensure_ascii=False),
                         },
                     }
                 ],
