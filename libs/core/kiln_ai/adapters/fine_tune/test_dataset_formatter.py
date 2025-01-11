@@ -50,6 +50,7 @@ def mock_task():
     task.runs.return_value = task_runs
     return task
 
+
 @pytest.fixture
 def mock_task_non_ascii():
     task = Mock(spec=Task)
@@ -86,6 +87,7 @@ def mock_dataset(mock_task):
     dataset.split_contents = {"train": ["run1", "run2"], "test": ["run3"]}
     return dataset
 
+
 @pytest.fixture
 def mock_dataset_non_ascii(mock_task_non_ascii):
     dataset = Mock(spec=DatasetSplit)
@@ -93,6 +95,7 @@ def mock_dataset_non_ascii(mock_task_non_ascii):
     dataset.parent_task.return_value = mock_task_non_ascii
     dataset.split_contents = {"train": ["run1", "run2"], "test": ["run3"]}
     return dataset
+
 
 def test_generate_chat_message_response():
     task_run = TaskRun(
@@ -311,10 +314,13 @@ def test_dataset_formatter_dump_to_temp_file_non_ascii(mock_dataset):
         content = f.read()
         assert "你好" in content
 
+
 def test_dataset_formatter_dump_to_file_tool_format_non_ascii(mock_dataset_non_ascii):
     formatter = DatasetFormatter(mock_dataset_non_ascii, "system message")
 
-    result_path = formatter.dump_to_file("train", DatasetFormat.OPENAI_CHAT_TOOLCALL_JSONL)
+    result_path = formatter.dump_to_file(
+        "train", DatasetFormat.OPENAI_CHAT_TOOLCALL_JSONL
+    )
 
     assert result_path.exists()
     assert result_path.parent == Path(tempfile.gettempdir())
