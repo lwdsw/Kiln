@@ -4,6 +4,7 @@ from pathlib import Path
 from unittest.mock import Mock
 
 import pytest
+
 from kiln_ai.adapters.fine_tune.dataset_formatter import (
     DatasetFormat,
     DatasetFormatter,
