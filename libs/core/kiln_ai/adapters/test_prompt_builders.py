@@ -72,6 +72,14 @@ def test_simple_prompt_builder_structured_output(tmp_path):
     assert input not in prompt
 
 
+def test_simple_prompt_builder_structured_input_non_ascii(tmp_path):
+    task = build_structured_output_test_task(tmp_path)
+    builder = SimplePromptBuilder(task=task)
+    input = {"key": "你好👋"}
+    user_msg = builder.build_user_message(input)
+    assert "你好👋" in user_msg
+
+
 @pytest.fixture
 def task_with_examples(tmp_path):
     # Create a project and task hierarchy

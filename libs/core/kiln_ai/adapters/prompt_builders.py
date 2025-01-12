@@ -58,7 +58,7 @@ class BasePromptBuilder(metaclass=ABCMeta):
             str: The formatted user message.
         """
         if isinstance(input, Dict):
-            return f"The input is:\n{json.dumps(input, indent=2)}"
+            return f"The input is:\n{json.dumps(input, indent=2, ensure_ascii=False)}"
 
         return f"The input is:\n{input}"
 
