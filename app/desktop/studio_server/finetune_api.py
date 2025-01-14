@@ -23,6 +23,7 @@ from kiln_ai.datamodel import (
     HighRatingDatasetFilter,
     Task,
     Train60Test20Val20SplitDefinition,
+    Train80Test10Val10SplitDefinition,
     Train80Test20SplitDefinition,
 )
 from kiln_ai.utils.name_generator import generate_memorable_name
@@ -51,12 +52,14 @@ class DatasetSplitType(Enum):
 
     TRAIN_TEST = "train_test"
     TRAIN_TEST_VAL = "train_test_val"
+    TRAIN_TEST_VAL_80 = "train_test_val_80"
     ALL = "all"
 
 
 api_split_types = {
     DatasetSplitType.TRAIN_TEST: Train80Test20SplitDefinition,
     DatasetSplitType.TRAIN_TEST_VAL: Train60Test20Val20SplitDefinition,
+    DatasetSplitType.TRAIN_TEST_VAL_80: Train80Test10Val10SplitDefinition,
     DatasetSplitType.ALL: AllSplitDefinition,
 }
 
