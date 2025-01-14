@@ -130,6 +130,10 @@
       "download_huggingface_chat_template_toolcall",
       "Download: HuggingFace chat template with tool calls (JSONL)",
     ])
+    available_model_select.push([
+      "download_vertex_gemini_1_5",
+      "Download: Google Vertex-AI Gemini 1.5 format (JSONL)",
+    ])
   }
 
   const download_model_select_options: Record<string, string> = {
@@ -138,6 +142,7 @@
     download_huggingface_chat_template: "huggingface_chat_template_jsonl",
     download_huggingface_chat_template_toolcall:
       "huggingface_chat_template_toolcall_jsonl",
+    download_vertex_gemini_1_5: "vertex_gemini_1_5",
   }
 
   let datasets: DatasetSplit[] | null = null
@@ -751,6 +756,7 @@
             [disabled_header, "Select a split strategy"],
             ["train_test", "Train/Test -- 80/20"],
             ["train_test_val", "Train/Test/Val -- 60/20/20"],
+            ["train_test_val_80", "Train/Test/Val -- 80/10/10"],
             ["all", "Entire Dataset -- 100"],
           ]}
           bind:value={new_dataset_split}

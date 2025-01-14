@@ -25,6 +25,9 @@ class DatasetFormat(str, Enum):
         "huggingface_chat_template_toolcall_jsonl"
     )
 
+    """Vertex Gemini 1.5 format (flash and pro)"""
+    VERTEX_GEMINI_1_5 = "vertex_gemini_1_5"
+
 
 class FormatGenerator(Protocol):
     """Protocol for format generators"""
@@ -121,11 +124,47 @@ def generate_huggingface_chat_template_toolcall(
     }
 
 
+def generate_vertex_gemini_1_5(
+    task_run: TaskRun, system_message: str
+) -> Dict[str, Any]:
+    """Generate Vertex Gemini 1.5 format (flash and pro)"""
+    # See https://cloud.google.com/vertex-ai/generative-ai/docs/models/gemini-supervised-tuning-prepare
+    return {
+        "systemInstruction": {
+            "role": "system",
+            "parts": [
+                {
+                    "text": system_message,
+                }
+            ],
+        },
+        "contents": [
+            {
+                "role": "user",
+                "parts": [
+                    {
+                        "text": task_run.input,
+                    }
+                ],
+            },
+            {
+                "role": "model",
+                "parts": [
+                    {
+                        "text": task_run.output.output,
+                    }
+                ],
+            },
+        ],
+    }
+
+
 FORMAT_GENERATORS: Dict[DatasetFormat, FormatGenerator] = {
     DatasetFormat.OPENAI_CHAT_JSONL: generate_chat_message_response,
     DatasetFormat.OPENAI_CHAT_TOOLCALL_JSONL: generate_chat_message_toolcall,
     DatasetFormat.HUGGINGFACE_CHAT_TEMPLATE_JSONL: generate_huggingface_chat_template,
     DatasetFormat.HUGGINGFACE_CHAT_TEMPLATE_TOOLCALL_JSONL: generate_huggingface_chat_template_toolcall,
+    DatasetFormat.VERTEX_GEMINI_1_5: generate_vertex_gemini_1_5,
 }
 
 
