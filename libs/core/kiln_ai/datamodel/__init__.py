@@ -632,6 +632,11 @@ Train60Test20Val20SplitDefinition: list[DatasetSplitDefinition] = [
     DatasetSplitDefinition(name="test", percentage=0.2),
     DatasetSplitDefinition(name="val", percentage=0.2),
 ]
+Train80Test10Val10SplitDefinition: list[DatasetSplitDefinition] = [
+    DatasetSplitDefinition(name="train", percentage=0.8),
+    DatasetSplitDefinition(name="test", percentage=0.1),
+    DatasetSplitDefinition(name="val", percentage=0.1),
+]
 
 
 class DatasetSplit(KilnParentedModel):

@@ -15,6 +15,7 @@ from kiln_ai.datamodel import (
     Project,
     Task,
     Train60Test20Val20SplitDefinition,
+    Train80Test10Val10SplitDefinition,
     Train80Test20SplitDefinition,
 )
 
@@ -268,6 +269,7 @@ def test_get_finetune_hyperparameters_invalid_provider(client, mock_finetune_reg
 def test_dataset_split_type_enum():
     assert DatasetSplitType.TRAIN_TEST.value == "train_test"
     assert DatasetSplitType.TRAIN_TEST_VAL.value == "train_test_val"
+    assert DatasetSplitType.TRAIN_TEST_VAL_80.value == "train_test_val_80"
     assert DatasetSplitType.ALL.value == "all"
 
 
@@ -283,6 +285,10 @@ def test_api_split_types_mapping():
     assert (
         api_split_types[DatasetSplitType.TRAIN_TEST_VAL]
         == Train60Test20Val20SplitDefinition
+    )
+    assert (
+        api_split_types[DatasetSplitType.TRAIN_TEST_VAL_80]
+        == Train80Test10Val10SplitDefinition
     )
     assert api_split_types[DatasetSplitType.ALL] == AllSplitDefinition
     for split_type in DatasetSplitType:

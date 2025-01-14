@@ -916,7 +916,7 @@ export interface components {
          * @description Dataset split types used in the API. Any split type can be created in code.
          * @enum {string}
          */
-        DatasetSplitType: "train_test" | "train_test_val" | "all";
+        DatasetSplitType: "train_test" | "train_test_val" | "train_test_val_80" | "all";
         /**
          * FineTuneParameter
          * @description A parameter for a fine-tune. Hyperparameters, etc.
