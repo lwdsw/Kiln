@@ -124,6 +124,35 @@ def test_save_run_isolation(test_task):
     assert output_data in set(run.output.output for run in test_task.runs())
 
 
+def test_generate_run_non_ascii(test_task):
+    adapter = MockAdapter(test_task)
+    input_data = {"key": "input with non-ascii character: 你好"}
+    output_data = {"key": "output with non-ascii character: 你好"}
+    run_output = RunOutput(
+        output=output_data,
+        intermediate_outputs=None,
+    )
+
+    task_run = adapter.generate_run(
+        input=input_data, input_source=None, run_output=run_output
+    )
+    task_run.save_to_file()
+
+    # as these values are saved as strings, they should properly represent the non-ascii characters
+    assert task_run.input == '{"key": "input with non-ascii character: 你好"}'
+    assert task_run.output.output == '{"key": "output with non-ascii character: 你好"}'
+
+    # check that the stringified unicode strings can be read back from the file
+    reloaded_task = Task.load_from_file(test_task.path)
+    reloaded_runs = reloaded_task.runs()
+    assert len(reloaded_runs) == 1
+    reloaded_run = reloaded_runs[0]
+    assert reloaded_run.input == '{"key": "input with non-ascii character: 你好"}'
+    assert (
+        reloaded_run.output.output == '{"key": "output with non-ascii character: 你好"}'
+    )
+
+
 @pytest.mark.asyncio
 async def test_autosave_false(test_task):
     with patch("kiln_ai.utils.config.Config.shared") as mock_shared:

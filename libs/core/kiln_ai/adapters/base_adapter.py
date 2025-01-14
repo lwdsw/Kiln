@@ -126,9 +126,11 @@ class BaseAdapter(metaclass=ABCMeta):
         self, input: Dict | str, input_source: DataSource | None, run_output: RunOutput
     ) -> TaskRun:
         # Convert input and output to JSON strings if they are dictionaries
-        input_str = json.dumps(input) if isinstance(input, dict) else input
+        input_str = (
+            json.dumps(input, ensure_ascii=False) if isinstance(input, dict) else input
+        )
         output_str = (
-            json.dumps(run_output.output)
+            json.dumps(run_output.output, ensure_ascii=False)
             if isinstance(run_output.output, dict)
             else run_output.output
         )
