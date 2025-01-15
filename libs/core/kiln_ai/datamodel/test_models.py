@@ -71,6 +71,20 @@ def test_save_to_file(test_project_file):
     assert data["description"] == "Test Description"
 
 
+def test_save_to_file_non_ascii(test_project_file):
+    project = Project(
+        name="Test Project", description="Chúc mừng!", path=test_project_file
+    )
+    project.save_to_file()
+
+    with open(test_project_file, "r", encoding="utf-8") as file:
+        data = json.load(file)
+
+    assert data["v"] == 1
+    assert data["name"] == "Test Project"
+    assert data["description"] == "Chúc mừng!"
+
+
 def test_task_defaults():
     task = Task(name="Test Task", instruction="Test Instruction")
     assert task.description is None
