@@ -163,7 +163,7 @@ def list_json_schema_for_task(task: Task) -> str:
         "required": ["generated_samples"],
     }
 
-    return json.dumps(top_level_schema)
+    return json.dumps(top_level_schema, ensure_ascii=False)
 
 
 class DataGenSampleTask(Task, parent_of={}):
