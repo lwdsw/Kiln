@@ -139,7 +139,7 @@ class KilnBaseModel(BaseModel):
         cached_model = ModelCache.shared().get_model(path, cls, readonly=readonly)
         if cached_model is not None:
             return cached_model
-        with open(path, "r") as file:
+        with open(path, "r", encoding="utf-8") as file:
             # modified time of file for cache invalidation. From file descriptor so it's atomic w read.
             mtime_ns = os.fstat(file.fileno()).st_mtime_ns
             file_data = file.read()
@@ -198,7 +198,7 @@ class KilnBaseModel(BaseModel):
             )
         path.parent.mkdir(parents=True, exist_ok=True)
         json_data = self.model_dump_json(indent=2, exclude={"path"})
-        with open(path, "w") as file:
+        with open(path, "w", encoding="utf-8") as file:
             file.write(json_data)
         # save the path so even if something like name changes, the file doesn't move
         self.path = path
