@@ -3,7 +3,7 @@
 
 ---
 
-# This guide as moved to [our docs](https://docs.getkiln.ai/docs/fine-tuning-guide). This page may be out of date.
+# This guide has moved to [our docs](https://docs.getkiln.ai/docs/fine-tuning-guide). This page may be out of date.
 
 We suggest reading the [latest version](https://docs.getkiln.ai/docs/fine-tuning-guide).
 
