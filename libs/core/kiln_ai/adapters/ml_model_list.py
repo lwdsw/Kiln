@@ -76,6 +76,7 @@ class ModelName(str, Enum):
     qwen_2p5_7b = "qwen_2p5_7b"
     qwen_2p5_72b = "qwen_2p5_72b"
     deepseek_3 = "deepseek_3"
+    deepseek_r1 = "deepseek_r1"
 
 
 class KilnModelProvider(BaseModel):
@@ -188,6 +189,37 @@ built_in_models: List[KilnModel] = [
             KilnModelProvider(
                 name=ModelProviderName.openrouter,
                 provider_options={"model": "deepseek/deepseek-chat"},
+            ),
+        ],
+    ),
+    # DeepSeek R1
+    KilnModel(
+        family=ModelFamily.deepseek,
+        name=ModelName.deepseek_r1,
+        friendly_name="DeepSeek R1",
+        # TODO: Add support for structured output by removing <thinking> tags. Openrouter works as it's already stripping them.
+        providers=[
+            KilnModelProvider(
+                name=ModelProviderName.openrouter,
+                provider_options={"model": "deepseek/deepseek-r1"},
+                adapter_options={
+                    "langchain": {
+                        "with_structured_output_options": {"method": "json_mode"}
+                    }
+                },
+            ),
+            KilnModelProvider(
+                name=ModelProviderName.fireworks_ai,
+                provider_options={"model": "accounts/fireworks/models/deepseek-r1"},
+                supports_structured_output=False,
+                supports_data_gen=False,
+            ),
+            KilnModelProvider(
+                # I want your RAM
+                name=ModelProviderName.ollama,
+                provider_options={"model": "deepseek-r1:671b"},
+                supports_structured_output=False,
+                supports_data_gen=False,
             ),
         ],
     ),
