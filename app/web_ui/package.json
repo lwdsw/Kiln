@@ -43,5 +43,10 @@
     "highlight.js": "^11.10.0",
     "openapi-fetch": "^0.12.2",
     "posthog-js": "^1.184.2"
+  },
+  "overrides": {
+    "@sveltejs/kit": {
+      "cookie": "^0.7.0"
+    }
   }
 }
