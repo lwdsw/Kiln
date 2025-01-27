@@ -445,7 +445,8 @@ built_in_models: List[KilnModel] = [
             ),
             KilnModelProvider(
                 name=ModelProviderName.fireworks_ai,
-                provider_finetune_id="accounts/fireworks/models/llama-v3p2-1b-instruct",
+                # Fireworks removed support for serverless hosting: https://docs.fireworks.ai/fine-tuning/fine-tuning-models#supported-base-models-loras-on-serverless
+                # provider_finetune_id="accounts/fireworks/models/llama-v3p2-1b-instruct",
                 supports_structured_output=False,
                 supports_data_gen=False,
                 provider_options={
