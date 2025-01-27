@@ -82,21 +82,24 @@ pip install kiln-ai
 
 ## Learn More
 
-### Build High Quality AI Products with Datasets
+### Rapid Prototyping
 
-Products don’t naturally have “datasets”, but Kiln helps you create one.
+There are new models and techniques emerging all the time. Kiln makes it easy to try a variety of approaches and compare them in a few clicks without writing code. These can result in higher quality and improved performance.
 
-Every time you use Kiln, we capture the inputs, outputs, human ratings, feedback, and repairs needed to build high quality models for use in your product. The more you use it, the more data you have.
+We currently support:
 
-Your model quality improves automatically as the dataset grows, by giving the models more examples of quality content (and mistakes).
+- Various prompting techniques: basic, few-shot, multi-shot, repair & feedback
+- Chain of thought / thinking, with optional custom “thinking” instructions
+- Many models: GPT, Llama, Claude, Gemini, Mistral, Gemma, Phi
+- Fine Tuning: create custom models using your Kiln dataset
 
-If your product goals shift or new bugs are found (as is almost always the case), you can easily iterate the dataset to address issues.
+In the future, we plan to add more powerful no-code options like evals, and RAG. For experienced data-scientists, you can create these techniques today using Kiln datasets and our python library.
 
 ### Collaborate Across Technical and Non-Technical Teams
 
 When building AI products, there’s usually a subject matter expert who knows the problem you are trying to solve, and a different technical team assigned to build the model. Kiln bridges that gap as a collaboration tool.
 
-Subject matter experts can use our easy to use desktop apps to generate structured datasets and ratings, without coding or using technical tools. No command line or GPU required.
+Subject matter experts can use our intuitive desktop apps to generate structured datasets and ratings, without coding or using technical tools. No command line or GPU required.
 
 Data-scientists can consume the dataset created by subject matter experts, using the UI, or deep dive with our python library.
 
@@ -104,18 +107,13 @@ QA and PM can easily identify issues sooner and help generate the dataset conten
 
 The dataset file format is designed to be be used with Git for powerful collaboration and attribution. Many people can contribute in parallel; collisions are avoided using UUIDs, and attribution is captured inside the dataset files. You can even share a dataset on a shared drive, letting completely non-technical team members contribute data and evals without knowing Git.
 
-### Compare Models and Techniques Without Code
+### Build High Quality AI Products with Datasets
 
-There are new models and techniques emerging all the time. Kiln makes it easy to try a variety of approaches, and compare them in a few clicks, without writing code. These can result in higher quality, or improved performance (smaller/cheaper/faster models at the same quality).
+Products don’t naturally have “datasets”, but Kiln helps you create one. Every time you use Kiln, we capture the inputs, outputs, human ratings, feedback, and repairs needed to build high quality models for use in your product. The more you use it, the more data you have.
 
-Our current beta supports:
+Your model quality improves automatically as the dataset grows, by giving the models more examples of quality content (and mistakes).
 
-- Various prompting techniques: basic, few-shot, multi-shot, repair & feedback
-- Many models: GPT, Llama, Claude, Gemini, Mistral, Gemma, Phi
-- Chain of thought prompting, with optional custom “thinking” instructions
-- Fine Tuning: create custom models using your Kiln dataset
-
-In the future, we plan to add more powerful no-code options like evals, and RAG. For experienced data-scientists, you can create these techniques today using Kiln datasets and our python library.
+If your product goals shift or new bugs are found (as is almost always the case), you can easily iterate the dataset to address issues.
 
 ## Contributing & Development
 
