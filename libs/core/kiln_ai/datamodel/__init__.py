@@ -596,7 +596,12 @@ def AllDatasetFilter(_: TaskRun) -> bool:
 
 
 def HighRatingDatasetFilter(task_run: TaskRun) -> bool:
-    if task_run.output is None or task_run.output.rating is None:
+    if task_run.output is None:
+        return False
+    if task_run.repaired_output is not None:
+        # Repairs always considered high quality
+        return True
+    if task_run.output.rating is None:
         return False
     return task_run.output.rating.is_high_quality()
 

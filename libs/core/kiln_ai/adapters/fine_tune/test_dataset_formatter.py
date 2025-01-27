@@ -8,6 +8,7 @@ import pytest
 from kiln_ai.adapters.fine_tune.dataset_formatter import (
     DatasetFormat,
     DatasetFormatter,
+    best_task_output,
     generate_chat_message_response,
     generate_chat_message_toolcall,
     generate_huggingface_chat_template,
@@ -454,3 +455,24 @@ def test_generate_huggingface_chat_template_toolcall_invalid_json():
 
     with pytest.raises(ValueError, match="Invalid JSON in for tool call"):
         generate_huggingface_chat_template_toolcall(task_run, "system message")
+
+
+def test_best_task_output(mock_task):
+    # Non repaired should use original output
+    mock_task_run = mock_task.runs()[0]
+    assert best_task_output(mock_task_run) == '{"test": "output"}'
+
+    # Repaired output should be used if available
+    repaired_task_run = mock_task_run.model_copy(
+        update={
+            "repair_instructions": "repair instructions",
+            "repaired_output": TaskOutput(
+                output='{"test": "repaired output"}',
+                source=DataSource(
+                    type=DataSourceType.human,
+                    properties={"created_by": "test-user"},
+                ),
+            ),
+        }
+    )
+    assert best_task_output(repaired_task_run) == '{"test": "repaired output"}'

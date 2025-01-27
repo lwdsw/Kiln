@@ -131,10 +131,33 @@ def test_all_dataset_filter(task_run):
 
 
 def test_high_rating_dataset_filter(sample_task_runs):
+    num_high_quality = 0
+    num_low_quality = 0
     for task_run in sample_task_runs:
-        assert HighRatingDatasetFilter(task_run) is (
-            task_run.output.rating.is_high_quality()
+        if HighRatingDatasetFilter(task_run):
+            num_high_quality += 1
+            assert task_run.output.rating.is_high_quality() is True
+        else:
+            num_low_quality += 1
+            assert task_run.output.rating.is_high_quality() is False
+
+        # Test repaired output always considered high quality
+        task_run = task_run.model_copy(
+            update={
+                "repair_instructions": "repair instructions",
+                "repaired_output": TaskOutput(
+                    output="repaired output",
+                    source=DataSource(
+                        type=DataSourceType.human,
+                        properties={"created_by": "test-user"},
+                    ),
+                ),
+            }
         )
+        assert HighRatingDatasetFilter(task_run) is True
+
+    assert num_high_quality == 6
+    assert num_low_quality == 4
 
 
 @pytest.mark.parametrize(

@@ -35,6 +35,13 @@ class FormatGenerator(Protocol):
     def __call__(self, task_run: TaskRun, system_message: str) -> Dict[str, Any]: ...
 
 
+def best_task_output(task_run: TaskRun) -> str:
+    """Get the best task output from the task run, preferring repaired output if available"""
+    if task_run.repaired_output is not None:
+        return task_run.repaired_output.output
+    return task_run.output.output
+
+
 def generate_chat_message_response(
     task_run: TaskRun, system_message: str
 ) -> Dict[str, Any]:
@@ -43,7 +50,7 @@ def generate_chat_message_response(
         "messages": [
             {"role": "system", "content": system_message},
             {"role": "user", "content": task_run.input},
-            {"role": "assistant", "content": task_run.output.output},
+            {"role": "assistant", "content": best_task_output(task_run)},
         ]
     }
 
@@ -53,7 +60,7 @@ def generate_chat_message_toolcall(
 ) -> Dict[str, Any]:
     """Generate OpenAI chat format with tool call response"""
     try:
-        arguments = json.loads(task_run.output.output)
+        arguments = json.loads(best_task_output(task_run))
     except json.JSONDecodeError as e:
         raise ValueError(f"Invalid JSON in for tool call: {e}") from e
 
@@ -88,7 +95,7 @@ def generate_huggingface_chat_template(
         "conversations": [
             {"role": "system", "content": system_message},
             {"role": "user", "content": task_run.input},
-            {"role": "assistant", "content": task_run.output.output},
+            {"role": "assistant", "content": best_task_output(task_run)},
         ]
     }
 
@@ -98,7 +105,7 @@ def generate_huggingface_chat_template_toolcall(
 ) -> Dict[str, Any]:
     """Generate HuggingFace chat template with tool calls"""
     try:
-        arguments = json.loads(task_run.output.output)
+        arguments = json.loads(best_task_output(task_run))
     except json.JSONDecodeError as e:
         raise ValueError(f"Invalid JSON in for tool call: {e}") from e
 
@@ -151,7 +158,7 @@ def generate_vertex_gemini_1_5(
                 "role": "model",
                 "parts": [
                     {
-                        "text": task_run.output.output,
+                        "text": best_task_output(task_run),
                     }
                 ],
             },
