@@ -1,6 +1,6 @@
 import os
 from os import getenv
-from typing import Any, Dict
+from typing import Any, Dict, NoReturn
 
 from langchain_aws import ChatBedrockConverse
 from langchain_core.language_models import LanguageModelInput
@@ -23,7 +23,7 @@ from kiln_ai.adapters.ollama_tools import (
 from kiln_ai.utils.config import Config
 
 from .base_adapter import AdapterInfo, BaseAdapter, BasePromptBuilder, RunOutput
-from .ml_model_list import KilnModelProvider, ModelProviderName
+from .ml_model_list import KilnModelProvider, ModelProviderName, StructuredOutputMode
 from .provider_tools import kiln_model_provider_from
 
 LangChainModelType = BaseChatModel | Runnable[LanguageModelInput, Dict | BaseModel]
@@ -180,11 +180,26 @@ async def get_structured_output_options(
     model_name: str, model_provider: str
 ) -> Dict[str, Any]:
     finetune_provider = await kiln_model_provider_from(model_name, model_provider)
-    if finetune_provider and finetune_provider.adapter_options.get("langchain"):
-        return finetune_provider.adapter_options["langchain"].get(
-            "with_structured_output_options", {}
-        )
-    return {}
+    if not finetune_provider:
+        return {}
+
+    options = {}
+    # We may need to add some provider specific logic here if providers use different names for the same mode, but everyone is copying openai for now
+    match finetune_provider.structured_output_mode:
+        case StructuredOutputMode.function_calling:
+            options["method"] = "function_calling"
+        case StructuredOutputMode.json_mode:
+            options["method"] = "json_mode"
+        case StructuredOutputMode.json_schema:
+            options["method"] = "json_schema"
+        case StructuredOutputMode.default:
+            # Let langchain decide the default
+            pass
+        case _:
+            # triggers pyright warning if I miss a case
+            raise_exhaustive_error(finetune_provider.structured_output_mode)
+
+    return options
 
 
 async def langchain_model_from(
@@ -255,3 +270,7 @@ async def langchain_model_from_provider(
         )
     else:
         raise ValueError(f"Invalid model or provider: {model_name} - {provider.name}")
+
+
+def raise_exhaustive_error(value: NoReturn) -> NoReturn:
+    raise ValueError(f"Unhandled enum value: {value}")

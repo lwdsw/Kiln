@@ -14,7 +14,11 @@ from kiln_ai.adapters.langchain_adapters import (
     get_structured_output_options,
     langchain_model_from_provider,
 )
-from kiln_ai.adapters.ml_model_list import KilnModelProvider, ModelProviderName
+from kiln_ai.adapters.ml_model_list import (
+    KilnModelProvider,
+    ModelProviderName,
+    StructuredOutputMode,
+)
 from kiln_ai.adapters.prompt_builders import SimpleChainOfThoughtPromptBuilder
 from kiln_ai.adapters.test_prompt_adaptors import build_test_task
 
@@ -131,17 +135,19 @@ async def test_langchain_adapter_with_cot(tmp_path):
     assert response.output == {"count": 1}
 
 
-async def test_get_structured_output_options():
+@pytest.mark.parametrize(
+    "structured_output_mode,expected_method",
+    [
+        (StructuredOutputMode.function_calling, "function_calling"),
+        (StructuredOutputMode.json_mode, "json_mode"),
+        (StructuredOutputMode.json_schema, "json_schema"),
+        (StructuredOutputMode.default, None),
+    ],
+)
+async def test_get_structured_output_options(structured_output_mode, expected_method):
     # Mock the provider response
     mock_provider = MagicMock()
-    mock_provider.adapter_options = {
-        "langchain": {
-            "with_structured_output_options": {
-                "force_json_response": True,
-                "max_retries": 3,
-            }
-        }
-    }
+    mock_provider.structured_output_mode = structured_output_mode
 
     # Test with provider that has options
     with patch(
@@ -149,15 +155,7 @@ async def test_get_structured_output_options():
         AsyncMock(return_value=mock_provider),
     ):
         options = await get_structured_output_options("model_name", "provider")
-        assert options == {"force_json_response": True, "max_retries": 3}
-
-    # Test with provider that has no options
-    with patch(
-        "kiln_ai.adapters.langchain_adapters.kiln_model_provider_from",
-        AsyncMock(return_value=None),
-    ):
-        options = await get_structured_output_options("model_name", "provider")
-        assert options == {}
+        assert options.get("method") == expected_method
 
 
 @pytest.mark.asyncio
