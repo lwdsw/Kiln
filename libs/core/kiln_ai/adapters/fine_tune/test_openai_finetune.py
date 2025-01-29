@@ -282,7 +282,7 @@ async def test_generate_and_upload_jsonl_toolcall_success(
 
         # Verify correct format was used
         mock_formatter.dump_to_file.assert_called_once_with(
-            "train", DatasetFormat.OPENAI_CHAT_TOOLCALL_JSONL
+            "train", DatasetFormat.OPENAI_CHAT_JSON_SCHEMA_JSONL
         )
 
         # Verify file was opened and uploaded

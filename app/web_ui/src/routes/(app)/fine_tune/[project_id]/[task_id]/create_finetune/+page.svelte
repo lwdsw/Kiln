@@ -119,8 +119,12 @@
       "Download: OpenAI chat format (JSONL)",
     ])
     available_model_select.push([
+      "download_jsonl_json_schema_msg",
+      "Download: OpenAI chat format with JSON response (JSONL)",
+    ])
+    available_model_select.push([
       "download_jsonl_toolcall",
-      "Download: OpenAI chat format with tool calls (JSONL)",
+      "Download: OpenAI chat format with tool call response (JSONL)",
     ])
     available_model_select.push([
       "download_huggingface_chat_template",
@@ -138,6 +142,7 @@
 
   const download_model_select_options: Record<string, string> = {
     download_jsonl_msg: "openai_chat_jsonl",
+    download_jsonl_json_schema_msg: "openai_chat_json_schema_jsonl",
     download_jsonl_toolcall: "openai_chat_toolcall_jsonl",
     download_huggingface_chat_template: "huggingface_chat_template_jsonl",
     download_huggingface_chat_template_toolcall:

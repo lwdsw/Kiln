@@ -161,7 +161,7 @@ class OpenAIFinetune(BaseFinetuneAdapter):
         formatter = DatasetFormatter(dataset, self.datamodel.system_message)
         # All OpenAI models support tool calls for structured outputs
         format = (
-            DatasetFormat.OPENAI_CHAT_TOOLCALL_JSONL
+            DatasetFormat.OPENAI_CHAT_JSON_SCHEMA_JSONL
             if task.output_json_schema
             else DatasetFormat.OPENAI_CHAT_JSONL
         )

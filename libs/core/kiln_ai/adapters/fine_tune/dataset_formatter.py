@@ -14,6 +14,9 @@ class DatasetFormat(str, Enum):
     """OpenAI chat format with plaintext response"""
     OPENAI_CHAT_JSONL = "openai_chat_jsonl"
 
+    """OpenAI chat format with json response_format"""
+    OPENAI_CHAT_JSON_SCHEMA_JSONL = "openai_chat_json_schema_jsonl"
+
     """OpenAI chat format with tool call response"""
     OPENAI_CHAT_TOOLCALL_JSONL = "openai_chat_toolcall_jsonl"
 
@@ -51,6 +54,26 @@ def generate_chat_message_response(
             {"role": "system", "content": system_message},
             {"role": "user", "content": task_run.input},
             {"role": "assistant", "content": best_task_output(task_run)},
+        ]
+    }
+
+
+def generate_json_schema_message(
+    task_run: TaskRun, system_message: str
+) -> Dict[str, Any]:
+    """Generate OpenAI chat format with tool call response"""
+    # Load and dump to ensure it's valid JSON and goes to 1 line
+    try:
+        json_data = json.loads(best_task_output(task_run))
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Invalid JSON in for tool call: {e}") from e
+    json_string = json.dumps(json_data)
+
+    return {
+        "messages": [
+            {"role": "system", "content": system_message},
+            {"role": "user", "content": task_run.input},
+            {"role": "assistant", "content": json_string},
         ]
     }
 
@@ -168,6 +191,7 @@ def generate_vertex_gemini_1_5(
 
 FORMAT_GENERATORS: Dict[DatasetFormat, FormatGenerator] = {
     DatasetFormat.OPENAI_CHAT_JSONL: generate_chat_message_response,
+    DatasetFormat.OPENAI_CHAT_JSON_SCHEMA_JSONL: generate_json_schema_message,
     DatasetFormat.OPENAI_CHAT_TOOLCALL_JSONL: generate_chat_message_toolcall,
     DatasetFormat.HUGGINGFACE_CHAT_TEMPLATE_JSONL: generate_huggingface_chat_template,
     DatasetFormat.HUGGINGFACE_CHAT_TEMPLATE_TOOLCALL_JSONL: generate_huggingface_chat_template_toolcall,
