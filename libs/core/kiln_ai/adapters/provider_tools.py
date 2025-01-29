@@ -210,16 +210,9 @@ def finetune_provider_model(
         },
     )
 
-    # TODO: Don't love this abstraction/logic.
-    if fine_tune.provider == ModelProviderName.fireworks_ai:
-        # Fireworks finetunes are trained with json, not tool calling (which is LC default format)
-        model_provider.adapter_options = {
-            "langchain": {
-                "with_structured_output_options": {
-                    "method": "json_mode",
-                }
-            }
-        }
+    # If we know the model was trained with specific output mode, set it
+    if fine_tune.structured_output_mode is not None:
+        model_provider.structured_output_mode = fine_tune.structured_output_mode
 
     finetune_cache[model_id] = model_provider
     return model_provider

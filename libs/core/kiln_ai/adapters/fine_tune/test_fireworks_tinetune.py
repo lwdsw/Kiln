@@ -13,6 +13,7 @@ from kiln_ai.adapters.fine_tune.dataset_formatter import DatasetFormat, DatasetF
 from kiln_ai.adapters.fine_tune.fireworks_finetune import FireworksFinetune
 from kiln_ai.datamodel import (
     DatasetSplit,
+    StructuredOutputMode,
     Task,
     Train80Test20SplitDefinition,
 )
@@ -267,7 +268,7 @@ async def test_generate_and_upload_jsonl_success(
         mock_client_class.return_value.__aenter__.return_value = mock_client
 
         result = await fireworks_finetune.generate_and_upload_jsonl(
-            mock_dataset, "train", mock_task
+            mock_dataset, "train", mock_task, DatasetFormat.OPENAI_CHAT_JSONL
         )
 
         # Verify formatter was created with correct parameters
@@ -280,7 +281,28 @@ async def test_generate_and_upload_jsonl_success(
         assert mock_client.get.call_count == 1
 
 
-async def test_start_success(fireworks_finetune, mock_dataset, mock_task, mock_api_key):
+@pytest.mark.parametrize(
+    "output_schema,expected_mode,expected_format",
+    [
+        (
+            '{"type": "object", "properties": {"key": {"type": "string"}}}',
+            StructuredOutputMode.json_mode,
+            DatasetFormat.OPENAI_CHAT_JSON_SCHEMA_JSONL,
+        ),
+        (None, None, DatasetFormat.OPENAI_CHAT_JSONL),
+    ],
+)
+async def test_start_success(
+    fireworks_finetune,
+    mock_dataset,
+    mock_task,
+    mock_api_key,
+    output_schema,
+    expected_mode,
+    expected_format,
+):
+    mock_task.output_json_schema = output_schema
+
     fireworks_finetune.datamodel.parent = mock_task
     mock_dataset_id = "dataset-123"
     mock_model_id = "ft-model-123"
@@ -306,11 +328,15 @@ async def test_start_success(fireworks_finetune, mock_dataset, mock_task, mock_a
 
         # Verify dataset was uploaded
         fireworks_finetune.generate_and_upload_jsonl.assert_called_once_with(
-            mock_dataset, fireworks_finetune.datamodel.train_split_name, mock_task
+            mock_dataset,
+            fireworks_finetune.datamodel.train_split_name,
+            mock_task,
+            expected_format,
         )
 
         # Verify model ID was updated
         assert fireworks_finetune.datamodel.provider_id == mock_model_id
+        assert fireworks_finetune.datamodel.structured_output_mode == expected_mode
 
 
 async def test_start_api_error(

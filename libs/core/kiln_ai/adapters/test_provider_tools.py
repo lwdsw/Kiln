@@ -21,7 +21,7 @@ from kiln_ai.adapters.provider_tools import (
     provider_options_for_custom_model,
     provider_warnings,
 )
-from kiln_ai.datamodel import Finetune, Task
+from kiln_ai.datamodel import Finetune, StructuredOutputMode, Task
 
 
 @pytest.fixture(autouse=True)
@@ -61,6 +61,7 @@ def mock_finetune():
         finetune = Mock(spec=Finetune)
         finetune.provider = ModelProviderName.openai
         finetune.fine_tune_model_id = "ft:gpt-3.5-turbo:custom:model-123"
+        finetune.structured_output_mode = StructuredOutputMode.json_schema
         mock.return_value = finetune
         yield mock
 
@@ -475,6 +476,7 @@ def test_finetune_provider_model_success(mock_project, mock_task, mock_finetune)
 
     assert provider.name == ModelProviderName.openai
     assert provider.provider_options == {"model": "ft:gpt-3.5-turbo:custom:model-123"}
+    assert provider.structured_output_mode == StructuredOutputMode.json_schema
 
     # Test cache
     cached_provider = finetune_provider_model(model_id)
@@ -533,22 +535,30 @@ def test_finetune_provider_model_incomplete_finetune(
     )
 
 
-def test_finetune_provider_model_fireworks_provider(
-    mock_project, mock_task, mock_finetune
+@pytest.mark.parametrize(
+    "structured_output_mode, expected_mode",
+    [
+        (StructuredOutputMode.json_mode, StructuredOutputMode.json_mode),
+        (StructuredOutputMode.json_schema, StructuredOutputMode.json_schema),
+        (StructuredOutputMode.function_calling, StructuredOutputMode.function_calling),
+        (None, StructuredOutputMode.default),
+    ],
+)
+def test_finetune_provider_model_structured_mode(
+    mock_project, mock_task, mock_finetune, structured_output_mode, expected_mode
 ):
-    """Test creation of Fireworks AI provider with specific adapter options"""
+    """Test creation of provider with different structured output modes"""
     finetune = Mock(spec=Finetune)
     finetune.provider = ModelProviderName.fireworks_ai
     finetune.fine_tune_model_id = "fireworks-model-123"
+    finetune.structured_output_mode = structured_output_mode
     mock_finetune.return_value = finetune
 
     provider = finetune_provider_model("project-123::task-456::finetune-789")
 
     assert provider.name == ModelProviderName.fireworks_ai
     assert provider.provider_options == {"model": "fireworks-model-123"}
-    assert provider.adapter_options == {
-        "langchain": {"with_structured_output_options": {"method": "json_mode"}}
-    }
+    assert provider.structured_output_mode == expected_mode
 
 
 def test_openai_compatible_provider_model_success(mock_shared_config):

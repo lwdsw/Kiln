@@ -3,22 +3,13 @@ from typing import Dict, List
 
 from pydantic import BaseModel
 
+from kiln_ai.datamodel import StructuredOutputMode
+
 """
 Provides model configuration and management for various LLM providers and models.
 This module handles the integration with different AI model providers and their respective models,
 including configuration, validation, and instantiation of language models.
 """
-
-
-class StructuredOutputMode(str, Enum):
-    """
-    Enumeration of supported structured output modes.
-    """
-
-    default = "default"
-    json_schema = "json_schema"
-    function_calling = "function_calling"
-    json_mode = "json_mode"
 
 
 class ModelProviderName(str, Enum):
@@ -102,7 +93,7 @@ class KilnModelProvider(BaseModel):
         untested_model: Whether the model is untested (typically user added). The supports_ fields are not applicable.
         provider_finetune_id: The finetune ID for the provider, if applicable
         provider_options: Additional provider-specific configuration options
-        adapter_options: Additional options specific to the adapter. Top level key should be adapter ID.
+        structured_output_mode: The mode we should use to call the model for structured output, if it was trained with structured output.
     """
 
     name: ModelProviderName
@@ -111,7 +102,6 @@ class KilnModelProvider(BaseModel):
     untested_model: bool = False
     provider_finetune_id: str | None = None
     provider_options: Dict = {}
-    adapter_options: Dict = {}
     structured_output_mode: StructuredOutputMode = StructuredOutputMode.default
 
 
