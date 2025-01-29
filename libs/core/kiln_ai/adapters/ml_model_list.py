@@ -131,7 +131,6 @@ class KilnModel(BaseModel):
     name: str
     friendly_name: str
     providers: List[KilnModelProvider]
-    supports_structured_output: bool = True
 
 
 built_in_models: List[KilnModel] = [
@@ -214,7 +213,6 @@ built_in_models: List[KilnModel] = [
         family=ModelFamily.deepseek,
         name=ModelName.deepseek_r1,
         friendly_name="DeepSeek R1",
-        # TODO: Add support for structured output by removing <thinking> tags. Openrouter works as it's already stripping them.
         providers=[
             KilnModelProvider(
                 name=ModelProviderName.openrouter,
@@ -586,7 +584,6 @@ built_in_models: List[KilnModel] = [
         family=ModelFamily.phi,
         name=ModelName.phi_3_5,
         friendly_name="Phi 3.5",
-        supports_structured_output=False,
         providers=[
             KilnModelProvider(
                 name=ModelProviderName.ollama,
@@ -616,7 +613,6 @@ built_in_models: List[KilnModel] = [
         family=ModelFamily.phi,
         name=ModelName.phi_4,
         friendly_name="Phi 4",
-        supports_structured_output=True,
         providers=[
             KilnModelProvider(
                 name=ModelProviderName.ollama,
@@ -638,7 +634,6 @@ built_in_models: List[KilnModel] = [
         family=ModelFamily.gemma,
         name=ModelName.gemma_2_2b,
         friendly_name="Gemma 2 2B",
-        supports_structured_output=False,
         providers=[
             KilnModelProvider(
                 name=ModelProviderName.ollama,
@@ -655,7 +650,6 @@ built_in_models: List[KilnModel] = [
         family=ModelFamily.gemma,
         name=ModelName.gemma_2_9b,
         friendly_name="Gemma 2 9B",
-        supports_structured_output=False,
         providers=[
             KilnModelProvider(
                 name=ModelProviderName.ollama,
@@ -679,7 +673,6 @@ built_in_models: List[KilnModel] = [
         family=ModelFamily.gemma,
         name=ModelName.gemma_2_27b,
         friendly_name="Gemma 2 27B",
-        supports_structured_output=False,
         providers=[
             KilnModelProvider(
                 name=ModelProviderName.ollama,
