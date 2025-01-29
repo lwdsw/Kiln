@@ -72,6 +72,7 @@ class ModelName(str, Enum):
     gpt_4o_mini = "gpt_4o_mini"
     gpt_4o = "gpt_4o"
     phi_3_5 = "phi_3_5"
+    phi_4 = "phi_4"
     mistral_large = "mistral_large"
     mistral_nemo = "mistral_nemo"
     gemma_2_2b = "gemma_2_2b"
@@ -607,6 +608,28 @@ built_in_models: List[KilnModel] = [
                 provider_options={
                     "model": "accounts/fireworks/models/phi-3-vision-128k-instruct"
                 },
+            ),
+        ],
+    ),
+    # Phi 4
+    KilnModel(
+        family=ModelFamily.phi,
+        name=ModelName.phi_4,
+        friendly_name="Phi 4",
+        supports_structured_output=True,
+        providers=[
+            KilnModelProvider(
+                name=ModelProviderName.ollama,
+                structured_output_mode=StructuredOutputMode.json_schema,
+                provider_options={"model": "phi4"},
+            ),
+            KilnModelProvider(
+                name=ModelProviderName.openrouter,
+                # JSON mode not consistent enough to enable in UI
+                structured_output_mode=StructuredOutputMode.json_mode,
+                supports_structured_output=False,
+                supports_data_gen=False,
+                provider_options={"model": "microsoft/phi-4"},
             ),
         ],
     ),
