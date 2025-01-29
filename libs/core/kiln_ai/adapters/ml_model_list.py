@@ -309,8 +309,7 @@ built_in_models: List[KilnModel] = [
             ),
             KilnModelProvider(
                 name=ModelProviderName.ollama,
-                # TODO: test this
-                supports_data_gen=False,
+                structured_output_mode=StructuredOutputMode.json_schema,
                 provider_options={
                     "model": "llama3.1:8b",
                     "model_aliases": ["llama3.1"],  # 8b is default
@@ -357,7 +356,6 @@ built_in_models: List[KilnModel] = [
             ),
             KilnModelProvider(
                 name=ModelProviderName.ollama,
-                # TODO: test this
                 structured_output_mode=StructuredOutputMode.json_schema,
                 provider_options={"model": "llama3.1:70b"},
             ),
@@ -506,10 +504,7 @@ built_in_models: List[KilnModel] = [
             ),
             KilnModelProvider(
                 name=ModelProviderName.ollama,
-                # TODO: test this
                 structured_output_mode=StructuredOutputMode.json_schema,
-                supports_structured_output=False,
-                supports_data_gen=False,
                 provider_options={"model": "llama3.2-vision"},
             ),
             KilnModelProvider(
@@ -535,7 +530,6 @@ built_in_models: List[KilnModel] = [
             ),
             KilnModelProvider(
                 name=ModelProviderName.ollama,
-                # TODO: test this
                 structured_output_mode=StructuredOutputMode.json_schema,
                 provider_options={"model": "llama3.2-vision:90b"},
             ),
@@ -571,7 +565,6 @@ built_in_models: List[KilnModel] = [
             ),
             KilnModelProvider(
                 name=ModelProviderName.ollama,
-                # TODO: test this
                 structured_output_mode=StructuredOutputMode.json_schema,
                 provider_options={"model": "llama3.3"},
             ),
@@ -596,7 +589,7 @@ built_in_models: List[KilnModel] = [
         providers=[
             KilnModelProvider(
                 name=ModelProviderName.ollama,
-                # TODO: test this
+                structured_output_mode=StructuredOutputMode.json_schema,
                 supports_structured_output=False,
                 supports_data_gen=False,
                 provider_options={"model": "phi3.5"},
@@ -643,7 +636,7 @@ built_in_models: List[KilnModel] = [
         providers=[
             KilnModelProvider(
                 name=ModelProviderName.ollama,
-                # TODO: test this
+                structured_output_mode=StructuredOutputMode.json_schema,
                 supports_data_gen=False,
                 provider_options={
                     "model": "gemma2:9b",
@@ -651,6 +644,7 @@ built_in_models: List[KilnModel] = [
             ),
             KilnModelProvider(
                 name=ModelProviderName.openrouter,
+                structured_output_mode=StructuredOutputMode.json_schema,
                 supports_data_gen=False,
                 provider_options={"model": "google/gemma-2-9b-it"},
             ),
@@ -691,9 +685,7 @@ built_in_models: List[KilnModel] = [
             ),
             KilnModelProvider(
                 name=ModelProviderName.ollama,
-                # TODO: test this
-                supports_structured_output=False,
-                supports_data_gen=False,
+                structured_output_mode=StructuredOutputMode.json_schema,
                 provider_options={"model": "mixtral"},
             ),
         ],
@@ -712,7 +704,6 @@ built_in_models: List[KilnModel] = [
             KilnModelProvider(
                 name=ModelProviderName.ollama,
                 provider_options={"model": "qwen2.5"},
-                # TODO: test this
                 structured_output_mode=StructuredOutputMode.json_schema,
             ),
         ],
@@ -734,7 +725,6 @@ built_in_models: List[KilnModel] = [
             KilnModelProvider(
                 name=ModelProviderName.ollama,
                 provider_options={"model": "qwen2.5:72b"},
-                # TODO: test this
                 structured_output_mode=StructuredOutputMode.json_schema,
             ),
             KilnModelProvider(
