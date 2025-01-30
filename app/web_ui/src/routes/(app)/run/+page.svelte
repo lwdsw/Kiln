@@ -114,7 +114,10 @@
       </div>
       <div class="w-72 2xl:w-96 flex-none flex flex-col gap-4">
         <div class="text-xl font-bold">Options</div>
-        <PromptTypeSelector bind:prompt_method />
+        <PromptTypeSelector
+          bind:prompt_method
+          info_description="Choose a custom prompt, or an prompt auto-generated from your task and data. If you want a new custom prompt, you can create one in the 'Prompt' tab."
+        />
         <AvailableModelsDropdown
           bind:model
           bind:requires_structured_output
