@@ -10,7 +10,12 @@ from openai.types.fine_tuning import FineTuningJob
 from kiln_ai.adapters.fine_tune.base_finetune import FineTuneStatusType
 from kiln_ai.adapters.fine_tune.dataset_formatter import DatasetFormat, DatasetFormatter
 from kiln_ai.adapters.fine_tune.openai_finetune import OpenAIFinetune
-from kiln_ai.datamodel import DatasetSplit, Task, Train80Test20SplitDefinition
+from kiln_ai.datamodel import (
+    DatasetSplit,
+    StructuredOutputMode,
+    Task,
+    Train80Test20SplitDefinition,
+)
 from kiln_ai.datamodel import Finetune as FinetuneModel
 from kiln_ai.utils.config import Config
 
@@ -225,7 +230,7 @@ async def test_generate_and_upload_jsonl_success(
         patch("builtins.open") as mock_open,
     ):
         result = await openai_finetune.generate_and_upload_jsonl(
-            mock_dataset, "train", mock_task
+            mock_dataset, "train", mock_task, DatasetFormat.OPENAI_CHAT_JSONL
         )
 
         # Verify formatter was created with correct parameters
@@ -245,7 +250,7 @@ async def test_generate_and_upload_jsonl_success(
         assert result == mock_file_id
 
 
-async def test_generate_and_upload_jsonl_toolcall_success(
+async def test_generate_and_upload_jsonl_schema_success(
     openai_finetune, mock_dataset, mock_task
 ):
     mock_path = Path("mock_path.jsonl")
@@ -272,7 +277,10 @@ async def test_generate_and_upload_jsonl_toolcall_success(
         patch("builtins.open") as mock_open,
     ):
         result = await openai_finetune.generate_and_upload_jsonl(
-            mock_dataset, "train", mock_task
+            mock_dataset,
+            "train",
+            mock_task,
+            DatasetFormat.OPENAI_CHAT_JSON_SCHEMA_JSONL,
         )
 
         # Verify formatter was created with correct parameters
@@ -282,7 +290,7 @@ async def test_generate_and_upload_jsonl_toolcall_success(
 
         # Verify correct format was used
         mock_formatter.dump_to_file.assert_called_once_with(
-            "train", DatasetFormat.OPENAI_CHAT_TOOLCALL_JSONL
+            "train", DatasetFormat.OPENAI_CHAT_JSON_SCHEMA_JSONL
         )
 
         # Verify file was opened and uploaded
@@ -317,7 +325,7 @@ async def test_generate_and_upload_jsonl_upload_failure(
     ):
         with pytest.raises(ValueError, match="Failed to upload file to OpenAI"):
             await openai_finetune.generate_and_upload_jsonl(
-                mock_dataset, "train", mock_task
+                mock_dataset, "train", mock_task, DatasetFormat.OPENAI_CHAT_JSONL
             )
 
 
@@ -344,12 +352,32 @@ async def test_generate_and_upload_jsonl_api_error(
     ):
         with pytest.raises(openai.APIError):
             await openai_finetune.generate_and_upload_jsonl(
-                mock_dataset, "train", mock_task
+                mock_dataset, "train", mock_task, DatasetFormat.OPENAI_CHAT_JSONL
             )
 
 
-async def test_start_success(openai_finetune, mock_dataset, mock_task):
+@pytest.mark.parametrize(
+    "output_schema,expected_mode,expected_format",
+    [
+        (
+            '{"type": "object", "properties": {"key": {"type": "string"}}}',
+            StructuredOutputMode.json_schema,
+            DatasetFormat.OPENAI_CHAT_JSON_SCHEMA_JSONL,
+        ),
+        (None, None, DatasetFormat.OPENAI_CHAT_JSONL),
+    ],
+)
+async def test_start_success(
+    openai_finetune,
+    mock_dataset,
+    mock_task,
+    output_schema,
+    expected_mode,
+    expected_format,
+):
     openai_finetune.datamodel.parent = mock_task
+
+    mock_task.output_json_schema = output_schema
 
     # Mock parameters
     openai_finetune.datamodel.parameters = {
@@ -381,7 +409,10 @@ async def test_start_success(openai_finetune, mock_dataset, mock_task):
         # Verify file uploads
         assert mock_upload.call_count == 1  # Only training file
         mock_upload.assert_called_with(
-            mock_dataset, openai_finetune.datamodel.train_split_name, mock_task
+            mock_dataset,
+            openai_finetune.datamodel.train_split_name,
+            mock_task,
+            expected_format,
         )
 
         # Verify fine-tune creation
@@ -401,6 +432,7 @@ async def test_start_success(openai_finetune, mock_dataset, mock_task):
         # Verify model updates
         assert openai_finetune.datamodel.provider_id == "ft-123"
         assert openai_finetune.datamodel.base_model_id == "gpt-4o-mini-2024-07-18"
+        assert openai_finetune.datamodel.structured_output_mode == expected_mode
 
 
 async def test_start_with_validation(openai_finetune, mock_dataset, mock_task):
@@ -430,9 +462,17 @@ async def test_start_with_validation(openai_finetune, mock_dataset, mock_task):
         mock_upload.assert_has_calls(
             [
                 mock.call(
-                    mock_dataset, openai_finetune.datamodel.train_split_name, mock_task
+                    mock_dataset,
+                    openai_finetune.datamodel.train_split_name,
+                    mock_task,
+                    DatasetFormat.OPENAI_CHAT_JSONL,
                 ),
-                mock.call(mock_dataset, "validation", mock_task),
+                mock.call(
+                    mock_dataset,
+                    "validation",
+                    mock_task,
+                    DatasetFormat.OPENAI_CHAT_JSONL,
+                ),
             ]
         )
 

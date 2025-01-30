@@ -9,7 +9,7 @@ from kiln_ai.adapters.fine_tune.base_finetune import (
     FineTuneStatusType,
 )
 from kiln_ai.adapters.fine_tune.dataset_formatter import DatasetFormat, DatasetFormatter
-from kiln_ai.datamodel import DatasetSplit, Task
+from kiln_ai.datamodel import DatasetSplit, StructuredOutputMode, Task
 from kiln_ai.utils.config import Config
 
 
@@ -101,8 +101,15 @@ class FireworksFinetune(BaseFinetuneAdapter):
         if not task:
             raise ValueError("Task is required to start a fine-tune")
 
+        format = DatasetFormat.OPENAI_CHAT_JSONL
+        if task.output_json_schema:
+            # This formatter will check it's valid JSON, and normalize the output (chat format just uses exact string)
+            format = DatasetFormat.OPENAI_CHAT_JSON_SCHEMA_JSONL
+            # Fireworks doesn't support function calls or json schema, so we'll use json mode at call time
+            self.datamodel.structured_output_mode = StructuredOutputMode.json_mode
+
         train_file_id = await self.generate_and_upload_jsonl(
-            dataset, self.datamodel.train_split_name, task
+            dataset, self.datamodel.train_split_name, task, format
         )
 
         api_key = Config.shared().fireworks_api_key
@@ -156,12 +163,9 @@ class FireworksFinetune(BaseFinetuneAdapter):
             self.datamodel.save_to_file()
 
     async def generate_and_upload_jsonl(
-        self, dataset: DatasetSplit, split_name: str, task: Task
+        self, dataset: DatasetSplit, split_name: str, task: Task, format: DatasetFormat
     ) -> str:
         formatter = DatasetFormatter(dataset, self.datamodel.system_message)
-        # OpenAI compatible: https://docs.fireworks.ai/fine-tuning/fine-tuning-models#conversation
-        # Note: Fireworks does not support tool calls (confirmed by Fireworks team) so we'll use json mode
-        format = DatasetFormat.OPENAI_CHAT_JSONL
         path = formatter.dump_to_file(split_name, format)
 
         # First call creates the dataset

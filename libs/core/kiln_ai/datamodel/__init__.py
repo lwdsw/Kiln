@@ -275,6 +275,17 @@ class FineTuneStatusType(str, Enum):
     failed = "failed"
 
 
+class StructuredOutputMode(str, Enum):
+    """
+    Enumeration of supported structured output modes.
+    """
+
+    default = "default"
+    json_schema = "json_schema"
+    function_calling = "function_calling"
+    json_mode = "json_mode"
+
+
 class Finetune(KilnParentedModel):
     """
     The Kiln fine-tune datamodel.
@@ -286,6 +297,10 @@ class Finetune(KilnParentedModel):
     description: str | None = Field(
         default=None,
         description="A description of the fine-tune for you and your team. Not used in training.",
+    )
+    structured_output_mode: StructuredOutputMode | None = Field(
+        default=None,
+        description="The mode to use to train the model for structured output, if it was trained with structured output. Will determine how we call the tuned model, so we call with the matching mode.",
     )
     provider: str = Field(
         description="The provider to use for the fine-tune (e.g. 'openai')."

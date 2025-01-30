@@ -3,7 +3,6 @@
   import FormContainer from "$lib/utils/form_container.svelte"
   import FormElement from "$lib/utils/form_element.svelte"
   import { page } from "$app/stores"
-  import { current_task } from "$lib/stores"
   import { client } from "$lib/api_client"
   import { KilnError, createKilnError } from "$lib/utils/error_handlers"
   import { onMount } from "svelte"
@@ -119,8 +118,12 @@
       "Download: OpenAI chat format (JSONL)",
     ])
     available_model_select.push([
+      "download_jsonl_json_schema_msg",
+      "Download: OpenAI chat format with JSON response (JSONL)",
+    ])
+    available_model_select.push([
       "download_jsonl_toolcall",
-      "Download: OpenAI chat format with tool calls (JSONL)",
+      "Download: OpenAI chat format with tool call response (JSONL)",
     ])
     available_model_select.push([
       "download_huggingface_chat_template",
@@ -138,6 +141,7 @@
 
   const download_model_select_options: Record<string, string> = {
     download_jsonl_msg: "openai_chat_jsonl",
+    download_jsonl_json_schema_msg: "openai_chat_json_schema_jsonl",
     download_jsonl_toolcall: "openai_chat_toolcall_jsonl",
     download_huggingface_chat_template: "huggingface_chat_template_jsonl",
     download_huggingface_chat_template_toolcall:
@@ -576,13 +580,6 @@
                   generation tool
                 </a>
                 to expand your dataset.
-              </div>
-            {/if}
-            {#if model_provider_id === "fireworks_ai" && task_id === $current_task?.id && !!$current_task?.output_json_schema}
-              <div class="text-sm">
-                <span class="badge badge-warning mr-2">Technical Note</span> Fireworks
-                fine-tuning does not support tool calling. The model will be trained
-                with JSON output instead.
               </div>
             {/if}
           {/if}

@@ -35,7 +35,8 @@ def mock_task():
                 type=DataSourceType.human, properties={"created_by": "test"}
             ),
             output=TaskOutput(
-                output='{"test": "output"}',
+                # Note extra space to text re-encoding paths
+                output='{"test":   "output"}',
                 source=DataSource(
                     type=DataSourceType.synthetic,
                     properties={
@@ -283,7 +284,8 @@ def test_dataset_formatter_dump_to_file(mock_dataset, tmp_path):
             assert len(data["messages"]) == 3
             assert data["messages"][0]["content"] == "system message"
             assert data["messages"][1]["content"] == '{"test": "input"}'
-            assert data["messages"][2]["content"] == '{"test": "output"}'
+            # Raw chat doesn't fix json issues, like extra spaces
+            assert data["messages"][2]["content"] == '{"test":   "output"}'
 
 
 def test_dataset_formatter_dump_to_temp_file(mock_dataset):
@@ -460,7 +462,7 @@ def test_generate_huggingface_chat_template_toolcall_invalid_json():
 def test_best_task_output(mock_task):
     # Non repaired should use original output
     mock_task_run = mock_task.runs()[0]
-    assert best_task_output(mock_task_run) == '{"test": "output"}'
+    assert best_task_output(mock_task_run) == '{"test":   "output"}'
 
     # Repaired output should be used if available
     repaired_task_run = mock_task_run.model_copy(
@@ -476,3 +478,34 @@ def test_best_task_output(mock_task):
         }
     )
     assert best_task_output(repaired_task_run) == '{"test": "repaired output"}'
+
+
+def test_dataset_formatter_dump_to_file_json_schema_format(mock_dataset, tmp_path):
+    formatter = DatasetFormatter(mock_dataset, "system message")
+    output_path = tmp_path / "output.jsonl"
+
+    result_path = formatter.dump_to_file(
+        "train", DatasetFormat.OPENAI_CHAT_JSON_SCHEMA_JSONL, output_path
+    )
+
+    assert result_path == output_path
+    assert output_path.exists()
+
+    # Verify file contents
+    with open(output_path) as f:
+        lines = f.readlines()
+        assert len(lines) == 2  # Should have 2 entries for train split
+        for line in lines:
+            data = json.loads(line)
+            assert "messages" in data
+            assert len(data["messages"]) == 3
+            # Check system and user messages
+            assert data["messages"][0]["content"] == "system message"
+            assert data["messages"][1]["content"] == '{"test": "input"}'
+            # Check JSON format
+            assistant_msg = data["messages"][2]
+            assert assistant_msg["role"] == "assistant"
+            # Verify the content is valid JSON
+            assert assistant_msg["content"] == '{"test": "output"}'
+            json_content = json.loads(assistant_msg["content"])
+            assert json_content == {"test": "output"}
