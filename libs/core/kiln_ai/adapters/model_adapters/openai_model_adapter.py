@@ -65,15 +65,25 @@ class OpenAICompatibleAdapter(BaseAdapter):
             ChatCompletionUserMessageParam(role="user", content=user_msg),
         ]
 
-        # Handle chain of thought if enabled
+        # Handle chain of thought if enabled. 3 Modes:
+        # 1. Unstructured output: just call the LLM, with prompting for thinking
+        # 2. "Thinking" LLM designed to output thinking in a structured format: we make 1 call to the LLM, which outputs thinking in a structured format.
+        # 3. Normal LLM with structured output: we make 2 calls to the LLM - one for thinking and one for the final response. This helps us use the LLM's structured output modes (json_schema, tools, etc), which can't be used in a single call.
         cot_prompt = self.prompt_builder.chain_of_thought_prompt()
-        if cot_prompt and self.has_structured_output():
-            # TODO P0: Fix COT
+        thinking_llm = provider.reasoning_capable
+
+        if cot_prompt and (not self.has_structured_output() or thinking_llm):
+            # Case 1 or 2: Unstructured output or "Thinking" LLM designed to output thinking in a structured format
             messages.append({"role": "system", "content": cot_prompt})
+        elif not thinking_llm and cot_prompt and self.has_structured_output():
+            # Case 3: Normal LLM with structured output, requires 2 calls
+            messages.append(
+                ChatCompletionSystemMessageParam(role="system", content=cot_prompt)
+            )
 
             # First call for chain of thought
             cot_response = await self.client.chat.completions.create(
-                model=self.model_name,
+                model=provider.provider_options["model"],
                 messages=messages,
             )
             cot_content = cot_response.choices[0].message.content
@@ -91,8 +101,7 @@ class OpenAICompatibleAdapter(BaseAdapter):
                     ),
                 ]
             )
-        elif cot_prompt:
-            messages.append({"role": "system", "content": cot_prompt})
+
         else:
             intermediate_outputs = {}
 

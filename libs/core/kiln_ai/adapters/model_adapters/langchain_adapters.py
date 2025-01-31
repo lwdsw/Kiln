@@ -128,6 +128,7 @@ class LangchainAdapter(BaseAdapter):
         return self._model
 
     async def _run(self, input: Dict | str) -> RunOutput:
+        provider = await self.model_provider()
         model = await self.model()
         chain = model
         intermediate_outputs = {}
@@ -139,10 +140,17 @@ class LangchainAdapter(BaseAdapter):
             HumanMessage(content=user_msg),
         ]
 
-        # TODO: make this compatible with thinking models
-        # COT with structured output
+        # Handle chain of thought if enabled. 3 Modes:
+        # 1. Unstructured output: just call the LLM, with prompting for thinking
+        # 2. "Thinking" LLM designed to output thinking in a structured format: we make 1 call to the LLM, which outputs thinking in a structured format.
+        # 3. Normal LLM with structured output: we make 2 calls to the LLM - one for thinking and one for the final response. This helps us use the LLM's structured output modes (json_schema, tools, etc), which can't be used in a single call.
         cot_prompt = self.prompt_builder.chain_of_thought_prompt()
-        if cot_prompt and self.has_structured_output():
+        thinking_llm = provider.reasoning_capable
+
+        if cot_prompt and (not self.has_structured_output() or thinking_llm):
+            # Case 1 or 2: Unstructured output, or "Thinking" LLM designed to output thinking in a structured format
+            messages.append({"role": "system", "content": cot_prompt})
+        elif not thinking_llm and cot_prompt and self.has_structured_output():
             # Base model (without structured output) used for COT message
             base_model = await self.langchain_model_from()
             messages.append(
