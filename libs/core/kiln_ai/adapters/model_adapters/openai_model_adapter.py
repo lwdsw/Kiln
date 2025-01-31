@@ -102,13 +102,9 @@ class OpenAICompatibleAdapter(BaseAdapter):
 
         extra_body = {}
         if self.config.openrouter_style_reasoning and thinking_llm:
-            extra_body = {
-                "include_reasoning": True,
-                # Filter to providers that support the reasoning parameter
-                "provider": {
-                    "require_parameters": True,
-                },
-            }
+            extra_body["include_reasoning"] = True
+            # Filter to providers that support the reasoning parameter
+            extra_body["provider"] = {"require_parameters": True}
 
         # Main completion call
         response_format_options = await self.response_format_options()
