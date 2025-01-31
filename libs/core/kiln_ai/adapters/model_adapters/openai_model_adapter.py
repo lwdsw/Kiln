@@ -55,9 +55,7 @@ class OpenAICompatibleAdapter(BaseAdapter):
 
     async def _run(self, input: Dict | str) -> RunOutput:
         provider = await self.model_provider()
-
         intermediate_outputs: dict[str, str] = {}
-
         prompt = await self.build_prompt()
         user_msg = self.prompt_builder.build_user_message(input)
         messages = [
@@ -65,15 +63,25 @@ class OpenAICompatibleAdapter(BaseAdapter):
             ChatCompletionUserMessageParam(role="user", content=user_msg),
         ]
 
-        # Handle chain of thought if enabled
+        # Handle chain of thought if enabled. 3 Modes:
+        # 1. Unstructured output: just call the LLM, with prompting for thinking
+        # 2. "Thinking" LLM designed to output thinking in a structured format: we make 1 call to the LLM, which outputs thinking in a structured format.
+        # 3. Normal LLM with structured output: we make 2 calls to the LLM - one for thinking and one for the final response. This helps us use the LLM's structured output modes (json_schema, tools, etc), which can't be used in a single call.
         cot_prompt = self.prompt_builder.chain_of_thought_prompt()
-        if cot_prompt and self.has_structured_output():
-            # TODO P0: Fix COT
+        thinking_llm = provider.reasoning_capable
+
+        if cot_prompt and (not self.has_structured_output() or thinking_llm):
+            # Case 1 or 2: Unstructured output or "Thinking" LLM designed to output thinking in a structured format
             messages.append({"role": "system", "content": cot_prompt})
+        elif not thinking_llm and cot_prompt and self.has_structured_output():
+            # Case 3: Normal LLM with structured output, requires 2 calls
+            messages.append(
+                ChatCompletionSystemMessageParam(role="system", content=cot_prompt)
+            )
 
             # First call for chain of thought
             cot_response = await self.client.chat.completions.create(
-                model=self.model_name,
+                model=provider.provider_options["model"],
                 messages=messages,
             )
             cot_content = cot_response.choices[0].message.content
@@ -91,19 +99,19 @@ class OpenAICompatibleAdapter(BaseAdapter):
                     ),
                 ]
             )
-        elif cot_prompt:
-            messages.append({"role": "system", "content": cot_prompt})
-        else:
-            intermediate_outputs = {}
+
+        extra_body = {}
+        if self.config.openrouter_style_reasoning and thinking_llm:
+            extra_body["include_reasoning"] = True
+            # Filter to providers that support the reasoning parameter
+            extra_body["provider"] = {"require_parameters": True}
 
         # Main completion call
         response_format_options = await self.response_format_options()
         response = await self.client.chat.completions.create(
             model=provider.provider_options["model"],
             messages=messages,
-            extra_body={"include_reasoning": True}
-            if self.config.openrouter_style_reasoning
-            else {},
+            extra_body=extra_body,
             **response_format_options,
         )
 

@@ -103,6 +103,7 @@ class KilnModelProvider(BaseModel):
         provider_options: Additional provider-specific configuration options
         structured_output_mode: The mode we should use to call the model for structured output, if it was trained with structured output.
         parser: A parser to use for the model, if applicable
+        reasoning_capable: Whether the model is designed to output thinking in a structured format (eg <think></think>). If so we don't use COT across 2 calls, and ask for thinking and final response in the same call.
     """
 
     name: ModelProviderName
@@ -113,6 +114,7 @@ class KilnModelProvider(BaseModel):
     provider_options: Dict = {}
     structured_output_mode: StructuredOutputMode = StructuredOutputMode.default
     parser: ModelParserID | None = None
+    reasoning_capable: bool = False
 
 
 class KilnModel(BaseModel):
@@ -222,12 +224,14 @@ built_in_models: List[KilnModel] = [
                 provider_options={"model": "deepseek/deepseek-r1"},
                 # No custom parser -- openrouter implemented it themselves
                 structured_output_mode=StructuredOutputMode.json_instructions,
+                reasoning_capable=True,
             ),
             KilnModelProvider(
                 name=ModelProviderName.fireworks_ai,
                 provider_options={"model": "accounts/fireworks/models/deepseek-r1"},
                 parser=ModelParserID.r1_thinking,
                 structured_output_mode=StructuredOutputMode.json_instructions,
+                reasoning_capable=True,
             ),
             KilnModelProvider(
                 # I want your RAM
@@ -235,6 +239,7 @@ built_in_models: List[KilnModel] = [
                 provider_options={"model": "deepseek-r1:671b"},
                 parser=ModelParserID.r1_thinking,
                 structured_output_mode=StructuredOutputMode.json_instructions,
+                reasoning_capable=True,
             ),
         ],
     ),
