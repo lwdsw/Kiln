@@ -151,6 +151,7 @@ class LangchainAdapter(BaseAdapter):
             # Case 1 or 2: Unstructured output, or "Thinking" LLM designed to output thinking in a structured format
             messages.append({"role": "system", "content": cot_prompt})
         elif not thinking_llm and cot_prompt and self.has_structured_output():
+            # Case 3: Normal LLM with structured output
             # Base model (without structured output) used for COT message
             base_model = await self.langchain_model_from()
             messages.append(
@@ -164,8 +165,6 @@ class LangchainAdapter(BaseAdapter):
             messages.append(
                 SystemMessage(content="Considering the above, return a final result.")
             )
-        elif cot_prompt:
-            messages.append(SystemMessage(content=cot_prompt))
 
         response = await chain.ainvoke(messages)
 

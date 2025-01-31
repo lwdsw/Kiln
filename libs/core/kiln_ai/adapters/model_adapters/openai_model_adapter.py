@@ -55,9 +55,7 @@ class OpenAICompatibleAdapter(BaseAdapter):
 
     async def _run(self, input: Dict | str) -> RunOutput:
         provider = await self.model_provider()
-
         intermediate_outputs: dict[str, str] = {}
-
         prompt = await self.build_prompt()
         user_msg = self.prompt_builder.build_user_message(input)
         messages = [
@@ -102,14 +100,11 @@ class OpenAICompatibleAdapter(BaseAdapter):
                 ]
             )
 
-        else:
-            intermediate_outputs = {}
-
         extra_body = {}
-        if self.config.openrouter_style_reasoning:
+        if self.config.openrouter_style_reasoning and thinking_llm:
             extra_body = {
                 "include_reasoning": True,
-                # Only use providers that support the reasoning parameter
+                # Filter to providers that support the reasoning parameter
                 "provider": {
                     "require_parameters": True,
                 },
