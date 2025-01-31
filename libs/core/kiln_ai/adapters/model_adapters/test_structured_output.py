@@ -7,9 +7,13 @@ import pytest
 
 import kiln_ai.datamodel as datamodel
 from kiln_ai.adapters.adapter_registry import adapter_for_task
-from kiln_ai.adapters.base_adapter import AdapterInfo, BaseAdapter, RunOutput
 from kiln_ai.adapters.ml_model_list import (
     built_in_models,
+)
+from kiln_ai.adapters.model_adapters.base_adapter import (
+    AdapterInfo,
+    BaseAdapter,
+    RunOutput,
 )
 from kiln_ai.adapters.ollama_tools import ollama_online
 from kiln_ai.adapters.prompt_builders import (
@@ -44,7 +48,7 @@ async def test_structured_output_ollama_llama(tmp_path, model_name):
 
 class MockAdapter(BaseAdapter):
     def __init__(self, kiln_task: datamodel.Task, response: Dict | str | None):
-        super().__init__(kiln_task)
+        super().__init__(kiln_task, model_name="phi_3_5", model_provider_name="ollama")
         self.response = response
 
     async def _run(self, input: str) -> RunOutput:

@@ -1,5 +1,4 @@
 import os
-from os import getenv
 from typing import Any, Dict, NoReturn
 
 from langchain_aws import ChatBedrockConverse
@@ -15,16 +14,23 @@ from langchain_openai import ChatOpenAI
 from pydantic import BaseModel
 
 import kiln_ai.datamodel as datamodel
+from kiln_ai.adapters.ml_model_list import (
+    KilnModelProvider,
+    ModelProviderName,
+    StructuredOutputMode,
+)
+from kiln_ai.adapters.model_adapters.base_adapter import (
+    AdapterInfo,
+    BaseAdapter,
+    BasePromptBuilder,
+    RunOutput,
+)
 from kiln_ai.adapters.ollama_tools import (
     get_ollama_connection,
     ollama_base_url,
     ollama_model_installed,
 )
 from kiln_ai.utils.config import Config
-
-from .base_adapter import AdapterInfo, BaseAdapter, BasePromptBuilder, RunOutput
-from .ml_model_list import KilnModelProvider, ModelProviderName, StructuredOutputMode
-from .provider_tools import kiln_model_provider_from
 
 LangChainModelType = BaseChatModel | Runnable[LanguageModelInput, Dict | BaseModel]
 
@@ -41,39 +47,62 @@ class LangchainAdapter(BaseAdapter):
         prompt_builder: BasePromptBuilder | None = None,
         tags: list[str] | None = None,
     ):
-        super().__init__(kiln_task, prompt_builder=prompt_builder, tags=tags)
         if custom_model is not None:
             self._model = custom_model
 
             # Attempt to infer model provider and name from custom model
-            self.model_provider = "custom.langchain:" + custom_model.__class__.__name__
-            self.model_name = "custom.langchain:unknown_model"
-            if hasattr(custom_model, "model_name") and isinstance(
-                getattr(custom_model, "model_name"), str
-            ):
-                self.model_name = "custom.langchain:" + getattr(
-                    custom_model, "model_name"
-                )
-            if hasattr(custom_model, "model") and isinstance(
-                getattr(custom_model, "model"), str
-            ):
-                self.model_name = "custom.langchain:" + getattr(custom_model, "model")
+            if provider is None:
+                provider = "custom.langchain:" + custom_model.__class__.__name__
+
+            if model_name is None:
+                model_name = "custom.langchain:unknown_model"
+                if hasattr(custom_model, "model_name") and isinstance(
+                    getattr(custom_model, "model_name"), str
+                ):
+                    model_name = "custom.langchain:" + getattr(
+                        custom_model, "model_name"
+                    )
+                if hasattr(custom_model, "model") and isinstance(
+                    getattr(custom_model, "model"), str
+                ):
+                    model_name = "custom.langchain:" + getattr(custom_model, "model")
         elif model_name is not None:
-            self.model_name = model_name
-            self.model_provider = provider or "custom.langchain.default_provider"
+            # default provider name if not provided
+            provider = provider or "custom.langchain.default_provider"
         else:
             raise ValueError(
                 "model_name and provider must be provided if custom_model is not provided"
             )
+
+        if model_name is None:
+            raise ValueError("model_name must be provided")
+
+        super().__init__(
+            kiln_task,
+            model_name=model_name,
+            model_provider_name=provider,
+            prompt_builder=prompt_builder,
+            tags=tags,
+        )
 
     async def model(self) -> LangChainModelType:
         # cached model
         if self._model:
             return self._model
 
-        self._model = await langchain_model_from(self.model_name, self.model_provider)
+        self._model = await self.langchain_model_from()
 
-        if self.has_structured_output():
+        # Decide if we want to use Langchain's structured output:
+        # 1. Only for structured tasks
+        # 2. Only if the provider's mode isn't json_instructions (only mode that doesn't use an API option for structured output capabilities)
+        provider = await self.model_provider()
+        use_lc_structured_output = (
+            self.has_structured_output()
+            and provider.structured_output_mode
+            != StructuredOutputMode.json_instructions
+        )
+
+        if use_lc_structured_output:
             if not hasattr(self._model, "with_structured_output") or not callable(
                 getattr(self._model, "with_structured_output")
             ):
@@ -88,8 +117,8 @@ class LangchainAdapter(BaseAdapter):
                 )
             output_schema["title"] = "task_response"
             output_schema["description"] = "A response from the task"
-            with_structured_output_options = await get_structured_output_options(
-                self.model_name, self.model_provider
+            with_structured_output_options = await self.get_structured_output_options(
+                self.model_name, self.model_provider_name
             )
             self._model = self._model.with_structured_output(
                 output_schema,
@@ -103,20 +132,19 @@ class LangchainAdapter(BaseAdapter):
         chain = model
         intermediate_outputs = {}
 
-        prompt = self.build_prompt()
+        prompt = await self.build_prompt()
         user_msg = self.prompt_builder.build_user_message(input)
         messages = [
             SystemMessage(content=prompt),
             HumanMessage(content=user_msg),
         ]
 
+        # TODO: make this compatible with thinking models
         # COT with structured output
         cot_prompt = self.prompt_builder.chain_of_thought_prompt()
         if cot_prompt and self.has_structured_output():
             # Base model (without structured output) used for COT message
-            base_model = await langchain_model_from(
-                self.model_name, self.model_provider
-            )
+            base_model = await self.langchain_model_from()
             messages.append(
                 SystemMessage(content=cot_prompt),
             )
@@ -133,33 +161,36 @@ class LangchainAdapter(BaseAdapter):
 
         response = await chain.ainvoke(messages)
 
-        if self.has_structured_output():
-            if (
-                not isinstance(response, dict)
-                or "parsed" not in response
-                or not isinstance(response["parsed"], dict)
-            ):
-                raise RuntimeError(f"structured response not returned: {response}")
+        # Langchain may have already parsed the response into structured output, so use that if available.
+        # However, a plain string may still be fixed at the parsing layer, so not being structured isn't a critical failure (yet)
+        if (
+            self.has_structured_output()
+            and isinstance(response, dict)
+            and "parsed" in response
+            and isinstance(response["parsed"], dict)
+        ):
             structured_response = response["parsed"]
             return RunOutput(
                 output=self._munge_response(structured_response),
                 intermediate_outputs=intermediate_outputs,
             )
-        else:
-            if not isinstance(response, BaseMessage):
-                raise RuntimeError(f"response is not a BaseMessage: {response}")
-            text_content = response.content
-            if not isinstance(text_content, str):
-                raise RuntimeError(f"response is not a string: {text_content}")
-            return RunOutput(
-                output=text_content,
-                intermediate_outputs=intermediate_outputs,
-            )
+
+        if not isinstance(response, BaseMessage):
+            raise RuntimeError(f"response is not a BaseMessage: {response}")
+
+        text_content = response.content
+        if not isinstance(text_content, str):
+            raise RuntimeError(f"response is not a string: {text_content}")
+
+        return RunOutput(
+            output=text_content,
+            intermediate_outputs=intermediate_outputs,
+        )
 
     def adapter_info(self) -> AdapterInfo:
         return AdapterInfo(
             model_name=self.model_name,
-            model_provider=self.model_provider,
+            model_provider=self.model_provider_name,
             adapter_name="kiln_langchain_adapter",
             prompt_builder_name=self.prompt_builder.__class__.prompt_builder_name(),
             prompt_id=self.prompt_builder.prompt_id(),
@@ -175,38 +206,40 @@ class LangchainAdapter(BaseAdapter):
             return response["arguments"]
         return response
 
+    async def get_structured_output_options(
+        self, model_name: str, model_provider_name: str
+    ) -> Dict[str, Any]:
+        provider = await self.model_provider()
+        if not provider:
+            return {}
 
-async def get_structured_output_options(
-    model_name: str, model_provider: str
-) -> Dict[str, Any]:
-    finetune_provider = await kiln_model_provider_from(model_name, model_provider)
-    if not finetune_provider:
-        return {}
+        options = {}
+        # We may need to add some provider specific logic here if providers use different names for the same mode, but everyone is copying openai for now
+        match provider.structured_output_mode:
+            case StructuredOutputMode.function_calling:
+                options["method"] = "function_calling"
+            case StructuredOutputMode.json_mode:
+                options["method"] = "json_mode"
+            case StructuredOutputMode.json_schema:
+                options["method"] = "json_schema"
+            case StructuredOutputMode.json_instructions:
+                # JSON done via instructions in prompt, not via API
+                pass
+            case StructuredOutputMode.default:
+                # Let langchain decide the default
+                pass
+            case _:
+                raise ValueError(
+                    f"Unhandled enum value: {provider.structured_output_mode}"
+                )
+                # triggers pyright warning if I miss a case
+                return NoReturn
 
-    options = {}
-    # We may need to add some provider specific logic here if providers use different names for the same mode, but everyone is copying openai for now
-    match finetune_provider.structured_output_mode:
-        case StructuredOutputMode.function_calling:
-            options["method"] = "function_calling"
-        case StructuredOutputMode.json_mode:
-            options["method"] = "json_mode"
-        case StructuredOutputMode.json_schema:
-            options["method"] = "json_schema"
-        case StructuredOutputMode.default:
-            # Let langchain decide the default
-            pass
-        case _:
-            # triggers pyright warning if I miss a case
-            raise_exhaustive_error(finetune_provider.structured_output_mode)
+        return options
 
-    return options
-
-
-async def langchain_model_from(
-    name: str, provider_name: str | None = None
-) -> BaseChatModel:
-    provider = await kiln_model_provider_from(name, provider_name)
-    return await langchain_model_from_provider(provider, name)
+    async def langchain_model_from(self) -> BaseChatModel:
+        provider = await self.model_provider()
+        return await langchain_model_from_provider(provider, self.model_name)
 
 
 async def langchain_model_from_provider(
@@ -257,20 +290,6 @@ async def langchain_model_from_provider(
 
         raise ValueError(f"Model {model_name} not installed on Ollama")
     elif provider.name == ModelProviderName.openrouter:
-        api_key = Config.shared().open_router_api_key
-        base_url = getenv("OPENROUTER_BASE_URL") or "https://openrouter.ai/api/v1"
-        return ChatOpenAI(
-            **provider.provider_options,
-            openai_api_key=api_key,  # type: ignore[arg-type]
-            openai_api_base=base_url,  # type: ignore[arg-type]
-            default_headers={
-                "HTTP-Referer": "https://getkiln.ai/openrouter",
-                "X-Title": "KilnAI",
-            },
-        )
+        raise ValueError("OpenRouter is not supported in Langchain adapter")
     else:
         raise ValueError(f"Invalid model or provider: {model_name} - {provider.name}")
-
-
-def raise_exhaustive_error(value: NoReturn) -> NoReturn:
-    raise ValueError(f"Unhandled enum value: {value}")
