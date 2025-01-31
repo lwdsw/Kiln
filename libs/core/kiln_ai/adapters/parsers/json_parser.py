@@ -32,4 +32,4 @@ def parse_json_string(json_string: str) -> Dict[str, Any]:
     try:
         return json.loads(cleaned_string)
     except json.JSONDecodeError as e:
-        raise ValueError(f"Failed to parse JSON: {str(e)}") from e
+        raise ValueError(f"Failed to parse JSON: {str(e)}\n\n{cleaned_string}") from e

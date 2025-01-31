@@ -105,14 +105,22 @@ class OpenAICompatibleAdapter(BaseAdapter):
         else:
             intermediate_outputs = {}
 
+        extra_body = {}
+        if self.config.openrouter_style_reasoning:
+            extra_body = {
+                "include_reasoning": True,
+                # Only use providers that support the reasoning parameter
+                "provider": {
+                    "require_parameters": True,
+                },
+            }
+
         # Main completion call
         response_format_options = await self.response_format_options()
         response = await self.client.chat.completions.create(
             model=provider.provider_options["model"],
             messages=messages,
-            extra_body={"include_reasoning": True}
-            if self.config.openrouter_style_reasoning
-            else {},
+            extra_body=extra_body,
             **response_format_options,
         )
 
