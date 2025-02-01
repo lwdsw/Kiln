@@ -1,7 +1,7 @@
 import json
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
-from typing import Dict
+from typing import Dict, Literal, Tuple
 
 from kiln_ai.adapters.ml_model_list import KilnModelProvider, StructuredOutputMode
 from kiln_ai.adapters.parsers.parser_registry import model_parser_from_id
@@ -156,6 +156,26 @@ class BaseAdapter(metaclass=ABCMeta):
         return self.prompt_builder.build_prompt(
             include_json_instructions=add_json_instructions
         )
+
+    def run_strategy(
+        self,
+    ) -> Tuple[Literal["cot_as_message", "cot_two_call", "basic"], str | None]:
+        # Determine the run strategy for COT prompting. 3 options:
+        # 1. Unstructured output: just call the LLM, with prompting for thinking
+        # 2. "Thinking" LLM designed to output thinking in a structured format: we make 1 call to the LLM, which outputs thinking in a structured format.
+        # 3. Normal LLM with structured output: we make 2 calls to the LLM - one for thinking and one for the final response. This helps us use the LLM's structured output modes (json_schema, tools, etc), which can't be used in a single call.
+        cot_prompt = self.prompt_builder.chain_of_thought_prompt()
+        thinking_llm = self.model_provider().reasoning_capable
+
+        if cot_prompt and (not self.has_structured_output() or thinking_llm):
+            # Case 1 or 2: Unstructured output or "Thinking" LLM designed to output thinking in a structured format
+            # For these, we add a system message with the thinking instruction to the message list, but then run normally
+            return "cot_as_message", cot_prompt
+        elif not thinking_llm and cot_prompt and self.has_structured_output():
+            # Case 3: Normal LLM with structured output, requires 2 calls
+            return "cot_two_call", cot_prompt
+        else:
+            return "basic", None
 
     # create a run and task output
     def generate_run(

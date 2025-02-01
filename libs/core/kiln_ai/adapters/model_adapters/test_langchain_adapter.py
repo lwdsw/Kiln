@@ -318,3 +318,31 @@ async def test_langchain_adapter_model_no_structured_output_support(tmp_path):
 
     with pytest.raises(ValueError, match="does not support structured output"):
         await adapter.model()
+
+
+import pytest
+
+from kiln_ai.adapters.ml_model_list import KilnModelProvider, ModelProviderName
+from kiln_ai.adapters.model_adapters.langchain_adapters import (
+    langchain_model_from_provider,
+)
+
+
+@pytest.mark.parametrize(
+    "provider_name",
+    [
+        (ModelProviderName.openai),
+        (ModelProviderName.openai_compatible),
+        (ModelProviderName.openrouter),
+    ],
+)
+@pytest.mark.asyncio
+async def test_langchain_model_from_provider_unsupported_providers(provider_name):
+    # Arrange
+    provider = KilnModelProvider(
+        name=provider_name, provider_options={}, structured_output_mode="default"
+    )
+
+    # Assert unsupported providers raise an error
+    with pytest.raises(ValueError):
+        await langchain_model_from_provider(provider, "test-model")

@@ -153,3 +153,38 @@ async def test_prompt_builder_json_instructions(
     mock_prompt_builder.build_prompt.assert_called_with(
         include_json_instructions=expected_json_instructions
     )
+
+
+@pytest.mark.parametrize(
+    "cot_prompt,has_structured_output,reasoning_capable,expected",
+    [
+        # Case 1: Unstructured output with COT
+        ("think carefully", False, False, ("cot_as_message", "think carefully")),
+        # Case 2: Structured output with thinking-capable LLM
+        ("think carefully", True, True, ("cot_as_message", "think carefully")),
+        # Case 3: Structured output with normal LLM
+        ("think carefully", True, False, ("cot_two_call", "think carefully")),
+        # Basic cases - no COT
+        (None, True, True, ("basic", None)),
+        (None, False, False, ("basic", None)),
+        (None, True, False, ("basic", None)),
+        (None, False, True, ("basic", None)),
+        # Edge case - COT prompt exists but structured output is False and reasoning_capable is True
+        ("think carefully", False, True, ("cot_as_message", "think carefully")),
+    ],
+)
+async def test_run_strategy(
+    adapter, cot_prompt, has_structured_output, reasoning_capable, expected
+):
+    """Test that run_strategy returns correct strategy based on conditions"""
+    # Mock dependencies
+    adapter.prompt_builder.chain_of_thought_prompt = MagicMock(return_value=cot_prompt)
+    adapter.has_structured_output = MagicMock(return_value=has_structured_output)
+
+    provider = MagicMock()
+    provider.reasoning_capable = reasoning_capable
+    adapter.model_provider = MagicMock(return_value=provider)
+
+    # Test
+    result = adapter.run_strategy()
+    assert result == expected
