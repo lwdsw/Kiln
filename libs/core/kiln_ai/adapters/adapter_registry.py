@@ -71,10 +71,15 @@ def adapter_for_task(
             pass
         case ModelProviderName.fireworks_ai:
             pass
+        # These are virtual providers that should have mapped to an actual provider in core_provider
         case ModelProviderName.kiln_fine_tune:
-            pass
+            raise ValueError(
+                "Fine tune is not a supported core provider. It should map to an actual provider."
+            )
         case ModelProviderName.kiln_custom_registry:
-            pass
+            raise ValueError(
+                "Custom openai compatible provider is not a supported core provider. It should map to an actual provider."
+            )
         case _:
             raise ValueError(f"Unsupported provider: {provider}")
             # Triggers typechecking if I miss a case

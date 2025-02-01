@@ -155,9 +155,9 @@ async def test_get_structured_output_options(
     mock_provider.structured_output_mode = structured_output_mode
 
     # Mock adapter.model_provider()
-    mock_adapter.model_provider = AsyncMock(return_value=mock_provider)
+    mock_adapter.model_provider = MagicMock(return_value=mock_provider)
 
-    options = await mock_adapter.get_structured_output_options("model_name", "provider")
+    options = mock_adapter.get_structured_output_options("model_name", "provider")
     assert options.get("method") == expected_method
 
 
@@ -279,7 +279,7 @@ async def test_langchain_adapter_model_structured_output(tmp_path):
     adapter = LangchainAdapter(
         kiln_task=task, model_name="test_model", provider="ollama"
     )
-    adapter.get_structured_output_options = AsyncMock(
+    adapter.get_structured_output_options = MagicMock(
         return_value={"option1": "value1"}
     )
     adapter.langchain_model_from = AsyncMock(return_value=mock_model)
@@ -318,3 +318,31 @@ async def test_langchain_adapter_model_no_structured_output_support(tmp_path):
 
     with pytest.raises(ValueError, match="does not support structured output"):
         await adapter.model()
+
+
+import pytest
+
+from kiln_ai.adapters.ml_model_list import KilnModelProvider, ModelProviderName
+from kiln_ai.adapters.model_adapters.langchain_adapters import (
+    langchain_model_from_provider,
+)
+
+
+@pytest.mark.parametrize(
+    "provider_name",
+    [
+        (ModelProviderName.openai),
+        (ModelProviderName.openai_compatible),
+        (ModelProviderName.openrouter),
+    ],
+)
+@pytest.mark.asyncio
+async def test_langchain_model_from_provider_unsupported_providers(provider_name):
+    # Arrange
+    provider = KilnModelProvider(
+        name=provider_name, provider_options={}, structured_output_mode="default"
+    )
+
+    # Assert unsupported providers raise an error
+    with pytest.raises(ValueError):
+        await langchain_model_from_provider(provider, "test-model")

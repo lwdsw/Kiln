@@ -94,7 +94,7 @@ class LangchainAdapter(BaseAdapter):
         # Decide if we want to use Langchain's structured output:
         # 1. Only for structured tasks
         # 2. Only if the provider's mode isn't json_instructions (only mode that doesn't use an API option for structured output capabilities)
-        provider = await self.model_provider()
+        provider = self.model_provider()
         use_lc_structured_output = (
             self.has_structured_output()
             and provider.structured_output_mode
@@ -116,7 +116,7 @@ class LangchainAdapter(BaseAdapter):
                 )
             output_schema["title"] = "task_response"
             output_schema["description"] = "A response from the task"
-            with_structured_output_options = await self.get_structured_output_options(
+            with_structured_output_options = self.get_structured_output_options(
                 self.model_name, self.model_provider_name
             )
             self._model = self._model.with_structured_output(
@@ -127,35 +127,33 @@ class LangchainAdapter(BaseAdapter):
         return self._model
 
     async def _run(self, input: Dict | str) -> RunOutput:
-        provider = await self.model_provider()
+        provider = self.model_provider()
         model = await self.model()
         chain = model
         intermediate_outputs = {}
 
-        prompt = await self.build_prompt()
+        prompt = self.build_prompt()
         user_msg = self.prompt_builder.build_user_message(input)
         messages = [
             SystemMessage(content=prompt),
             HumanMessage(content=user_msg),
         ]
 
-        # Handle chain of thought if enabled. 3 Modes:
-        # 1. Unstructured output: just call the LLM, with prompting for thinking
-        # 2. "Thinking" LLM designed to output thinking in a structured format: we make 1 call to the LLM, which outputs thinking in a structured format.
-        # 3. Normal LLM with structured output: we make 2 calls to the LLM - one for thinking and one for the final response. This helps us use the LLM's structured output modes (json_schema, tools, etc), which can't be used in a single call.
-        cot_prompt = self.prompt_builder.chain_of_thought_prompt()
-        thinking_llm = provider.reasoning_capable
+        run_strategy, cot_prompt = self.run_strategy()
 
-        if cot_prompt and (not self.has_structured_output() or thinking_llm):
-            # Case 1 or 2: Unstructured output, or "Thinking" LLM designed to output thinking in a structured format
-            messages.append({"role": "system", "content": cot_prompt})
-        elif not thinking_llm and cot_prompt and self.has_structured_output():
-            # Case 3: Normal LLM with structured output
-            # Base model (without structured output) used for COT message
-            base_model = await self.langchain_model_from()
+        if run_strategy == "cot_as_message":
+            if not cot_prompt:
+                raise ValueError("cot_prompt is required for cot_as_message strategy")
+            messages.append(SystemMessage(content=cot_prompt))
+        elif run_strategy == "cot_two_call":
+            if not cot_prompt:
+                raise ValueError("cot_prompt is required for cot_two_call strategy")
             messages.append(
                 SystemMessage(content=cot_prompt),
             )
+
+            # Base model (without structured output) used for COT message
+            base_model = await self.langchain_model_from()
 
             cot_messages = [*messages]
             cot_response = await base_model.ainvoke(cot_messages)
@@ -212,10 +210,10 @@ class LangchainAdapter(BaseAdapter):
             return response["arguments"]
         return response
 
-    async def get_structured_output_options(
+    def get_structured_output_options(
         self, model_name: str, model_provider_name: str
     ) -> Dict[str, Any]:
-        provider = await self.model_provider()
+        provider = self.model_provider()
         if not provider:
             return {}
 
@@ -244,7 +242,7 @@ class LangchainAdapter(BaseAdapter):
         return options
 
     async def langchain_model_from(self) -> BaseChatModel:
-        provider = await self.model_provider()
+        provider = self.model_provider()
         return await langchain_model_from_provider(provider, self.model_name)
 
 

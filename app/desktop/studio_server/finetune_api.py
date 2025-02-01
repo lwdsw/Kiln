@@ -317,7 +317,9 @@ def system_message_from_request(
             )
         try:
             prompt_builder = prompt_builder_from_ui_name(system_message_generator, task)
-            system_message = prompt_builder.build_prompt()
+            system_message = prompt_builder.build_prompt(
+                include_json_instructions=False
+            )
         except Exception as e:
             raise HTTPException(
                 status_code=400,

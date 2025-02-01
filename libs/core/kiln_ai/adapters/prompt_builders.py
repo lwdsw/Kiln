@@ -28,7 +28,7 @@ class BasePromptBuilder(metaclass=ABCMeta):
         """
         return None
 
-    def build_prompt(self, include_json_instructions: bool = False) -> str:
+    def build_prompt(self, include_json_instructions) -> str:
         """Build and return the complete prompt string.
 
         Returns:
@@ -94,7 +94,7 @@ class BasePromptBuilder(metaclass=ABCMeta):
         Returns:
             str: The constructed prompt string.
         """
-        base_prompt = self.build_prompt()
+        base_prompt = self.build_prompt(include_json_instructions=False)
         cot_prompt = self.chain_of_thought_prompt()
         if cot_prompt:
             base_prompt += "\n# Thinking Instructions\n\n" + cot_prompt

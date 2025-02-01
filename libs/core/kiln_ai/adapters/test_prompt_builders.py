@@ -35,7 +35,7 @@ def test_simple_prompt_builder(tmp_path):
     task = build_test_task(tmp_path)
     builder = SimplePromptBuilder(task=task)
     input = "two plus two"
-    prompt = builder.build_prompt()
+    prompt = builder.build_prompt(include_json_instructions=False)
     assert (
         "You are an assistant which performs math tasks provided in plain text."
         in prompt
@@ -66,7 +66,7 @@ def test_simple_prompt_builder_structured_output(tmp_path):
     task = build_structured_output_test_task(tmp_path)
     builder = SimplePromptBuilder(task=task)
     input = "Cows"
-    prompt = builder.build_prompt()
+    prompt = builder.build_prompt(include_json_instructions=False)
     assert "You are an assistant which tells a joke, given a subject." in prompt
 
     user_msg = builder.build_user_message(input)
@@ -210,7 +210,7 @@ def task_with_examples(tmp_path):
 def test_multi_shot_prompt_builder(task_with_examples):
     # Verify the order of examples
     prompt_builder = MultiShotPromptBuilder(task=task_with_examples)
-    prompt = prompt_builder.build_prompt()
+    prompt = prompt_builder.build_prompt(include_json_instructions=False)
     assert "Why did the cow cross the road?" in prompt
     assert prompt.index("Why did the cow cross the road?") < prompt.index(
         "Why don't cats play poker in the jungle?"
@@ -284,7 +284,7 @@ def test_few_shot_prompt_builder(tmp_path):
 
     # Check that only 4 examples are included
     prompt_builder = FewShotPromptBuilder(task=task)
-    prompt = prompt_builder.build_prompt()
+    prompt = prompt_builder.build_prompt(include_json_instructions=False)
     assert prompt.count("## Example") == 4
 
     print("PROMPT", prompt)
@@ -301,7 +301,7 @@ def test_few_shot_prompt_builder(tmp_path):
 
 def check_example_outputs(task: Task, count: int):
     prompt_builder = MultiShotPromptBuilder(task=task)
-    prompt = prompt_builder.build_prompt()
+    prompt = prompt_builder.build_prompt(include_json_instructions=False)
     assert "# Instruction" in prompt
     assert task.instruction in prompt
     if count == 0:
@@ -358,7 +358,7 @@ def test_prompt_builder_from_ui_name(task_with_examples):
     pb = prompt_builder_from_ui_name("id::" + prompt.id, task)
     assert isinstance(pb, SavedPromptBuilder)
     assert pb.prompt_id() == prompt.id
-    assert pb.build_prompt() == "test_prompt"
+    assert pb.build_prompt(include_json_instructions=False) == "test_prompt"
     assert pb.chain_of_thought_prompt() == "coti"
 
 
@@ -370,7 +370,7 @@ def test_example_count():
 def test_repair_multi_shot_prompt_builder(task_with_examples):
     # Verify the order of examples
     prompt_builder = RepairsPromptBuilder(task=task_with_examples)
-    prompt = prompt_builder.build_prompt()
+    prompt = prompt_builder.build_prompt(include_json_instructions=False)
     assert (
         'Repaired Output Which is Sufficient: {"joke": "Why did the cow cross the road? To get to the udder side!"}'
         in prompt
@@ -438,7 +438,7 @@ def test_build_prompt_for_ui(tmp_path):
     ui_prompt = simple_builder.build_prompt_for_ui()
 
     # Should match regular prompt since no chain of thought
-    assert ui_prompt == simple_builder.build_prompt()
+    assert ui_prompt == simple_builder.build_prompt(include_json_instructions=False)
     assert "# Thinking Instructions" not in ui_prompt
 
     # Test chain of thought prompt builder
@@ -446,7 +446,7 @@ def test_build_prompt_for_ui(tmp_path):
     ui_prompt_cot = cot_builder.build_prompt_for_ui()
 
     # Should include both base prompt and thinking instructions
-    assert cot_builder.build_prompt() in ui_prompt_cot
+    assert cot_builder.build_prompt(include_json_instructions=False) in ui_prompt_cot
     assert "# Thinking Instructions" in ui_prompt_cot
     assert "Think step by step" in ui_prompt_cot
 
@@ -458,7 +458,10 @@ def test_build_prompt_for_ui(tmp_path):
     custom_cot_builder = SimpleChainOfThoughtPromptBuilder(task=task_with_custom)
     ui_prompt_custom = custom_cot_builder.build_prompt_for_ui()
 
-    assert custom_cot_builder.build_prompt() in ui_prompt_custom
+    assert (
+        custom_cot_builder.build_prompt(include_json_instructions=False)
+        in ui_prompt_custom
+    )
     assert "# Thinking Instructions" in ui_prompt_custom
     assert custom_instruction in ui_prompt_custom
 
@@ -474,7 +477,7 @@ def test_saved_prompt_builder(tmp_path):
     prompt.save_to_file()
 
     builder = SavedPromptBuilder(task=task, prompt_id=prompt.id)
-    assert builder.build_prompt() == "test_prompt"
+    assert builder.build_prompt(include_json_instructions=False) == "test_prompt"
     assert builder.chain_of_thought_prompt() is None
     assert builder.build_prompt_for_ui() == "test_prompt"
     assert builder.prompt_id() == prompt.id
@@ -492,7 +495,7 @@ def test_saved_prompt_builder_with_chain_of_thought(tmp_path):
     prompt.save_to_file()
 
     builder = SavedPromptBuilder(task=task, prompt_id=prompt.id)
-    assert builder.build_prompt() == "test_prompt"
+    assert builder.build_prompt(include_json_instructions=False) == "test_prompt"
     assert builder.chain_of_thought_prompt() == "Think step by step"
     assert "Think step by step" in builder.build_prompt_for_ui()
     assert builder.prompt_id() == prompt.id
@@ -503,3 +506,46 @@ def test_saved_prompt_builder_not_found(tmp_path):
 
     with pytest.raises(ValueError, match="Prompt ID not found: 123"):
         SavedPromptBuilder(task=task, prompt_id="123")
+
+
+def test_build_prompt_with_json_instructions(tmp_path):
+    task = build_test_task(tmp_path)
+    task = task.model_copy(
+        update={
+            "output_json_schema": json.dumps(
+                {
+                    "type": "object",
+                    "properties": {"result": {"type": "string"}},
+                    "required": ["result"],
+                }
+            )
+        }
+    )
+
+    builder = SimplePromptBuilder(task=task)
+
+    # Test without JSON instructions
+    prompt_without_json = builder.build_prompt(include_json_instructions=False)
+    assert "Format Instructions" not in prompt_without_json
+    assert (
+        "Return a JSON object conforming to the following schema:"
+        not in prompt_without_json
+    )
+    assert task.output_json_schema not in prompt_without_json
+
+    # Test with JSON instructions
+    prompt_with_json = builder.build_prompt(include_json_instructions=True)
+    assert "# Format Instructions" in prompt_with_json
+    assert (
+        "Return a JSON object conforming to the following schema:" in prompt_with_json
+    )
+    assert "```" in prompt_with_json
+    assert (
+        "{'type': 'object', 'properties': {'result': {'type': 'string'}}, 'required': ['result']}"
+        in prompt_with_json
+    )
+
+    # Verify base prompt is still included
+    assert task.instruction in prompt_with_json
+    for requirement in task.requirements:
+        assert requirement.instruction in prompt_with_json
