@@ -1,8 +1,8 @@
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
-from kiln_ai.adapters.ml_model_list import KilnModelProvider
+from kiln_ai.adapters.ml_model_list import KilnModelProvider, StructuredOutputMode
 from kiln_ai.adapters.model_adapters.base_adapter import AdapterInfo, BaseAdapter
 from kiln_ai.datamodel import Task
 
@@ -115,3 +115,41 @@ async def test_model_provider_not_found(adapter):
             match="model_provider_name test_provider not found for model test_model",
         ):
             await adapter.model_provider()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "output_schema,structured_output_mode,expected_json_instructions",
+    [
+        (False, StructuredOutputMode.json_instructions, False),
+        (True, StructuredOutputMode.json_instructions, True),
+        (False, StructuredOutputMode.json_instruction_and_object, False),
+        (True, StructuredOutputMode.json_instruction_and_object, True),
+        (True, StructuredOutputMode.json_mode, False),
+        (False, StructuredOutputMode.json_mode, False),
+    ],
+)
+async def test_prompt_builder_json_instructions(
+    base_task,
+    adapter,
+    output_schema,
+    structured_output_mode,
+    expected_json_instructions,
+):
+    """Test that prompt builder is called with correct include_json_instructions value"""
+    # Mock the prompt builder and has_structured_output method
+    mock_prompt_builder = MagicMock()
+    adapter.prompt_builder = mock_prompt_builder
+    adapter.model_provider_name = "openai"
+    adapter.has_structured_output = MagicMock(return_value=output_schema)
+
+    # provider mock
+    provider = MagicMock()
+    provider.structured_output_mode = structured_output_mode
+    adapter.model_provider = MagicMock(return_value=provider)
+
+    # Test
+    adapter.build_prompt()
+    mock_prompt_builder.build_prompt.assert_called_with(
+        include_json_instructions=expected_json_instructions
+    )
