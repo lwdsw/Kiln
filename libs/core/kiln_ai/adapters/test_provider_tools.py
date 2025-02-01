@@ -11,11 +11,14 @@ from kiln_ai.adapters.ollama_tools import OllamaConnection
 from kiln_ai.adapters.provider_tools import (
     builtin_model_from,
     check_provider_warnings,
+    core_provider,
     finetune_cache,
+    finetune_from_id,
     finetune_provider_model,
     get_model_and_provider,
     kiln_model_provider_from,
     openai_compatible_provider_model,
+    parse_custom_model_id,
     provider_enabled,
     provider_name_from_id,
     provider_options_for_custom_model,
@@ -478,10 +481,6 @@ def test_finetune_provider_model_success(mock_project, mock_task, mock_finetune)
     assert provider.provider_options == {"model": "ft:gpt-3.5-turbo:custom:model-123"}
     assert provider.structured_output_mode == StructuredOutputMode.json_schema
 
-    # Test cache
-    cached_provider = finetune_provider_model(model_id)
-    assert cached_provider is provider
-
 
 def test_finetune_provider_model_invalid_id():
     """Test handling of invalid model ID format"""
@@ -536,27 +535,45 @@ def test_finetune_provider_model_incomplete_finetune(
 
 
 @pytest.mark.parametrize(
-    "structured_output_mode, expected_mode",
+    "structured_output_mode, provider_name, expected_mode",
     [
-        (StructuredOutputMode.json_mode, StructuredOutputMode.json_mode),
-        (StructuredOutputMode.json_schema, StructuredOutputMode.json_schema),
-        (StructuredOutputMode.function_calling, StructuredOutputMode.function_calling),
-        (None, StructuredOutputMode.default),
+        (
+            StructuredOutputMode.json_mode,
+            ModelProviderName.fireworks_ai,
+            StructuredOutputMode.json_mode,
+        ),
+        (
+            StructuredOutputMode.json_schema,
+            ModelProviderName.openai,
+            StructuredOutputMode.json_schema,
+        ),
+        (
+            StructuredOutputMode.function_calling,
+            ModelProviderName.openai,
+            StructuredOutputMode.function_calling,
+        ),
+        (None, ModelProviderName.fireworks_ai, StructuredOutputMode.json_mode),
+        (None, ModelProviderName.openai, StructuredOutputMode.json_schema),
     ],
 )
 def test_finetune_provider_model_structured_mode(
-    mock_project, mock_task, mock_finetune, structured_output_mode, expected_mode
+    mock_project,
+    mock_task,
+    mock_finetune,
+    structured_output_mode,
+    provider_name,
+    expected_mode,
 ):
     """Test creation of provider with different structured output modes"""
     finetune = Mock(spec=Finetune)
-    finetune.provider = ModelProviderName.fireworks_ai
+    finetune.provider = provider_name
     finetune.fine_tune_model_id = "fireworks-model-123"
     finetune.structured_output_mode = structured_output_mode
     mock_finetune.return_value = finetune
 
     provider = finetune_provider_model("project-123::task-456::finetune-789")
 
-    assert provider.name == ModelProviderName.fireworks_ai
+    assert provider.name == provider_name
     assert provider.provider_options == {"model": "fireworks-model-123"}
     assert provider.structured_output_mode == expected_mode
 
@@ -634,3 +651,191 @@ def test_openai_compatible_provider_model_no_base_url(mock_shared_config):
         str(exc_info.value)
         == "OpenAI compatible provider test_provider has no base URL"
     )
+
+
+def test_parse_custom_model_id_valid():
+    """Test parsing a valid custom model ID"""
+    provider_name, model_name = parse_custom_model_id(
+        "openai::gpt-4-turbo-elite-enterprise-editon"
+    )
+    assert provider_name == ModelProviderName.openai
+    assert model_name == "gpt-4-turbo-elite-enterprise-editon"
+
+
+def test_parse_custom_model_id_no_separator():
+    """Test parsing an invalid model ID without separator"""
+    with pytest.raises(ValueError) as exc_info:
+        parse_custom_model_id("invalid-model-id")
+    assert str(exc_info.value) == "Invalid custom model ID: invalid-model-id"
+
+
+def test_parse_custom_model_id_invalid_provider():
+    """Test parsing model ID with invalid provider"""
+    with pytest.raises(ValueError) as exc_info:
+        parse_custom_model_id("invalid_provider::model")
+    assert str(exc_info.value) == "Invalid provider name: invalid_provider"
+
+
+def test_parse_custom_model_id_empty_parts():
+    """Test parsing model ID with empty provider or model name"""
+    with pytest.raises(ValueError) as exc_info:
+        parse_custom_model_id("::model")
+    assert str(exc_info.value) == "Invalid provider name: "
+
+
+def test_core_provider_basic_provider():
+    """Test core_provider with a basic provider that doesn't need mapping"""
+    result = core_provider("gpt-4", ModelProviderName.openai)
+    assert result == ModelProviderName.openai
+
+
+def test_core_provider_custom_registry():
+    """Test core_provider with custom registry provider"""
+    result = core_provider("openai::gpt-4", ModelProviderName.kiln_custom_registry)
+    assert result == ModelProviderName.openai
+
+
+def test_core_provider_finetune():
+    """Test core_provider with fine-tune provider"""
+    model_id = "project-123::task-456::finetune-789"
+
+    with patch(
+        "kiln_ai.adapters.provider_tools.finetune_from_id"
+    ) as mock_finetune_from_id:
+        # Mock the finetune object
+        finetune = Mock(spec=Finetune)
+        finetune.provider = ModelProviderName.openai
+        mock_finetune_from_id.return_value = finetune
+
+        result = core_provider(model_id, ModelProviderName.kiln_fine_tune)
+        assert result == ModelProviderName.openai
+        mock_finetune_from_id.assert_called_once_with(model_id)
+
+
+def test_core_provider_finetune_invalid_provider():
+    """Test core_provider with fine-tune having invalid provider"""
+    model_id = "project-123::task-456::finetune-789"
+
+    with patch(
+        "kiln_ai.adapters.provider_tools.finetune_from_id"
+    ) as mock_finetune_from_id:
+        # Mock finetune with invalid provider
+        finetune = Mock(spec=Finetune)
+        finetune.provider = "invalid_provider"
+        mock_finetune_from_id.return_value = finetune
+
+        with pytest.raises(ValueError) as exc_info:
+            core_provider(model_id, ModelProviderName.kiln_fine_tune)
+        assert (
+            str(exc_info.value)
+            == f"Finetune {model_id} has no underlying provider invalid_provider"
+        )
+        mock_finetune_from_id.assert_called_once_with(model_id)
+
+
+def test_finetune_from_id_success(mock_project, mock_task, mock_finetune):
+    """Test successful retrieval of a finetune model"""
+    model_id = "project-123::task-456::finetune-789"
+
+    # First call should hit the database
+    finetune = finetune_from_id(model_id)
+
+    assert finetune.provider == ModelProviderName.openai
+    assert finetune.fine_tune_model_id == "ft:gpt-3.5-turbo:custom:model-123"
+
+    # Verify mocks were called correctly
+    mock_project.assert_called_once_with("project-123")
+    mock_task.assert_called_once_with("task-456", "/fake/path")
+    mock_finetune.assert_called_once_with("finetune-789", "/fake/path/task")
+
+    # Second call should use cache
+    cached_finetune = finetune_from_id(model_id)
+    assert cached_finetune is finetune
+
+    # Verify no additional disk calls were made
+    mock_project.assert_called_once()
+    mock_task.assert_called_once()
+    mock_finetune.assert_called_once()
+
+
+def test_finetune_from_id_invalid_id():
+    """Test handling of invalid model ID format"""
+    with pytest.raises(ValueError) as exc_info:
+        finetune_from_id("invalid-id-format")
+    assert str(exc_info.value) == "Invalid fine tune ID: invalid-id-format"
+
+
+def test_finetune_from_id_project_not_found(mock_project):
+    """Test handling of non-existent project"""
+    mock_project.return_value = None
+    model_id = "project-123::task-456::finetune-789"
+
+    with pytest.raises(ValueError) as exc_info:
+        finetune_from_id(model_id)
+    assert str(exc_info.value) == "Project project-123 not found"
+
+    # Verify cache was not populated
+    assert model_id not in finetune_cache
+
+
+def test_finetune_from_id_task_not_found(mock_project, mock_task):
+    """Test handling of non-existent task"""
+    mock_task.return_value = None
+    model_id = "project-123::task-456::finetune-789"
+
+    with pytest.raises(ValueError) as exc_info:
+        finetune_from_id(model_id)
+    assert str(exc_info.value) == "Task task-456 not found"
+
+    # Verify cache was not populated
+    assert model_id not in finetune_cache
+
+
+def test_finetune_from_id_finetune_not_found(mock_project, mock_task, mock_finetune):
+    """Test handling of non-existent finetune"""
+    mock_finetune.return_value = None
+    model_id = "project-123::task-456::finetune-789"
+
+    with pytest.raises(ValueError) as exc_info:
+        finetune_from_id(model_id)
+    assert str(exc_info.value) == "Fine tune finetune-789 not found"
+
+    # Verify cache was not populated
+    assert model_id not in finetune_cache
+
+
+def test_finetune_from_id_incomplete_finetune(mock_project, mock_task, mock_finetune):
+    """Test handling of incomplete finetune"""
+    finetune = Mock(spec=Finetune)
+    finetune.fine_tune_model_id = None
+    mock_finetune.return_value = finetune
+    model_id = "project-123::task-456::finetune-789"
+
+    with pytest.raises(ValueError) as exc_info:
+        finetune_from_id(model_id)
+    assert (
+        str(exc_info.value)
+        == "Fine tune finetune-789 not completed. Refresh it's status in the fine-tune tab."
+    )
+
+    # Verify cache was not populated with incomplete finetune
+    assert model_id not in finetune_cache
+
+
+def test_finetune_from_id_cache_hit(mock_project, mock_task, mock_finetune):
+    """Test that cached finetune is returned without database calls"""
+    model_id = "project-123::task-456::finetune-789"
+
+    # Pre-populate cache
+    finetune = Mock(spec=Finetune)
+    finetune.fine_tune_model_id = "ft:gpt-3.5-turbo:custom:model-123"
+    finetune_cache[model_id] = finetune
+
+    # Get finetune from cache
+    result = finetune_from_id(model_id)
+
+    assert result == finetune
+    # Verify no database calls were made
+    mock_project.assert_not_called()
+    mock_task.assert_not_called()
+    mock_finetune.assert_not_called()
