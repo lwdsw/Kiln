@@ -218,13 +218,21 @@ class OpenAICompatibleAdapter(BaseAdapter):
                 return NoReturn
 
     def tool_call_params(self) -> dict[str, Any]:
+        # Add additional_properties: false to the schema (OpenAI requires this for some models)
+        output_schema = self.kiln_task.output_schema()
+        if not isinstance(output_schema, dict):
+            raise ValueError(
+                "Invalid output schema for this task. Can not use tool calls."
+            )
+        output_schema["additionalProperties"] = False
+
         return {
             "tools": [
                 {
                     "type": "function",
                     "function": {
                         "name": "task_response",
-                        "parameters": self.kiln_task.output_schema(),
+                        "parameters": output_schema,
                         "strict": True,
                     },
                 }

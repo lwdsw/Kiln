@@ -10,6 +10,7 @@ from kiln_ai.adapters.model_adapters.openai_model_adapter import (
     OpenAICompatibleConfig,
 )
 from kiln_ai.adapters.prompt_builders import BasePromptBuilder
+from kiln_ai.adapters.provider_tools import core_provider
 from kiln_ai.utils.config import Config
 
 
@@ -20,7 +21,10 @@ def adapter_for_task(
     prompt_builder: BasePromptBuilder | None = None,
     tags: list[str] | None = None,
 ) -> BaseAdapter:
-    match provider:
+    # Get the provider to run. For things like the fine-tune provider, we want to run the underlying provider
+    core_provider_name = core_provider(model_name, provider)
+
+    match core_provider_name:
         case ModelProviderName.openrouter:
             return OpenAICompatibleAdapter(
                 kiln_task=kiln_task,
