@@ -161,18 +161,19 @@ class BaseAdapter(metaclass=ABCMeta):
         self,
     ) -> Tuple[Literal["cot_as_message", "cot_two_call", "basic"], str | None]:
         # Determine the run strategy for COT prompting. 3 options:
-        # 1. Unstructured output: just call the LLM, with prompting for thinking
-        # 2. "Thinking" LLM designed to output thinking in a structured format: we make 1 call to the LLM, which outputs thinking in a structured format.
-        # 3. Normal LLM with structured output: we make 2 calls to the LLM - one for thinking and one for the final response. This helps us use the LLM's structured output modes (json_schema, tools, etc), which can't be used in a single call.
+        # 1. "Thinking" LLM designed to output thinking in a structured format plus a COT prompt: we make 1 call to the LLM, which outputs thinking in a structured format. We include the thinking instuctions as a message.
+        # 2. Normal LLM with COT prompt: we make 2 calls to the LLM - one for thinking and one for the final response. This helps us use the LLM's structured output modes (json_schema, tools, etc), which can't be used in a single call. It also separates the thinking from the final response.
+        # 3. Non chain of thought: we make 1 call to the LLM, with no COT prompt.
         cot_prompt = self.prompt_builder.chain_of_thought_prompt()
-        thinking_llm = self.model_provider().reasoning_capable
+        reasoning_capable = self.model_provider().reasoning_capable
 
-        if cot_prompt and (not self.has_structured_output() or thinking_llm):
-            # Case 1 or 2: Unstructured output or "Thinking" LLM designed to output thinking in a structured format
-            # For these, we add a system message with the thinking instruction to the message list, but then run normally
+        if cot_prompt and reasoning_capable:
+            # 1: "Thinking" LLM designed to output thinking in a structured format
+            # A simple message with the COT prompt appended to the message list is sufficient
             return "cot_as_message", cot_prompt
-        elif not thinking_llm and cot_prompt and self.has_structured_output():
-            # Case 3: Normal LLM with structured output, requires 2 calls
+        elif cot_prompt:
+            # 2: Unstructured output with COT
+            # Two calls to separate the thinking from the final response
             return "cot_two_call", cot_prompt
         else:
             return "basic", None

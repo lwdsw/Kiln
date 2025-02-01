@@ -158,11 +158,11 @@ async def test_prompt_builder_json_instructions(
 @pytest.mark.parametrize(
     "cot_prompt,has_structured_output,reasoning_capable,expected",
     [
-        # Case 1: Unstructured output with COT
-        ("think carefully", False, False, ("cot_as_message", "think carefully")),
-        # Case 2: Structured output with thinking-capable LLM
+        # COT and normal LLM
+        ("think carefully", False, False, ("cot_two_call", "think carefully")),
+        # Structured output with thinking-capable LLM
         ("think carefully", True, True, ("cot_as_message", "think carefully")),
-        # Case 3: Structured output with normal LLM
+        # Structured output with normal LLM
         ("think carefully", True, False, ("cot_two_call", "think carefully")),
         # Basic cases - no COT
         (None, True, True, ("basic", None)),
