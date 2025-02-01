@@ -55,7 +55,7 @@ class DataGenCategoriesTaskInput(BaseModel):
             num_subtopics=num_subtopics,
             human_guidance=human_guidance,
             existing_topics=existing_topics,
-            system_prompt=prompt_builder.build_prompt(),
+            system_prompt=prompt_builder.build_prompt(include_json_instructions=False),
         )
 
 
@@ -132,7 +132,7 @@ class DataGenSampleTaskInput(BaseModel):
             topic=topic,
             num_samples=num_samples,
             human_guidance=human_guidance,
-            system_prompt=prompt_builder.build_prompt(),
+            system_prompt=prompt_builder.build_prompt(include_json_instructions=False),
         )
 
 
