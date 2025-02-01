@@ -64,7 +64,7 @@ def check_provider_warnings(provider_name: ModelProviderName):
             raise ValueError(warning_check.message)
 
 
-async def builtin_model_from(
+def builtin_model_from(
     name: str, provider_name: str | None = None
 ) -> KilnModelProvider | None:
     """
@@ -145,7 +145,7 @@ def parse_custom_model_id(
     return ModelProviderName(provider_name), model_name
 
 
-async def kiln_model_provider_from(
+def kiln_model_provider_from(
     name: str, provider_name: str | None = None
 ) -> KilnModelProvider:
     if provider_name == ModelProviderName.kiln_fine_tune:
@@ -154,7 +154,7 @@ async def kiln_model_provider_from(
     if provider_name == ModelProviderName.openai_compatible:
         return openai_compatible_provider_model(name)
 
-    built_in_model = await builtin_model_from(name, provider_name)
+    built_in_model = builtin_model_from(name, provider_name)
     if built_in_model:
         return built_in_model
 

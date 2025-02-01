@@ -3,7 +3,7 @@
 
 Adapters are used to connect Kiln to external systems, or to add new functionality to Kiln.
 
-Model adapters are used to call AI models, like Ollama, OpenAI, Anthropic, etc.
+Model adapters are used to call AI models, like Ollama, OpenAI, etc.
 
 The ml_model_list submodule contains a list of models that can be used for machine learning tasks. More can easily be added, but we keep a list here of models that are known to work well with Kiln's structured data and tool calling systems.
 

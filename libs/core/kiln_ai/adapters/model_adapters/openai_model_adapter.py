@@ -46,9 +46,9 @@ class OpenAICompatibleAdapter(BaseAdapter):
         )
 
     async def _run(self, input: Dict | str) -> RunOutput:
-        provider = await self.model_provider()
+        provider = self.model_provider()
         intermediate_outputs: dict[str, str] = {}
-        prompt = await self.build_prompt()
+        prompt = self.build_prompt()
         user_msg = self.prompt_builder.build_user_message(input)
         messages = [
             ChatCompletionSystemMessageParam(role="system", content=prompt),
@@ -176,7 +176,7 @@ class OpenAICompatibleAdapter(BaseAdapter):
         if not self.has_structured_output():
             return {}
 
-        provider = await self.model_provider()
+        provider = self.model_provider()
         match provider.structured_output_mode:
             case StructuredOutputMode.json_mode:
                 return {"response_format": {"type": "json_object"}}

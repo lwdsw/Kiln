@@ -52,7 +52,7 @@ async def test_model_provider_uses_cache(adapter, mock_provider):
     with patch(
         "kiln_ai.adapters.model_adapters.base_adapter.kiln_model_provider_from"
     ) as mock_loader:
-        provider = await adapter.model_provider()
+        provider = adapter.model_provider()
 
         assert provider == mock_provider
         mock_loader.assert_not_called()
@@ -70,13 +70,13 @@ async def test_model_provider_loads_and_caches(adapter, mock_provider):
         mock_loader.return_value = mock_provider
 
         # First call should load and cache
-        provider1 = await adapter.model_provider()
+        provider1 = adapter.model_provider()
         assert provider1 == mock_provider
         mock_loader.assert_called_once_with("test_model", "test_provider")
 
         # Second call should use cache
         mock_loader.reset_mock()
-        provider2 = await adapter.model_provider()
+        provider2 = adapter.model_provider()
         assert provider2 == mock_provider
         mock_loader.assert_not_called()
 

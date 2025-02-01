@@ -318,7 +318,7 @@ async def test_kiln_model_provider_from_custom_model_valid(mock_config):
     # Mock config to pass provider warnings check
     mock_config.return_value = "fake-api-key"
 
-    provider = await kiln_model_provider_from("custom_model", ModelProviderName.openai)
+    provider = kiln_model_provider_from("custom_model", ModelProviderName.openai)
 
     assert provider.name == ModelProviderName.openai
     assert provider.supports_structured_output is False
@@ -385,7 +385,7 @@ async def test_kiln_model_provider_from_custom_registry(mock_config):
     mock_config.return_value = "fake-api-key"
 
     # Test with a custom registry model ID in format "provider::model_name"
-    provider = await kiln_model_provider_from(
+    provider = kiln_model_provider_from(
         "openai::gpt-4-turbo", ModelProviderName.kiln_custom_registry
     )
 
@@ -399,7 +399,7 @@ async def test_kiln_model_provider_from_custom_registry(mock_config):
 @pytest.mark.asyncio
 async def test_builtin_model_from_invalid_model():
     """Test that an invalid model name returns None"""
-    result = await builtin_model_from("non_existent_model")
+    result = builtin_model_from("non_existent_model")
     assert result is None
 
 
@@ -408,7 +408,7 @@ async def test_builtin_model_from_valid_model_default_provider(mock_config):
     """Test getting a valid model with default provider"""
     mock_config.return_value = "fake-api-key"
 
-    provider = await builtin_model_from(ModelName.phi_3_5)
+    provider = builtin_model_from(ModelName.phi_3_5)
 
     assert provider is not None
     assert provider.name == ModelProviderName.ollama
@@ -420,7 +420,7 @@ async def test_builtin_model_from_valid_model_specific_provider(mock_config):
     """Test getting a valid model with specific provider"""
     mock_config.return_value = "fake-api-key"
 
-    provider = await builtin_model_from(
+    provider = builtin_model_from(
         ModelName.llama_3_1_70b, provider_name=ModelProviderName.groq
     )
 
@@ -434,9 +434,7 @@ async def test_builtin_model_from_invalid_provider(mock_config):
     """Test that requesting an invalid provider returns None"""
     mock_config.return_value = "fake-api-key"
 
-    provider = await builtin_model_from(
-        ModelName.phi_3_5, provider_name="invalid_provider"
-    )
+    provider = builtin_model_from(ModelName.phi_3_5, provider_name="invalid_provider")
 
     assert provider is None
 

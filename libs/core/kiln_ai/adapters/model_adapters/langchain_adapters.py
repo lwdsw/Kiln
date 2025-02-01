@@ -94,7 +94,7 @@ class LangchainAdapter(BaseAdapter):
         # Decide if we want to use Langchain's structured output:
         # 1. Only for structured tasks
         # 2. Only if the provider's mode isn't json_instructions (only mode that doesn't use an API option for structured output capabilities)
-        provider = await self.model_provider()
+        provider = self.model_provider()
         use_lc_structured_output = (
             self.has_structured_output()
             and provider.structured_output_mode
@@ -116,7 +116,7 @@ class LangchainAdapter(BaseAdapter):
                 )
             output_schema["title"] = "task_response"
             output_schema["description"] = "A response from the task"
-            with_structured_output_options = await self.get_structured_output_options(
+            with_structured_output_options = self.get_structured_output_options(
                 self.model_name, self.model_provider_name
             )
             self._model = self._model.with_structured_output(
@@ -127,12 +127,12 @@ class LangchainAdapter(BaseAdapter):
         return self._model
 
     async def _run(self, input: Dict | str) -> RunOutput:
-        provider = await self.model_provider()
+        provider = self.model_provider()
         model = await self.model()
         chain = model
         intermediate_outputs = {}
 
-        prompt = await self.build_prompt()
+        prompt = self.build_prompt()
         user_msg = self.prompt_builder.build_user_message(input)
         messages = [
             SystemMessage(content=prompt),
@@ -212,10 +212,10 @@ class LangchainAdapter(BaseAdapter):
             return response["arguments"]
         return response
 
-    async def get_structured_output_options(
+    def get_structured_output_options(
         self, model_name: str, model_provider_name: str
     ) -> Dict[str, Any]:
-        provider = await self.model_provider()
+        provider = self.model_provider()
         if not provider:
             return {}
 
@@ -244,7 +244,7 @@ class LangchainAdapter(BaseAdapter):
         return options
 
     async def langchain_model_from(self) -> BaseChatModel:
-        provider = await self.model_provider()
+        provider = self.model_provider()
         return await langchain_model_from_provider(provider, self.model_name)
 
 

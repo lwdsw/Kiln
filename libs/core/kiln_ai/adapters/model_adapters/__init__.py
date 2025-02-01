@@ -1,7 +1,7 @@
 """
 # Model Adapters
 
-Model adapters are used to call AI models, like Ollama, OpenAI, Anthropic, etc.
+Model adapters are used to call AI models, like Ollama, OpenAI, etc.
 
 """
 

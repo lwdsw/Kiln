@@ -155,9 +155,9 @@ async def test_get_structured_output_options(
     mock_provider.structured_output_mode = structured_output_mode
 
     # Mock adapter.model_provider()
-    mock_adapter.model_provider = AsyncMock(return_value=mock_provider)
+    mock_adapter.model_provider = MagicMock(return_value=mock_provider)
 
-    options = await mock_adapter.get_structured_output_options("model_name", "provider")
+    options = mock_adapter.get_structured_output_options("model_name", "provider")
     assert options.get("method") == expected_method
 
 
@@ -279,7 +279,7 @@ async def test_langchain_adapter_model_structured_output(tmp_path):
     adapter = LangchainAdapter(
         kiln_task=task, model_name="test_model", provider="ollama"
     )
-    adapter.get_structured_output_options = AsyncMock(
+    adapter.get_structured_output_options = MagicMock(
         return_value={"option1": "value1"}
     )
     adapter.langchain_model_from = AsyncMock(return_value=mock_model)

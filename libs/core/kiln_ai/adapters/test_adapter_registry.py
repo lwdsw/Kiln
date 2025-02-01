@@ -170,7 +170,7 @@ async def test_fine_tune_provider(mock_config, basic_task, mock_finetune_from_id
     # Kiln model name here, but the underlying openai model id below
     assert adapter.config.model_name == "proj::task::tune"
 
-    provider = await kiln_model_provider_from(
+    provider = kiln_model_provider_from(
         "proj::task::tune", provider_name=ModelProviderName.kiln_fine_tune
     )
     # The actual model name from the fine tune object

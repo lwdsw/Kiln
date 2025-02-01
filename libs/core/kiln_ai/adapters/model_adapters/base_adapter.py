@@ -59,7 +59,7 @@ class BaseAdapter(metaclass=ABCMeta):
         self.model_provider_name = model_provider_name
         self._model_provider: KilnModelProvider | None = None
 
-    async def model_provider(self) -> KilnModelProvider:
+    def model_provider(self) -> KilnModelProvider:
         """
         Lazy load the model provider for this adapter.
         """
@@ -67,7 +67,7 @@ class BaseAdapter(metaclass=ABCMeta):
             return self._model_provider
         if not self.model_name or not self.model_provider_name:
             raise ValueError("model_name and model_provider_name must be provided")
-        self._model_provider = await kiln_model_provider_from(
+        self._model_provider = kiln_model_provider_from(
             self.model_name, self.model_provider_name
         )
         if not self._model_provider:
@@ -102,7 +102,7 @@ class BaseAdapter(metaclass=ABCMeta):
         run_output = await self._run(input)
 
         # Parse
-        provider = await self.model_provider()
+        provider = self.model_provider()
         parser = model_parser_from_id(provider.parser)(
             structured_output=self.has_structured_output()
         )
@@ -144,9 +144,9 @@ class BaseAdapter(metaclass=ABCMeta):
     async def _run(self, input: Dict | str) -> RunOutput:
         pass
 
-    async def build_prompt(self) -> str:
+    def build_prompt(self) -> str:
         # The prompt builder needs to know if we want to inject formatting instructions
-        provider = await self.model_provider()
+        provider = self.model_provider()
         add_json_instructions = self.has_structured_output() and (
             provider.structured_output_mode == StructuredOutputMode.json_instructions
             or provider.structured_output_mode
