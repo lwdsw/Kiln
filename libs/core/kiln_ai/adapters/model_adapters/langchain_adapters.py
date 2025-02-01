@@ -10,7 +10,6 @@ from langchain_core.runnables import Runnable
 from langchain_fireworks import ChatFireworks
 from langchain_groq import ChatGroq
 from langchain_ollama import ChatOllama
-from langchain_openai import ChatOpenAI
 from pydantic import BaseModel
 
 import kiln_ai.datamodel as datamodel
@@ -256,8 +255,8 @@ async def langchain_model_from_provider(
         # We use the OpenAICompatibleAdapter for OpenAI
         raise ValueError("OpenAI is not supported in Langchain adapter")
     elif provider.name == ModelProviderName.openai_compatible:
-        # See provider_tools.py for how base_url, key and other parameters are set
-        return ChatOpenAI(**provider.provider_options)  # type: ignore[arg-type]
+        # We use the OpenAICompatibleAdapter for OpenAI compatible
+        raise ValueError("OpenAI compatible is not supported in Langchain adapter")
     elif provider.name == ModelProviderName.groq:
         api_key = Config.shared().groq_api_key
         if api_key is None:
