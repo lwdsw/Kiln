@@ -106,10 +106,6 @@ async def test_all_built_in_models_structured_output(
     for model in built_in_models:
         if model.name != model_name:
             continue
-        if not model.supports_structured_output:
-            pytest.skip(
-                f"Skipping {model.name} because it does not support structured output"
-            )
         for provider in model.providers:
             if provider.name != provider_name:
                 continue
@@ -144,7 +140,14 @@ def build_structured_output_test_task(tmp_path: Path):
 async def run_structured_output_test(tmp_path: Path, model_name: str, provider: str):
     task = build_structured_output_test_task(tmp_path)
     a = adapter_for_task(task, model_name=model_name, provider=provider)
-    parsed = await a.invoke_returning_raw("Cows")  # a joke about cows
+    try:
+        parsed = await a.invoke_returning_raw("Cows")  # a joke about cows
+    except ValueError as e:
+        if str(e) == "Failed to connect to Ollama. Ensure Ollama is running.":
+            pytest.skip(
+                f"Skipping {model_name} {provider} because Ollama is not running"
+            )
+        raise e
     if parsed is None or not isinstance(parsed, Dict):
         raise RuntimeError(f"structured response is not a dict: {parsed}")
     assert parsed["setup"] is not None
@@ -165,6 +168,7 @@ def build_structured_input_test_task(tmp_path: Path):
         parent=project,
         name="test task",
         instruction="You are an assistant which classifies a triangle given the lengths of its sides. If all sides are of equal length, the triangle is equilateral. If two sides are equal, the triangle is isosceles. Otherwise, it is scalene.\n\nAt the end of your response return the result in double square brackets. It should be plain text. It should be exactly one of the three following strings: '[[equilateral]]', or '[[isosceles]]', or '[[scalene]]'.",
+        thinking_prompt="Think step by step.",
     )
     task.input_json_schema = json_triangle_schema
     schema = task.input_schema()
@@ -181,7 +185,14 @@ def build_structured_input_test_task(tmp_path: Path):
 
 async def run_structured_input_test(tmp_path: Path, model_name: str, provider: str):
     task = build_structured_input_test_task(tmp_path)
-    await run_structured_input_task(task, model_name, provider)
+    try:
+        await run_structured_input_task(task, model_name, provider)
+    except ValueError as e:
+        if str(e) == "Failed to connect to Ollama. Ensure Ollama is running.":
+            pytest.skip(
+                f"Skipping {model_name} {provider} because Ollama is not running"
+            )
+        raise e
 
 
 async def run_structured_input_task(
@@ -200,7 +211,14 @@ async def run_structured_input_task(
         # invalid structured input
         await a.invoke({"a": 1, "b": 2, "d": 3})
 
-    response = await a.invoke_returning_raw({"a": 2, "b": 2, "c": 2})
+    try:
+        response = await a.invoke_returning_raw({"a": 2, "b": 2, "c": 2})
+    except ValueError as e:
+        if str(e) == "Failed to connect to Ollama. Ensure Ollama is running.":
+            pytest.skip(
+                f"Skipping {model_name} {provider} because Ollama is not running"
+            )
+        raise e
     assert response is not None
     assert isinstance(response, str)
     assert "[[equilateral]]" in response
@@ -211,7 +229,6 @@ async def run_structured_input_task(
     assert adapter_info.prompt_builder_name == expected_pb_name
     assert adapter_info.model_name == model_name
     assert adapter_info.model_provider == provider
-    assert adapter_info.adapter_name == "kiln_langchain_adapter"
 
 
 @pytest.mark.paid

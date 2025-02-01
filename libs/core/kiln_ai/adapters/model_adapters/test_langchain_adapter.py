@@ -128,7 +128,7 @@ async def test_langchain_adapter_with_cot(tmp_path):
     invoke_args = mock_model_instance.ainvoke.call_args[0][0]
     assert isinstance(invoke_args[3], AIMessage)
     assert "Chain of thought reasoning..." in invoke_args[3].content
-    assert isinstance(invoke_args[4], SystemMessage)
+    assert isinstance(invoke_args[4], HumanMessage)
     assert "Considering the above, return a final result." in invoke_args[4].content
 
     assert (

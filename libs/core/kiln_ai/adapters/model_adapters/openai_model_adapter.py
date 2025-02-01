@@ -84,8 +84,8 @@ class OpenAICompatibleAdapter(BaseAdapter):
                     ChatCompletionAssistantMessageParam(
                         role="assistant", content=cot_content
                     ),
-                    ChatCompletionSystemMessageParam(
-                        role="system",
+                    ChatCompletionUserMessageParam(
+                        role="user",
                         content="Considering the above, return a final result.",
                     ),
                 ]

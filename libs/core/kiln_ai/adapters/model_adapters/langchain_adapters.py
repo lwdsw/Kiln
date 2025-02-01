@@ -160,7 +160,7 @@ class LangchainAdapter(BaseAdapter):
             intermediate_outputs["chain_of_thought"] = cot_response.content
             messages.append(AIMessage(content=cot_response.content))
             messages.append(
-                SystemMessage(content="Considering the above, return a final result.")
+                HumanMessage(content="Considering the above, return a final result.")
             )
 
         response = await chain.ainvoke(messages)
