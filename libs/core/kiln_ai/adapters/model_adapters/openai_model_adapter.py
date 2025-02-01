@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from typing import Any, Dict, NoReturn
 
 from openai import AsyncOpenAI
@@ -17,17 +16,10 @@ from kiln_ai.adapters.model_adapters.base_adapter import (
     BasePromptBuilder,
     RunOutput,
 )
+from kiln_ai.adapters.model_adapters.openai_compatible_config import (
+    OpenAICompatibleConfig,
+)
 from kiln_ai.adapters.parsers.json_parser import parse_json_string
-
-
-@dataclass
-class OpenAICompatibleConfig:
-    api_key: str
-    model_name: str
-    provider_name: str
-    base_url: str | None = None  # Defaults to OpenAI
-    default_headers: dict[str, str] | None = None
-    openrouter_style_reasoning: bool = False
 
 
 class OpenAICompatibleAdapter(BaseAdapter):

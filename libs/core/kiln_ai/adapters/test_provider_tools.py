@@ -17,6 +17,7 @@ from kiln_ai.adapters.provider_tools import (
     finetune_provider_model,
     get_model_and_provider,
     kiln_model_provider_from,
+    openai_compatible_config,
     openai_compatible_provider_model,
     parse_custom_model_id,
     provider_enabled,
@@ -578,6 +579,18 @@ def test_finetune_provider_model_structured_mode(
     assert provider.structured_output_mode == expected_mode
 
 
+def test_openai_compatible_provider_config(mock_shared_config):
+    """Test successful creation of an OpenAI compatible provider"""
+    model_id = "test_provider::gpt-4"
+
+    config = openai_compatible_config(model_id)
+
+    assert config.provider_name == ModelProviderName.openai_compatible
+    assert config.model_name == "gpt-4"
+    assert config.api_key == "test-key"
+    assert config.base_url == "https://api.test.com"
+
+
 def test_openai_compatible_provider_model_success(mock_shared_config):
     """Test successful creation of an OpenAI compatible provider"""
     model_id = "test_provider::gpt-4"
@@ -586,57 +599,53 @@ def test_openai_compatible_provider_model_success(mock_shared_config):
 
     assert provider.name == ModelProviderName.openai_compatible
     assert provider.provider_options == {
-        "model": "gpt-4",
-        "api_key": "test-key",
-        "openai_api_base": "https://api.test.com",
+        "model": model_id,
     }
     assert provider.supports_structured_output is False
     assert provider.supports_data_gen is False
     assert provider.untested_model is True
 
 
-def test_openai_compatible_provider_model_no_api_key(mock_shared_config):
+def test_openai_compatible_config_no_api_key(mock_shared_config):
     """Test provider creation without API key (should work as some providers don't require it)"""
     model_id = "no_key_provider::gpt-4"
 
-    provider = openai_compatible_provider_model(model_id)
+    config = openai_compatible_config(model_id)
 
-    assert provider.name == ModelProviderName.openai_compatible
-    assert provider.provider_options == {
-        "model": "gpt-4",
-        "api_key": None,
-        "openai_api_base": "https://api.nokey.com",
-    }
+    assert config.provider_name == ModelProviderName.openai_compatible
+    assert config.model_name == "gpt-4"
+    assert config.api_key is None
+    assert config.base_url == "https://api.nokey.com"
 
 
-def test_openai_compatible_provider_model_invalid_id():
+def test_openai_compatible_config_invalid_id():
     """Test handling of invalid model ID format"""
     with pytest.raises(ValueError) as exc_info:
-        openai_compatible_provider_model("invalid-id-format")
+        openai_compatible_config("invalid-id-format")
     assert (
         str(exc_info.value) == "Invalid openai compatible model ID: invalid-id-format"
     )
 
 
-def test_openai_compatible_provider_model_no_providers(mock_shared_config):
+def test_openai_compatible_config_no_providers(mock_shared_config):
     """Test handling when no providers are configured"""
     mock_shared_config.return_value.openai_compatible_providers = None
 
     with pytest.raises(ValueError) as exc_info:
-        openai_compatible_provider_model("test_provider::gpt-4")
+        openai_compatible_config("test_provider::gpt-4")
     assert str(exc_info.value) == "OpenAI compatible provider test_provider not found"
 
 
-def test_openai_compatible_provider_model_provider_not_found(mock_shared_config):
+def test_openai_compatible_config_provider_not_found(mock_shared_config):
     """Test handling of non-existent provider"""
     with pytest.raises(ValueError) as exc_info:
-        openai_compatible_provider_model("unknown_provider::gpt-4")
+        openai_compatible_config("unknown_provider::gpt-4")
     assert (
         str(exc_info.value) == "OpenAI compatible provider unknown_provider not found"
     )
 
 
-def test_openai_compatible_provider_model_no_base_url(mock_shared_config):
+def test_openai_compatible_config_no_base_url(mock_shared_config):
     """Test handling of provider without base URL"""
     mock_shared_config.return_value.openai_compatible_providers = [
         {
@@ -646,7 +655,7 @@ def test_openai_compatible_provider_model_no_base_url(mock_shared_config):
     ]
 
     with pytest.raises(ValueError) as exc_info:
-        openai_compatible_provider_model("test_provider::gpt-4")
+        openai_compatible_config("test_provider::gpt-4")
     assert (
         str(exc_info.value)
         == "OpenAI compatible provider test_provider has no base URL"

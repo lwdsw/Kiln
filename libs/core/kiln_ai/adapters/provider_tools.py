@@ -9,6 +9,9 @@ from kiln_ai.adapters.ml_model_list import (
     StructuredOutputMode,
     built_in_models,
 )
+from kiln_ai.adapters.model_adapters.openai_compatible_config import (
+    OpenAICompatibleConfig,
+)
 from kiln_ai.adapters.ollama_tools import (
     get_ollama_connection,
 )
@@ -175,9 +178,9 @@ async def kiln_model_provider_from(
     )
 
 
-def openai_compatible_provider_model(
+def openai_compatible_config(
     model_id: str,
-) -> KilnModelProvider:
+) -> OpenAICompatibleConfig:
     try:
         openai_provider_name, model_id = model_id.split("::")
     except Exception:
@@ -201,12 +204,21 @@ def openai_compatible_provider_model(
             f"OpenAI compatible provider {openai_provider_name} has no base URL"
         )
 
+    return OpenAICompatibleConfig(
+        api_key=api_key,
+        model_name=model_id,
+        provider_name=ModelProviderName.openai_compatible,
+        base_url=base_url,
+    )
+
+
+def openai_compatible_provider_model(
+    model_id: str,
+) -> KilnModelProvider:
     return KilnModelProvider(
         name=ModelProviderName.openai_compatible,
         provider_options={
             "model": model_id,
-            "api_key": api_key,
-            "openai_api_base": base_url,
         },
         supports_structured_output=False,
         supports_data_gen=False,

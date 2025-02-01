@@ -10,7 +10,7 @@ from kiln_ai.adapters.model_adapters.openai_model_adapter import (
     OpenAICompatibleConfig,
 )
 from kiln_ai.adapters.prompt_builders import BasePromptBuilder
-from kiln_ai.adapters.provider_tools import core_provider
+from kiln_ai.adapters.provider_tools import core_provider, openai_compatible_config
 from kiln_ai.utils.config import Config
 
 
@@ -54,9 +54,15 @@ def adapter_for_task(
                 prompt_builder=prompt_builder,
                 tags=tags,
             )
-        # Use LangchainAdapter for the rest
         case ModelProviderName.openai_compatible:
-            pass
+            config = openai_compatible_config(model_name)
+            return OpenAICompatibleAdapter(
+                kiln_task=kiln_task,
+                config=config,
+                prompt_builder=prompt_builder,
+                tags=tags,
+            )
+        # Use LangchainAdapter for the rest
         case ModelProviderName.groq:
             pass
         case ModelProviderName.amazon_bedrock:

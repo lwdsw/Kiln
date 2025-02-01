@@ -7,7 +7,6 @@ from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langchain_fireworks import ChatFireworks
 from langchain_groq import ChatGroq
 from langchain_ollama import ChatOllama
-from langchain_openai import ChatOpenAI
 
 from kiln_ai.adapters.ml_model_list import (
     KilnModelProvider,
