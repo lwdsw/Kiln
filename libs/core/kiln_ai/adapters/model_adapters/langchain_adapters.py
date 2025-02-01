@@ -144,15 +144,16 @@ class LangchainAdapter(BaseAdapter):
         if run_strategy == "cot_as_message":
             if not cot_prompt:
                 raise ValueError("cot_prompt is required for cot_as_message strategy")
-            messages.append({"role": "system", "content": cot_prompt})
+            messages.append(SystemMessage(content=cot_prompt))
         elif run_strategy == "cot_two_call":
             if not cot_prompt:
                 raise ValueError("cot_prompt is required for cot_two_call strategy")
-            # Base model (without structured output) used for COT message
-            base_model = await self.langchain_model_from()
             messages.append(
                 SystemMessage(content=cot_prompt),
             )
+
+            # Base model (without structured output) used for COT message
+            base_model = await self.langchain_model_from()
 
             cot_messages = [*messages]
             cot_response = await base_model.ainvoke(cot_messages)
