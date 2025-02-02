@@ -309,6 +309,7 @@ built_in_models: List[KilnModel] = [
             KilnModelProvider(
                 name=ModelProviderName.amazon_bedrock,
                 structured_output_mode=StructuredOutputMode.json_schema,
+                supports_data_gen=False,
                 provider_options={
                     "model": "meta.llama3-1-8b-instruct-v1:0",
                     "region_name": "us-west-2",  # Llama 3.1 only in west-2
@@ -324,6 +325,7 @@ built_in_models: List[KilnModel] = [
             ),
             KilnModelProvider(
                 name=ModelProviderName.openrouter,
+                supports_data_gen=False,
                 structured_output_mode=StructuredOutputMode.function_calling,
                 provider_options={"model": "meta-llama/llama-3.1-8b-instruct"},
             ),
@@ -351,6 +353,7 @@ built_in_models: List[KilnModel] = [
             KilnModelProvider(
                 name=ModelProviderName.amazon_bedrock,
                 structured_output_mode=StructuredOutputMode.json_schema,
+                supports_data_gen=False,
                 provider_options={
                     "model": "meta.llama3-1-70b-instruct-v1:0",
                     "region_name": "us-west-2",  # Llama 3.1 only in west-2
@@ -358,6 +361,7 @@ built_in_models: List[KilnModel] = [
             ),
             KilnModelProvider(
                 name=ModelProviderName.openrouter,
+                supports_data_gen=False,
                 structured_output_mode=StructuredOutputMode.function_calling,
                 provider_options={"model": "meta-llama/llama-3.1-70b-instruct"},
             ),
@@ -614,6 +618,7 @@ built_in_models: List[KilnModel] = [
                 name=ModelProviderName.fireworks_ai,
                 # No finetune support. https://docs.fireworks.ai/fine-tuning/fine-tuning-models
                 structured_output_mode=StructuredOutputMode.json_mode,
+                supports_data_gen=False,
                 provider_options={
                     "model": "accounts/fireworks/models/phi-3-vision-128k-instruct"
                 },
@@ -709,6 +714,7 @@ built_in_models: List[KilnModel] = [
             KilnModelProvider(
                 name=ModelProviderName.openrouter,
                 provider_options={"model": "mistralai/mixtral-8x7b-instruct"},
+                supports_data_gen=False,
                 structured_output_mode=StructuredOutputMode.json_instruction_and_object,
             ),
             KilnModelProvider(

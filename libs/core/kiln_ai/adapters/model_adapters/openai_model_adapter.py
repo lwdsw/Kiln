@@ -84,8 +84,8 @@ class OpenAICompatibleAdapter(BaseAdapter):
                     ChatCompletionAssistantMessageParam(
                         role="assistant", content=cot_content
                     ),
-                    ChatCompletionSystemMessageParam(
-                        role="system",
+                    ChatCompletionUserMessageParam(
+                        role="user",
                         content="Considering the above, return a final result.",
                     ),
                 ]
@@ -113,7 +113,7 @@ class OpenAICompatibleAdapter(BaseAdapter):
 
         if hasattr(response, "error") and response.error:  # pyright: ignore
             raise RuntimeError(
-                f"OpenAI compatible API returned status code {response.error.get('code')}: {response.error.get('message') or 'Unknown error'}."  # pyright: ignore
+                f"OpenAI compatible API returned status code {response.error.get('code')}: {response.error.get('message') or 'Unknown error'}.\nError: {response.error}"  # pyright: ignore
             )
         if not response.choices or len(response.choices) == 0:
             raise RuntimeError(
