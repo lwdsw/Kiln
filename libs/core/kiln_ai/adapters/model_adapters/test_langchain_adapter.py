@@ -144,6 +144,7 @@ async def test_langchain_adapter_with_cot(tmp_path):
         (StructuredOutputMode.function_calling, "function_calling"),
         (StructuredOutputMode.json_mode, "json_mode"),
         (StructuredOutputMode.json_schema, "json_schema"),
+        (StructuredOutputMode.json_instruction_and_object, "json_mode"),
         (StructuredOutputMode.default, None),
     ],
 )

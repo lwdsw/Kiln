@@ -16,7 +16,7 @@ def test_model_parser_from_id_invalid():
     with pytest.raises(ValueError) as exc_info:
         model_parser_from_id(MockModelParserID.mock_value)  # type: ignore
 
-    assert "Unhandled enum value for parser ID" in str(exc_info.value)
+    assert "Unhandled enum value" in str(exc_info.value)
 
 
 @pytest.mark.parametrize(

@@ -1,5 +1,5 @@
 import os
-from typing import Any, Dict, NoReturn
+from typing import Any, Dict
 
 from langchain_aws import ChatBedrockConverse
 from langchain_core.language_models import LanguageModelInput
@@ -30,6 +30,7 @@ from kiln_ai.adapters.ollama_tools import (
     ollama_model_installed,
 )
 from kiln_ai.utils.config import Config
+from kiln_ai.utils.exhaustive_error import raise_exhaustive_enum_error
 
 LangChainModelType = BaseChatModel | Runnable[LanguageModelInput, Dict | BaseModel]
 
@@ -224,6 +225,9 @@ class LangchainAdapter(BaseAdapter):
                 options["method"] = "function_calling"
             case StructuredOutputMode.json_mode:
                 options["method"] = "json_mode"
+            case StructuredOutputMode.json_instruction_and_object:
+                # We also pass instructions
+                options["method"] = "json_mode"
             case StructuredOutputMode.json_schema:
                 options["method"] = "json_schema"
             case StructuredOutputMode.json_instructions:
@@ -233,11 +237,7 @@ class LangchainAdapter(BaseAdapter):
                 # Let langchain decide the default
                 pass
             case _:
-                raise ValueError(
-                    f"Unhandled enum value: {provider.structured_output_mode}"
-                )
-                # triggers pyright warning if I miss a case
-                return NoReturn
+                raise_exhaustive_enum_error(provider.structured_output_mode)
 
         return options
 

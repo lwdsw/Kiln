@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Dict, List, NoReturn
+from typing import Dict, List
 
 from kiln_ai.adapters.ml_model_list import (
     KilnModel,
@@ -18,6 +18,7 @@ from kiln_ai.adapters.ollama_tools import (
 from kiln_ai.datamodel import Finetune, Task
 from kiln_ai.datamodel.registry import project_from_id
 from kiln_ai.utils.config import Config
+from kiln_ai.utils.exhaustive_error import raise_exhaustive_enum_error
 
 
 async def provider_enabled(provider_name: ModelProviderName) -> bool:
@@ -332,7 +333,7 @@ def provider_name_from_id(id: str) -> str:
                 return "OpenAI Compatible"
             case _:
                 # triggers pyright warning if I miss a case
-                raise_exhaustive_error(enum_id)
+                raise_exhaustive_enum_error(enum_id)
 
     return "Unknown provider: " + id
 
@@ -374,14 +375,10 @@ def provider_options_for_custom_model(
             )
         case _:
             # triggers pyright warning if I miss a case
-            raise_exhaustive_error(enum_id)
+            raise_exhaustive_enum_error(enum_id)
 
     # Won't reach this, type checking will catch missed values
     return {"model": model_name}
-
-
-def raise_exhaustive_error(value: NoReturn) -> NoReturn:
-    raise ValueError(f"Unhandled enum value: {value}")
 
 
 @dataclass

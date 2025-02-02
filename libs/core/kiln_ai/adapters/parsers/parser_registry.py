@@ -1,8 +1,9 @@
-from typing import NoReturn, Type
+from typing import Type
 
 from kiln_ai.adapters.ml_model_list import ModelParserID
 from kiln_ai.adapters.parsers.base_parser import BaseParser
 from kiln_ai.adapters.parsers.r1_parser import R1ThinkingParser
+from kiln_ai.utils.exhaustive_error import raise_exhaustive_enum_error
 
 
 def model_parser_from_id(parser_id: ModelParserID | None) -> Type[BaseParser]:
@@ -15,8 +16,4 @@ def model_parser_from_id(parser_id: ModelParserID | None) -> Type[BaseParser]:
         case ModelParserID.r1_thinking:
             return R1ThinkingParser
         case _:
-            # triggers pyright warning if I miss a case
-            raise ValueError(
-                f"Unhandled enum value for parser ID. You may need to update Kiln to work with this project. Value: {parser_id}"
-            )
-            return NoReturn
+            raise_exhaustive_enum_error(parser_id)

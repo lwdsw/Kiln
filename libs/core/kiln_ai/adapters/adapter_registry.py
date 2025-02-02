@@ -1,5 +1,4 @@
 from os import getenv
-from typing import NoReturn
 
 from kiln_ai import datamodel
 from kiln_ai.adapters.ml_model_list import ModelProviderName
@@ -12,6 +11,7 @@ from kiln_ai.adapters.model_adapters.openai_model_adapter import (
 from kiln_ai.adapters.prompt_builders import BasePromptBuilder
 from kiln_ai.adapters.provider_tools import core_provider, openai_compatible_config
 from kiln_ai.utils.config import Config
+from kiln_ai.utils.exhaustive_error import raise_exhaustive_enum_error
 
 
 def adapter_for_task(
@@ -81,9 +81,7 @@ def adapter_for_task(
                 "Custom openai compatible provider is not a supported core provider. It should map to an actual provider."
             )
         case _:
-            raise ValueError(f"Unsupported provider: {provider}")
-            # Triggers typechecking if I miss a case
-            return NoReturn
+            raise_exhaustive_enum_error(core_provider_name)
 
     # We use langchain for all others right now, but moving off it as we touch anything.
     return LangchainAdapter(

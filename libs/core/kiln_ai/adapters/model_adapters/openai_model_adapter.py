@@ -1,4 +1,4 @@
-from typing import Any, Dict, NoReturn
+from typing import Any, Dict
 
 from openai import AsyncOpenAI
 from openai.types.chat import (
@@ -20,6 +20,7 @@ from kiln_ai.adapters.model_adapters.openai_compatible_config import (
     OpenAICompatibleConfig,
 )
 from kiln_ai.adapters.parsers.json_parser import parse_json_string
+from kiln_ai.utils.exhaustive_error import raise_exhaustive_enum_error
 
 
 class OpenAICompatibleAdapter(BaseAdapter):
@@ -202,11 +203,7 @@ class OpenAICompatibleAdapter(BaseAdapter):
                 # Default to function calling -- it's older than the other modes. Higher compatibility.
                 return self.tool_call_params()
             case _:
-                raise ValueError(
-                    f"Unsupported structured output mode: {provider.structured_output_mode}"
-                )
-                # pyright will detect missing cases with this
-                return NoReturn
+                raise_exhaustive_enum_error(provider.structured_output_mode)
 
     def tool_call_params(self) -> dict[str, Any]:
         # Add additional_properties: false to the schema (OpenAI requires this for some models)

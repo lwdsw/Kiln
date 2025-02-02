@@ -118,7 +118,7 @@ def test_tags_passed_through(mock_config, basic_task):
 
 
 def test_invalid_provider(mock_config, basic_task):
-    with pytest.raises(ValueError, match="Unsupported provider: invalid"):
+    with pytest.raises(ValueError, match="Unhandled enum value"):
         adapter_for_task(
             kiln_task=basic_task, model_name="test-model", provider="invalid"
         )
