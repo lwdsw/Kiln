@@ -6,15 +6,18 @@ from kiln_ai.adapters.ml_model_list import (
     KilnModelProvider,
     ModelName,
     ModelProviderName,
+    StructuredOutputMode,
     built_in_models,
+)
+from kiln_ai.adapters.model_adapters.openai_compatible_config import (
+    OpenAICompatibleConfig,
 )
 from kiln_ai.adapters.ollama_tools import (
     get_ollama_connection,
 )
 from kiln_ai.datamodel import Finetune, Task
 from kiln_ai.datamodel.registry import project_from_id
-
-from ..utils.config import Config
+from kiln_ai.utils.config import Config
 
 
 async def provider_enabled(provider_name: ModelProviderName) -> bool:
@@ -61,7 +64,7 @@ def check_provider_warnings(provider_name: ModelProviderName):
             raise ValueError(warning_check.message)
 
 
-async def builtin_model_from(
+def builtin_model_from(
     name: str, provider_name: str | None = None
 ) -> KilnModelProvider | None:
     """
@@ -102,7 +105,47 @@ async def builtin_model_from(
     return provider
 
 
-async def kiln_model_provider_from(
+def core_provider(model_id: str, provider_name: ModelProviderName) -> ModelProviderName:
+    """
+    Get the provider that should be run.
+
+    Some provider IDs are wrappers (fine-tunes, custom models). This maps these to runnable providers (openai, ollama, etc)
+    """
+
+    # Custom models map to the underlying provider
+    if provider_name is ModelProviderName.kiln_custom_registry:
+        provider_name, _ = parse_custom_model_id(model_id)
+        return provider_name
+
+    # Fine-tune provider maps to an underlying provider
+    if provider_name is ModelProviderName.kiln_fine_tune:
+        finetune = finetune_from_id(model_id)
+        if finetune.provider not in ModelProviderName.__members__:
+            raise ValueError(
+                f"Finetune {model_id} has no underlying provider {finetune.provider}"
+            )
+        return ModelProviderName(finetune.provider)
+
+    return provider_name
+
+
+def parse_custom_model_id(
+    model_id: str,
+) -> tuple[ModelProviderName, str]:
+    if "::" not in model_id:
+        raise ValueError(f"Invalid custom model ID: {model_id}")
+
+    # For custom registry, get the provider name and model name from the model id
+    provider_name = model_id.split("::", 1)[0]
+    model_name = model_id.split("::", 1)[1]
+
+    if provider_name not in ModelProviderName.__members__:
+        raise ValueError(f"Invalid provider name: {provider_name}")
+
+    return ModelProviderName(provider_name), model_name
+
+
+def kiln_model_provider_from(
     name: str, provider_name: str | None = None
 ) -> KilnModelProvider:
     if provider_name == ModelProviderName.kiln_fine_tune:
@@ -111,14 +154,13 @@ async def kiln_model_provider_from(
     if provider_name == ModelProviderName.openai_compatible:
         return openai_compatible_provider_model(name)
 
-    built_in_model = await builtin_model_from(name, provider_name)
+    built_in_model = builtin_model_from(name, provider_name)
     if built_in_model:
         return built_in_model
 
     # For custom registry, get the provider name and model name from the model id
     if provider_name == ModelProviderName.kiln_custom_registry:
-        provider_name = name.split("::", 1)[0]
-        name = name.split("::", 1)[1]
+        provider_name, name = parse_custom_model_id(name)
 
     # Custom/untested model. Set untested, and build a ModelProvider at runtime
     if provider_name is None:
@@ -136,12 +178,9 @@ async def kiln_model_provider_from(
     )
 
 
-finetune_cache: dict[str, KilnModelProvider] = {}
-
-
-def openai_compatible_provider_model(
+def openai_compatible_config(
     model_id: str,
-) -> KilnModelProvider:
+) -> OpenAICompatibleConfig:
     try:
         openai_provider_name, model_id = model_id.split("::")
     except Exception:
@@ -165,12 +204,21 @@ def openai_compatible_provider_model(
             f"OpenAI compatible provider {openai_provider_name} has no base URL"
         )
 
+    return OpenAICompatibleConfig(
+        api_key=api_key,
+        model_name=model_id,
+        provider_name=ModelProviderName.openai_compatible,
+        base_url=base_url,
+    )
+
+
+def openai_compatible_provider_model(
+    model_id: str,
+) -> KilnModelProvider:
     return KilnModelProvider(
         name=ModelProviderName.openai_compatible,
         provider_options={
             "model": model_id,
-            "api_key": api_key,
-            "openai_api_base": base_url,
         },
         supports_structured_output=False,
         supports_data_gen=False,
@@ -178,9 +226,10 @@ def openai_compatible_provider_model(
     )
 
 
-def finetune_provider_model(
-    model_id: str,
-) -> KilnModelProvider:
+finetune_cache: dict[str, Finetune] = {}
+
+
+def finetune_from_id(model_id: str) -> Finetune:
     if model_id in finetune_cache:
         return finetune_cache[model_id]
 
@@ -202,6 +251,15 @@ def finetune_provider_model(
             f"Fine tune {fine_tune_id} not completed. Refresh it's status in the fine-tune tab."
         )
 
+    finetune_cache[model_id] = fine_tune
+    return fine_tune
+
+
+def finetune_provider_model(
+    model_id: str,
+) -> KilnModelProvider:
+    fine_tune = finetune_from_id(model_id)
+
     provider = ModelProviderName[fine_tune.provider]
     model_provider = KilnModelProvider(
         name=provider,
@@ -210,11 +268,18 @@ def finetune_provider_model(
         },
     )
 
-    # If we know the model was trained with specific output mode, set it
     if fine_tune.structured_output_mode is not None:
+        # If we know the model was trained with specific output mode, set it
         model_provider.structured_output_mode = fine_tune.structured_output_mode
+    else:
+        # Some early adopters won't have structured_output_mode set on their fine-tunes.
+        # We know that OpenAI uses json_schema, and Fireworks (only other provider) use json_mode.
+        # This can be removed in the future
+        if provider == ModelProviderName.openai:
+            model_provider.structured_output_mode = StructuredOutputMode.json_schema
+        else:
+            model_provider.structured_output_mode = StructuredOutputMode.json_mode
 
-    finetune_cache[model_id] = model_provider
     return model_provider
 
 

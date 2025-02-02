@@ -53,7 +53,7 @@ feedback describing what should be improved. Your job is to understand the evalu
         prompt_id = run.output.source.properties.get("prompt_id", None)
         if prompt_id is not None and isinstance(prompt_id, str):
             static_prompt_builder = SavedPromptBuilder(task, prompt_id)
-            return static_prompt_builder.build_prompt()
+            return static_prompt_builder.build_prompt(include_json_instructions=False)
 
         prompt_builder_class: Type[BasePromptBuilder] | None = None
         prompt_builder_name = run.output.source.properties.get(
@@ -70,7 +70,7 @@ feedback describing what should be improved. Your job is to understand the evalu
             raise ValueError(
                 f"Prompt builder {prompt_builder_name} is not a valid prompt builder"
             )
-        return prompt_builder.build_prompt()
+        return prompt_builder.build_prompt(include_json_instructions=False)
 
     @classmethod
     def build_repair_task_input(

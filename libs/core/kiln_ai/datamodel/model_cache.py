@@ -65,7 +65,7 @@ class ModelCache:
     def get_model(
         self, path: Path, model_type: Type[T], readonly: bool = False
     ) -> Optional[T]:
-        # We return a copy so in-memory edits don't impact the cache until they are saved
+        # We return a copy by default, so in-memory edits don't impact the cache until they are saved
         # Benchmark shows about 2x slower, but much more foolproof
         model = self._get_model(path, model_type)
         if model:
