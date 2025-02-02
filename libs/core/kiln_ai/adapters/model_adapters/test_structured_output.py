@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 from typing import Dict
 
@@ -97,12 +98,7 @@ async def test_mock_unstructred_response(tmp_path):
         answer = await adapter.invoke("You are a mock, send me the response!")
 
 
-@pytest.mark.paid
-@pytest.mark.ollama
-@pytest.mark.parametrize("model_name,provider_name", get_all_models_and_providers())
-async def test_all_built_in_models_structured_output(
-    tmp_path, model_name, provider_name
-):
+def check_supports_structured_output(model_name: str, provider_name: str):
     for model in built_in_models:
         if model.name != model_name:
             continue
@@ -113,9 +109,18 @@ async def test_all_built_in_models_structured_output(
                 pytest.skip(
                     f"Skipping {model.name} {provider.name} because it does not support structured output"
                 )
-            await run_structured_output_test(tmp_path, model.name, provider.name)
             return
     raise RuntimeError(f"No model {model_name} {provider_name} found")
+
+
+@pytest.mark.paid
+@pytest.mark.ollama
+@pytest.mark.parametrize("model_name,provider_name", get_all_models_and_providers())
+async def test_all_built_in_models_structured_output(
+    tmp_path, model_name, provider_name
+):
+    check_supports_structured_output(model_name, provider_name)
+    await run_structured_output_test(tmp_path, model_name, provider_name)
 
 
 def build_structured_output_test_task(tmp_path: Path):
@@ -220,8 +225,10 @@ async def run_structured_input_task(
             )
         raise e
     assert response is not None
-    assert isinstance(response, str)
-    assert "[[equilateral]]" in response
+    if isinstance(response, str):
+        assert "[[equilateral]]" in response
+    else:
+        assert response["is_equilateral"] is True
     adapter_info = a.adapter_info()
     expected_pb_name = "simple_prompt_builder"
     if pb is not None:
@@ -248,7 +255,52 @@ async def test_all_built_in_models_structured_input(
 @pytest.mark.paid
 @pytest.mark.ollama
 @pytest.mark.parametrize("model_name,provider_name", get_all_models_and_providers())
-async def test_structured_cot_prompt_builder(tmp_path, model_name, provider_name):
+async def test_structured_input_cot_prompt_builder(tmp_path, model_name, provider_name):
     task = build_structured_input_test_task(tmp_path)
+    pb = SimpleChainOfThoughtPromptBuilder(task)
+    await run_structured_input_task(task, model_name, provider_name, pb)
+
+
+@pytest.mark.paid
+@pytest.mark.ollama
+@pytest.mark.parametrize("model_name,provider_name", get_all_models_and_providers())
+async def test_structured_output_cot_prompt_builder(
+    tmp_path, model_name, provider_name
+):
+    check_supports_structured_output(model_name, provider_name)
+    triangle_schema = {
+        "type": "object",
+        "properties": {
+            "is_equilateral": {
+                "type": "boolean",
+                "description": "True if all sides of the triangle are equal in length",
+            },
+            "is_scalene": {
+                "type": "boolean",
+                "description": "True if all sides of the triangle have different lengths",
+            },
+            "is_obtuse": {
+                "type": "boolean",
+                "description": "True if one of the angles is greater than 90 degrees",
+            },
+        },
+        "required": ["is_equilateral", "is_scalene", "is_obtuse"],
+        "additionalProperties": False,
+    }
+    task = build_structured_input_test_task(tmp_path)
+    task.instruction = """
+You are an assistant which classifies a triangle given the lengths of its sides. If all sides are of equal length, the triangle is equilateral. If two sides are equal, the triangle is isosceles. Otherwise, it is scalene.\n\n"
+
+When asked for a final result, this is the format (for an equilateral example):
+```json
+{
+    "is_equilateral": true,
+    "is_scalene": false,
+    "is_obtuse": false
+}
+```
+"""
+    task.output_json_schema = json.dumps(triangle_schema)
+    task.save_to_file()
     pb = SimpleChainOfThoughtPromptBuilder(task)
     await run_structured_input_task(task, model_name, provider_name, pb)
