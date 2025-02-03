@@ -28,6 +28,9 @@ class AdapterInfo:
     prompt_id: str | None = None
 
 
+COT_FINAL_ANSWER_PROMPT = "Considering the above, return a final result."
+
+
 class BaseAdapter(metaclass=ABCMeta):
     """Base class for AI model adapters that handle task execution.
 

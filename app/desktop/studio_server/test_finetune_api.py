@@ -1,4 +1,5 @@
 import unittest.mock
+from pathlib import Path
 from unittest.mock import AsyncMock, Mock
 
 import pytest
@@ -673,7 +674,7 @@ def test_create_finetune_prompt_builder_error(
 @pytest.fixture
 def mock_dataset_formatter():
     formatter = Mock()
-    formatter.dump_to_file.return_value = "path/to/dataset.jsonl"
+    formatter.dump_to_file.return_value = Path("path/to/dataset.jsonl")
 
     with unittest.mock.patch(
         "app.desktop.studio_server.finetune_api.DatasetFormatter",
@@ -693,7 +694,7 @@ def test_download_dataset_jsonl(
     # Create a temporary file to simulate the dataset
     test_file = tmp_path / "dataset.jsonl"
     test_file.write_text('{"test": "data"}')
-    mock_formatter.dump_to_file.return_value = str(test_file)
+    mock_formatter.dump_to_file.return_value = test_file
 
     response = client.get(
         "/api/download_dataset_jsonl",
@@ -711,7 +712,7 @@ def test_download_dataset_jsonl(
     assert response.headers["Content-Type"] == "application/jsonl"
     assert (
         response.headers["Content-Disposition"]
-        == 'attachment; filename="dataset_split1_train_openai_chat_jsonl.jsonl"'
+        == f'attachment; filename="{test_file.name}"'
     )
     assert response.content == b'{"test": "data"}'
 
@@ -789,7 +790,7 @@ def test_download_dataset_jsonl_with_prompt_builder(
     # Create a temporary file to simulate the dataset
     test_file = tmp_path / "dataset.jsonl"
     test_file.write_text('{"test": "data"}')
-    mock_formatter.dump_to_file.return_value = str(test_file)
+    mock_formatter.dump_to_file.return_value = test_file
 
     response = client.get(
         "/api/download_dataset_jsonl",

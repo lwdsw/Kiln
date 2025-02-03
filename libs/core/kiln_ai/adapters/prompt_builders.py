@@ -233,7 +233,7 @@ class RepairsPromptBuilder(MultiShotPromptBuilder):
         return prompt_section
 
 
-def chain_of_thought_prompt(task: Task) -> str | None:
+def chain_of_thought_prompt(task: Task) -> str:
     """Standard implementation to build and return the chain of thought prompt string.
 
     Returns:

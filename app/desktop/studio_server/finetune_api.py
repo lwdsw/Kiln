@@ -290,14 +290,15 @@ def connect_fine_tune_api(app: FastAPI):
             task, custom_system_message, system_message_generator
         )
 
+        dataset_formatter = DatasetFormatter(dataset, system_message)
+        path = dataset_formatter.dump_to_file(split_name, format_type)  # type: ignore
+
         # set headers to force download in a browser
         headers = {
-            "Content-Disposition": f'attachment; filename="dataset_{dataset_id}_{split_name}_{format_type}.jsonl"',
+            "Content-Disposition": f'attachment; filename="{path.name}"',
             "Content-Type": "application/jsonl",
         }
 
-        dataset_formatter = DatasetFormatter(dataset, system_message)
-        path = dataset_formatter.dump_to_file(split_name, format_type)  # type: ignore
         return StreamingResponse(open(path, "rb"), headers=headers)
 
 

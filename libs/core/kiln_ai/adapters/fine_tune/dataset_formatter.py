@@ -1,10 +1,13 @@
 import json
 import tempfile
+from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, Protocol
 from uuid import uuid4
 
+from kiln_ai.adapters.model_adapters.base_adapter import COT_FINAL_ANSWER_PROMPT
+from kiln_ai.adapters.prompt_builders import chain_of_thought_prompt
 from kiln_ai.datamodel import DatasetSplit, TaskRun
 
 
@@ -32,160 +35,305 @@ class DatasetFormat(str, Enum):
     VERTEX_GEMINI_1_5 = "vertex_gemini_1_5"
 
 
+@dataclass
+class ModelTrainingData:
+    input: str
+    system_message: str
+    final_output: str
+    # These 3 are optional, and used for COT/Thinking style multi-message responses
+    thinking_instructions: str | None = None
+    thinking: str | None = None
+    thinking_final_answer_prompt: str | None = None
+
+    def supports_cot(self) -> bool:
+        return (
+            self.thinking_instructions is not None
+            and self.thinking is not None
+            and self.thinking_final_answer_prompt is not None
+        )
+
+
 class FormatGenerator(Protocol):
     """Protocol for format generators"""
 
-    def __call__(self, task_run: TaskRun, system_message: str) -> Dict[str, Any]: ...
+    def __call__(
+        self,
+        training_data: ModelTrainingData,
+    ) -> Dict[str, Any]: ...
 
 
-def best_task_output(task_run: TaskRun) -> str:
-    """Get the best task output from the task run, preferring repaired output if available"""
+def build_training_data(
+    task_run: TaskRun, system_message: str, include_cot: bool
+) -> ModelTrainingData:
+    """
+    Generate data for training.
+
+    For final output, get the best task output from the task run, preferring repaired output if available.
+
+    For thinking, get the intermediate output if it exists, otherwise return None.
+    """
+    final_output = task_run.output.output
     if task_run.repaired_output is not None:
-        return task_run.repaired_output.output
-    return task_run.output.output
+        final_output = task_run.repaired_output.output
+
+    thinking = None
+    thinking_instructions = None
+    thinking_final_answer_prompt = None
+    parent_task = task_run.parent_task()
+
+    if (
+        include_cot
+        and task_run.intermediate_outputs is not None
+        and (
+            "reasoning" in task_run.intermediate_outputs
+            or "chain_of_thought" in task_run.intermediate_outputs
+        )
+    ):
+        if not parent_task:
+            raise ValueError(
+                "TaskRuns for training required a parent Task for building a chain of thought prompts. Train without COT, or save this TaskRun to a parent Task."
+            )
+        thinking = task_run.intermediate_outputs.get(
+            "reasoning"
+        ) or task_run.intermediate_outputs.get("chain_of_thought")
+        thinking_instructions = chain_of_thought_prompt(parent_task)
+        thinking_final_answer_prompt = COT_FINAL_ANSWER_PROMPT
+
+    return ModelTrainingData(
+        input=task_run.input,
+        system_message=system_message,
+        final_output=final_output,
+        thinking=thinking,
+        thinking_instructions=thinking_instructions,
+        thinking_final_answer_prompt=thinking_final_answer_prompt,
+    )
 
 
 def generate_chat_message_response(
-    task_run: TaskRun, system_message: str
+    training_data: ModelTrainingData,
 ) -> Dict[str, Any]:
     """Generate OpenAI chat format with plaintext response"""
-    return {
-        "messages": [
-            {"role": "system", "content": system_message},
-            {"role": "user", "content": task_run.input},
-            {"role": "assistant", "content": best_task_output(task_run)},
-        ]
-    }
+
+    messages: list[dict[str, str | None]] = [
+        {"role": "system", "content": training_data.system_message},
+        {"role": "user", "content": training_data.input},
+    ]
+
+    if training_data.supports_cot():
+        messages.extend(
+            [
+                {"role": "user", "content": training_data.thinking_instructions},
+                {"role": "assistant", "content": training_data.thinking},
+                {
+                    "role": "user",
+                    "content": training_data.thinking_final_answer_prompt,
+                },
+            ]
+        )
+
+    messages.append({"role": "assistant", "content": training_data.final_output})
+
+    return {"messages": messages}
 
 
 def generate_json_schema_message(
-    task_run: TaskRun, system_message: str
+    training_data: ModelTrainingData,
 ) -> Dict[str, Any]:
-    """Generate OpenAI chat format with tool call response"""
+    """Generate OpenAI chat format with validated JSON response"""
     # Load and dump to ensure it's valid JSON and goes to 1 line
     try:
-        json_data = json.loads(best_task_output(task_run))
+        json_data = json.loads(training_data.final_output)
     except json.JSONDecodeError as e:
-        raise ValueError(f"Invalid JSON in for tool call: {e}") from e
-    json_string = json.dumps(json_data)
+        raise ValueError(
+            f"Invalid JSON in JSON Schema training set: {e}\nOutput Data: {training_data.final_output}"
+        ) from e
+    json_string = json.dumps(json_data, ensure_ascii=False)
 
-    return {
-        "messages": [
-            {"role": "system", "content": system_message},
-            {"role": "user", "content": task_run.input},
-            {"role": "assistant", "content": json_string},
-        ]
-    }
+    messages: list[dict[str, str | None]] = [
+        {"role": "system", "content": training_data.system_message},
+        {"role": "user", "content": training_data.input},
+    ]
+
+    if training_data.supports_cot():
+        messages.extend(
+            [
+                {"role": "user", "content": training_data.thinking_instructions},
+                {"role": "assistant", "content": training_data.thinking},
+                {
+                    "role": "user",
+                    "content": training_data.thinking_final_answer_prompt,
+                },
+            ]
+        )
+
+    messages.append({"role": "assistant", "content": json_string})
+
+    return {"messages": messages}
 
 
 def generate_chat_message_toolcall(
-    task_run: TaskRun, system_message: str
+    training_data: ModelTrainingData,
 ) -> Dict[str, Any]:
     """Generate OpenAI chat format with tool call response"""
     try:
-        arguments = json.loads(best_task_output(task_run))
+        arguments = json.loads(training_data.final_output)
     except json.JSONDecodeError as e:
         raise ValueError(f"Invalid JSON in for tool call: {e}") from e
 
-    return {
-        "messages": [
-            {"role": "system", "content": system_message},
-            {"role": "user", "content": task_run.input},
-            {
-                "role": "assistant",
-                "content": None,
-                "tool_calls": [
-                    {
-                        "id": "call_1",
-                        "type": "function",
-                        "function": {
-                            "name": "task_response",
-                            # Yes we parse then dump again. This ensures it's valid JSON, and ensures it goes to 1 line
-                            "arguments": json.dumps(arguments, ensure_ascii=False),
-                        },
-                    }
-                ],
-            },
-        ]
-    }
+    messages: list[dict[str, Any]] = [
+        {"role": "system", "content": training_data.system_message},
+        {"role": "user", "content": training_data.input},
+    ]
+
+    if training_data.supports_cot():
+        messages.extend(
+            [
+                {"role": "user", "content": training_data.thinking_instructions},
+                {"role": "assistant", "content": training_data.thinking},
+                {
+                    "role": "user",
+                    "content": training_data.thinking_final_answer_prompt,
+                },
+            ]
+        )
+
+    messages.append(
+        {
+            "role": "assistant",
+            "content": None,
+            "tool_calls": [
+                {
+                    "id": "call_1",
+                    "type": "function",
+                    "function": {
+                        "name": "task_response",
+                        # Yes we parse then dump again. This ensures it's valid JSON, and ensures it goes to 1 line
+                        "arguments": json.dumps(arguments, ensure_ascii=False),
+                    },
+                }
+            ],
+        },
+    )
+
+    return {"messages": messages}
 
 
 def generate_huggingface_chat_template(
-    task_run: TaskRun, system_message: str
+    training_data: ModelTrainingData,
 ) -> Dict[str, Any]:
     """Generate HuggingFace chat template"""
-    return {
-        "conversations": [
-            {"role": "system", "content": system_message},
-            {"role": "user", "content": task_run.input},
-            {"role": "assistant", "content": best_task_output(task_run)},
-        ]
-    }
+
+    conversations: list[dict[str, Any]] = [
+        {"role": "system", "content": training_data.system_message},
+        {"role": "user", "content": training_data.input},
+    ]
+
+    if training_data.supports_cot():
+        conversations.extend(
+            [
+                {"role": "user", "content": training_data.thinking_instructions},
+                {"role": "assistant", "content": training_data.thinking},
+                {"role": "user", "content": training_data.thinking_final_answer_prompt},
+            ]
+        )
+
+    conversations.append({"role": "assistant", "content": training_data.final_output})
+
+    return {"conversations": conversations}
 
 
 def generate_huggingface_chat_template_toolcall(
-    task_run: TaskRun, system_message: str
+    training_data: ModelTrainingData,
 ) -> Dict[str, Any]:
     """Generate HuggingFace chat template with tool calls"""
     try:
-        arguments = json.loads(best_task_output(task_run))
+        arguments = json.loads(training_data.final_output)
     except json.JSONDecodeError as e:
         raise ValueError(f"Invalid JSON in for tool call: {e}") from e
 
     # See https://huggingface.co/docs/transformers/en/chat_templating
-    return {
-        "conversations": [
-            {"role": "system", "content": system_message},
-            {"role": "user", "content": task_run.input},
-            {
-                "role": "assistant",
-                "tool_calls": [
-                    {
-                        "type": "function",
-                        "function": {
-                            "name": "task_response",
-                            "id": str(uuid4()).replace("-", "")[:9],
-                            "arguments": arguments,
-                        },
-                    }
-                ],
-            },
-        ]
-    }
+    conversations: list[dict[str, Any]] = [
+        {"role": "system", "content": training_data.system_message},
+        {"role": "user", "content": training_data.input},
+    ]
+
+    if training_data.supports_cot():
+        conversations.extend(
+            [
+                {"role": "user", "content": training_data.thinking_instructions},
+                {"role": "assistant", "content": training_data.thinking},
+                {"role": "user", "content": training_data.thinking_final_answer_prompt},
+            ]
+        )
+
+    conversations.append(
+        {
+            "role": "assistant",
+            "tool_calls": [
+                {
+                    "type": "function",
+                    "function": {
+                        "name": "task_response",
+                        "id": str(uuid4()).replace("-", "")[:9],
+                        "arguments": arguments,
+                    },
+                }
+            ],
+        },
+    )
+
+    return {"conversations": conversations}
 
 
 def generate_vertex_gemini_1_5(
-    task_run: TaskRun, system_message: str
+    training_data: ModelTrainingData,
 ) -> Dict[str, Any]:
     """Generate Vertex Gemini 1.5 format (flash and pro)"""
     # See https://cloud.google.com/vertex-ai/generative-ai/docs/models/gemini-supervised-tuning-prepare
+
+    contents = [
+        {
+            "role": "user",
+            "parts": [
+                {
+                    "text": training_data.input,
+                }
+            ],
+        }
+    ]
+
+    if training_data.supports_cot():
+        contents.extend(
+            [
+                {
+                    "role": "user",
+                    "parts": [{"text": training_data.thinking_instructions}],
+                },
+                {"role": "model", "parts": [{"text": training_data.thinking}]},
+                {
+                    "role": "user",
+                    "parts": [{"text": training_data.thinking_final_answer_prompt}],
+                },
+            ]
+        )
+
+    contents.append(
+        {
+            "role": "model",
+            "parts": [{"text": training_data.final_output}],
+        }
+    )
+
     return {
         "systemInstruction": {
             "role": "system",
             "parts": [
                 {
-                    "text": system_message,
+                    "text": training_data.system_message,
                 }
             ],
         },
-        "contents": [
-            {
-                "role": "user",
-                "parts": [
-                    {
-                        "text": task_run.input,
-                    }
-                ],
-            },
-            {
-                "role": "model",
-                "parts": [
-                    {
-                        "text": best_task_output(task_run),
-                    }
-                ],
-            },
-        ],
+        "contents": contents,
     }
 
 
@@ -212,7 +360,12 @@ class DatasetFormatter:
         self.task = task
 
     def dump_to_file(
-        self, split_name: str, format_type: DatasetFormat, path: Path | None = None
+        self,
+        split_name: str,
+        format_type: DatasetFormat,
+        # TODO make this required
+        include_cot: bool = False,
+        path: Path | None = None,
     ) -> Path:
         """
         Format the dataset into the specified format.
@@ -240,7 +393,7 @@ class DatasetFormatter:
         output_path = (
             path
             or Path(tempfile.gettempdir())
-            / f"{self.dataset.name}_{split_name}_{format_type}.jsonl"
+            / f"{self.dataset.name}_{split_name}_{format_type}_{'cot' if include_cot else 'no-cot'}.jsonl"
         )
 
         runs = self.task.runs()
@@ -255,7 +408,10 @@ class DatasetFormatter:
                         f"Task run {run_id} not found. This is required by this dataset."
                     )
 
-                example = generator(task_run, self.system_message)
+                training_data = build_training_data(
+                    task_run, self.system_message, include_cot
+                )
+                example = generator(training_data)
                 # Allow non-ascii characters in the dataset.
                 # Better readability for non-English users. If you don't support UTF-8... you should.
                 f.write(json.dumps(example, ensure_ascii=False) + "\n")
