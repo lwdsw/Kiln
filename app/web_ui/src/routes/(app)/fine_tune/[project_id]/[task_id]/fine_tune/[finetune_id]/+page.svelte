@@ -98,7 +98,13 @@
       return `https://platform.openai.com/finetune/${finetune.finetune.provider_id}`
     } else if (finetune?.finetune.provider === "fireworks_ai") {
       const url_id = finetune.finetune.provider_id?.split("/").pop()
-      return `https://fireworks.ai/dashboard/fine-tuning/v1/${url_id}`
+      if (finetune.finetune.properties["endpoint_version"] === "v2") {
+        // V2 style URL
+        return `https://fireworks.ai/dashboard/fine-tuning/${url_id}`
+      } else {
+        // V1 style URL
+        return `https://fireworks.ai/dashboard/fine-tuning/v1/${url_id}`
+      }
     }
     return undefined
   }
