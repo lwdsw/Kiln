@@ -11,6 +11,7 @@ from openai.types.chat import (
 import kiln_ai.datamodel as datamodel
 from kiln_ai.adapters.ml_model_list import StructuredOutputMode
 from kiln_ai.adapters.model_adapters.base_adapter import (
+    COT_FINAL_ANSWER_PROMPT,
     AdapterInfo,
     BaseAdapter,
     BasePromptBuilder,
@@ -87,7 +88,7 @@ class OpenAICompatibleAdapter(BaseAdapter):
                     ),
                     ChatCompletionUserMessageParam(
                         role="user",
-                        content="Considering the above, return a final result.",
+                        content=COT_FINAL_ANSWER_PROMPT,
                     ),
                 ]
             )

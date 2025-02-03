@@ -19,6 +19,7 @@ from kiln_ai.adapters.ml_model_list import (
     StructuredOutputMode,
 )
 from kiln_ai.adapters.model_adapters.base_adapter import (
+    COT_FINAL_ANSWER_PROMPT,
     AdapterInfo,
     BaseAdapter,
     BasePromptBuilder,
@@ -160,9 +161,7 @@ class LangchainAdapter(BaseAdapter):
             cot_response = await base_model.ainvoke(cot_messages)
             intermediate_outputs["chain_of_thought"] = cot_response.content
             messages.append(AIMessage(content=cot_response.content))
-            messages.append(
-                HumanMessage(content="Considering the above, return a final result.")
-            )
+            messages.append(HumanMessage(content=COT_FINAL_ANSWER_PROMPT))
 
         response = await chain.ainvoke(messages)
 

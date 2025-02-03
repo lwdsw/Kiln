@@ -13,6 +13,7 @@ from kiln_ai.adapters.ml_model_list import (
     ModelProviderName,
     StructuredOutputMode,
 )
+from kiln_ai.adapters.model_adapters.base_adapter import COT_FINAL_ANSWER_PROMPT
 from kiln_ai.adapters.model_adapters.langchain_adapters import (
     LangchainAdapter,
     langchain_model_from_provider,
@@ -129,7 +130,7 @@ async def test_langchain_adapter_with_cot(tmp_path):
     assert isinstance(invoke_args[3], AIMessage)
     assert "Chain of thought reasoning..." in invoke_args[3].content
     assert isinstance(invoke_args[4], HumanMessage)
-    assert "Considering the above, return a final result." in invoke_args[4].content
+    assert COT_FINAL_ANSWER_PROMPT in invoke_args[4].content
 
     assert (
         response.intermediate_outputs["chain_of_thought"]
