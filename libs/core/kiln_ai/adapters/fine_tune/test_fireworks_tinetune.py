@@ -34,7 +34,6 @@ def fireworks_finetune(tmp_path):
             dataset_split_id="dataset-123",
             system_message="Test system message",
             path=tmp_file,
-            properties={"undeployed_model_id": "ftm-123"},
         ),
     )
     return finetune
@@ -337,6 +336,7 @@ async def test_start_success(
         # Verify model ID was updated
         assert fireworks_finetune.datamodel.provider_id == mock_model_id
         assert fireworks_finetune.datamodel.structured_output_mode == expected_mode
+        assert fireworks_finetune.datamodel.properties["endpoint_version"] == "v2"
 
 
 async def test_start_api_error(
@@ -395,7 +395,15 @@ async def test_deploy_success(fireworks_finetune, mock_api_key):
     success_response.status_code = 200
     assert fireworks_finetune.datamodel.fine_tune_model_id is None
 
-    with patch("httpx.AsyncClient") as mock_client_class:
+    status_response = (
+        FineTuneStatus(status=FineTuneStatusType.completed, message=""),
+        "ftm-123",
+    )
+
+    with (
+        patch("httpx.AsyncClient") as mock_client_class,
+        patch.object(fireworks_finetune, "_status", return_value=status_response),
+    ):
         mock_client = AsyncMock()
         mock_client.post.return_value = success_response
         mock_client_class.return_value.__aenter__.return_value = mock_client
@@ -414,13 +422,22 @@ async def test_deploy_already_deployed(fireworks_finetune, mock_api_key):
         "message": "Model already deployed",
     }
 
-    with patch("httpx.AsyncClient") as mock_client_class:
+    status_response = (
+        FineTuneStatus(status=FineTuneStatusType.completed, message=""),
+        "ftm-123",
+    )
+
+    with (
+        patch("httpx.AsyncClient") as mock_client_class,
+        patch.object(fireworks_finetune, "_status", return_value=status_response),
+    ):
         mock_client = AsyncMock()
         mock_client.post.return_value = already_deployed_response
         mock_client_class.return_value.__aenter__.return_value = mock_client
 
         result = await fireworks_finetune._deploy()
         assert result is True
+        assert fireworks_finetune.datamodel.fine_tune_model_id == "ftm-123"
 
 
 async def test_deploy_failure(fireworks_finetune, mock_api_key):
@@ -449,22 +466,31 @@ async def test_deploy_missing_credentials(fireworks_finetune):
 
 
 async def test_deploy_missing_model_id(fireworks_finetune, mock_api_key):
-    # Test missing model ID
-    fireworks_finetune.datamodel.properties["undeployed_model_id"] = None
-
-    response = await fireworks_finetune._deploy()
-    assert response is False
+    # Mock _status to return no model ID
+    status_response = (
+        FineTuneStatus(
+            status=FineTuneStatusType.completed, message="Fine-tuning job completed"
+        ),
+        None,
+    )
+    with (
+        patch.object(fireworks_finetune, "_status", return_value=status_response),
+    ):
+        response = await fireworks_finetune._deploy()
+        assert response is False
 
 
 async def test_status_with_deploy(fireworks_finetune, mock_api_key):
     # Mock _status to return completed
-    mock_status_response = FineTuneStatus(
-        status=FineTuneStatusType.completed, message="Fine-tuning job completed"
+    status_response = (
+        FineTuneStatus(
+            status=FineTuneStatusType.completed, message="Fine-tuning job completed"
+        ),
+        "ftm-123",
     )
-
     with (
         patch.object(
-            fireworks_finetune, "_status", return_value=mock_status_response
+            fireworks_finetune, "_status", return_value=status_response
         ) as mock_status,
         patch.object(fireworks_finetune, "_deploy", return_value=False) as mock_deploy,
     ):
