@@ -144,7 +144,9 @@ def generate_json_schema_message(
     try:
         json_data = json.loads(training_data.final_output)
     except json.JSONDecodeError as e:
-        raise ValueError(f"Invalid JSON in for tool call: {e}") from e
+        raise ValueError(
+            f"Invalid JSON in JSON Schema training set: {e}\nOutput Data: {training_data.final_output}"
+        ) from e
     json_string = json.dumps(json_data, ensure_ascii=False)
 
     messages: list[dict[str, str | None]] = [
@@ -362,7 +364,7 @@ class DatasetFormatter:
         split_name: str,
         format_type: DatasetFormat,
         # TODO make this required
-        include_cot: bool = True,
+        include_cot: bool = False,
         path: Path | None = None,
     ) -> Path:
         """

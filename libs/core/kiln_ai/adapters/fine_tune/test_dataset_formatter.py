@@ -497,7 +497,28 @@ def test_build_training_data_with_COT(mock_task):
     # Setup with needed fields for thinking
     mock_task_run = mock_task.runs()[0]
     assert mock_task_run.parent_task() == mock_task
-    mock_task_run.intermediate_outputs = {"thinking": "thinking output"}
+    mock_task_run.intermediate_outputs = {"chain_of_thought": "cot output"}
+    mock_task.thinking_instruction = "thinking instructions"
+    assert mock_task.thinking_instruction == "thinking instructions"
+
+    training_data_output = build_training_data(mock_task_run, "system message", True)
+    assert training_data_output.final_output == '{"test":   "output 你好"}'
+    assert training_data_output.thinking == "cot output"
+    assert training_data_output.thinking_instructions == "thinking instructions"
+    assert training_data_output.thinking_final_answer_prompt == COT_FINAL_ANSWER_PROMPT
+    assert training_data_output.input == '{"test": "input 你好"}'
+    assert training_data_output.system_message == "system message"
+
+
+def test_build_training_data_with_thinking(mock_task):
+    # Setup with needed fields for thinking
+    mock_task_run = mock_task.runs()[0]
+    assert mock_task_run.parent_task() == mock_task
+    # It should just use the thinking output if both thinking and chain_of_thought are present
+    mock_task_run.intermediate_outputs = {
+        "thinking": "thinking output",
+        "chain_of_thought": "cot output",
+    }
     mock_task.thinking_instruction = "thinking instructions"
     assert mock_task.thinking_instruction == "thinking instructions"
 
