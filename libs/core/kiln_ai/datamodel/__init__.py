@@ -295,6 +295,11 @@ class StructuredOutputMode(str, Enum):
     json_instruction_and_object = "json_instruction_and_object"
 
 
+class FinetuneDataStrategy(str, Enum):
+    final_only = "final_only"
+    final_and_intermediate = "final_and_intermediate"
+
+
 class Finetune(KilnParentedModel):
     """
     The Kiln fine-tune datamodel.
@@ -350,6 +355,10 @@ class Finetune(KilnParentedModel):
     properties: Dict[str, str | int | float] = Field(
         default={},
         description="Properties of the fine-tune. Different providers may use different properties.",
+    )
+    data_strategy: FinetuneDataStrategy = Field(
+        default=FinetuneDataStrategy.final_only,
+        description="The strategy to use for training the model. 'final_only' will only train on the final response. 'final_and_intermediate' will train on the final response and intermediate outputs (chain of thought or reasoning).",
     )
 
     def parent_task(self) -> Task | None:

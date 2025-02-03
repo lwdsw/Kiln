@@ -8,7 +8,7 @@ from uuid import uuid4
 
 from kiln_ai.adapters.model_adapters.base_adapter import COT_FINAL_ANSWER_PROMPT
 from kiln_ai.adapters.prompt_builders import chain_of_thought_prompt
-from kiln_ai.datamodel import DatasetSplit, TaskRun
+from kiln_ai.datamodel import DatasetSplit, FinetuneDataStrategy, TaskRun
 
 
 class DatasetFormat(str, Enum):
@@ -363,8 +363,7 @@ class DatasetFormatter:
         self,
         split_name: str,
         format_type: DatasetFormat,
-        # TODO make this required
-        include_cot: bool = False,
+        data_strategy: FinetuneDataStrategy,
         path: Path | None = None,
     ) -> Path:
         """
@@ -389,11 +388,13 @@ class DatasetFormatter:
 
         generator = FORMAT_GENERATORS[format_type]
 
+        include_cot = data_strategy == FinetuneDataStrategy.final_and_intermediate
+
         # Write to a temp file if no path is provided
         output_path = (
             path
             or Path(tempfile.gettempdir())
-            / f"{self.dataset.name}_{split_name}_{format_type}_{'cot' if include_cot else 'no-cot'}.jsonl"
+            / f"{self.dataset.name} -- split-{split_name} -- format-{format_type.value} -- {'cot' if include_cot else 'no-cot'}.jsonl"
         )
 
         runs = self.task.runs()

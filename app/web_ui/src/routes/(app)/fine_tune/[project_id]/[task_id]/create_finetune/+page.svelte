@@ -7,6 +7,7 @@
   import { KilnError, createKilnError } from "$lib/utils/error_handlers"
   import { onMount } from "svelte"
   import { formatDate } from "$lib/utils/formatters"
+  import type { FinetuneDataStrategy } from "$lib/types"
 
   import PromptTypeSelector from "../../../../run/prompt_type_selector.svelte"
 
@@ -25,6 +26,7 @@
   let new_dataset_split = disabled_header
   let new_dataset_filter = disabled_header
   let automatic_validation = disabled_header
+  let data_strategy: FinetuneDataStrategy = "final_only"
   let finetune_custom_system_prompt = ""
   let system_prompt_method = "basic"
 
@@ -368,6 +370,7 @@
               system_message_generator: get_system_prompt_method_param(),
               custom_system_message: get_custom_system_prompt_param(),
               parameters: hyperparameter_values,
+              data_strategy: data_strategy,
               validation_split_name:
                 automatic_validation === "yes" ? "val" : undefined,
             },
@@ -444,6 +447,7 @@
       project_id: project_id,
       task_id: task_id,
       split_name: split_name,
+      data_strategy: data_strategy,
       format_type: download_model_select_options[model_provider],
       system_message_generator: get_system_prompt_method_param(),
       custom_system_message: get_custom_system_prompt_param(),
@@ -618,6 +622,21 @@
               bind:value={finetune_custom_system_prompt}
             />
           {/if}
+          <FormElement
+            label="Training Strategy"
+            description="Should the model be trained on the final response only, or also include intermediate thinking?"
+            info_description="If you select 'Final Response and Intermediate Thinking', the model will also be trained on the intermediate thinking such as reasoning or chain of thought. Use this if you want to call the tuned model with a chain-of-thought prompt for additional inference time compute."
+            inputType="select"
+            id="data_strategy"
+            select_options={[
+              ["final_only", "Final Response Only"],
+              [
+                "final_and_intermediate",
+                "Final Response and Intermediate Thinking",
+              ],
+            ]}
+            bind:value={data_strategy}
+          />
           {#if !is_download}
             <div class="collapse collapse-arrow bg-base-200">
               <input type="checkbox" class="peer" />

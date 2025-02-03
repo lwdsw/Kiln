@@ -4,7 +4,7 @@ from typing import Literal
 from pydantic import BaseModel
 
 from kiln_ai.adapters.ml_model_list import built_in_models
-from kiln_ai.datamodel import DatasetSplit, FineTuneStatusType
+from kiln_ai.datamodel import DatasetSplit, FinetuneDataStrategy, FineTuneStatusType
 from kiln_ai.datamodel import Finetune as FinetuneModel
 from kiln_ai.utils.name_generator import generate_memorable_name
 
@@ -56,6 +56,7 @@ class BaseFinetuneAdapter(ABC):
         provider_base_model_id: str,
         train_split_name: str,
         system_message: str,
+        data_strategy: FinetuneDataStrategy,
         parameters: dict[str, str | int | float | bool] = {},
         name: str | None = None,
         description: str | None = None,
@@ -101,6 +102,7 @@ class BaseFinetuneAdapter(ABC):
             parameters=parameters,
             system_message=system_message,
             parent=parent_task,
+            data_strategy=data_strategy,
         )
 
         adapter = cls(datamodel)

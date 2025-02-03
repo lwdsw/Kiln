@@ -12,6 +12,7 @@ from kiln_ai.adapters.fine_tune.dataset_formatter import DatasetFormat, DatasetF
 from kiln_ai.adapters.fine_tune.openai_finetune import OpenAIFinetune
 from kiln_ai.datamodel import (
     DatasetSplit,
+    FinetuneDataStrategy,
     StructuredOutputMode,
     Task,
     Train80Test20SplitDefinition,
@@ -34,6 +35,7 @@ def openai_finetune(tmp_path):
             system_message="Test system message",
             fine_tune_model_id="ft-123",
             path=tmp_file,
+            data_strategy=FinetuneDataStrategy.final_only,
         ),
     )
     return finetune
@@ -230,7 +232,10 @@ async def test_generate_and_upload_jsonl_success(
         patch("builtins.open") as mock_open,
     ):
         result = await openai_finetune.generate_and_upload_jsonl(
-            mock_dataset, "train", mock_task, DatasetFormat.OPENAI_CHAT_JSONL
+            mock_dataset,
+            "train",
+            mock_task,
+            DatasetFormat.OPENAI_CHAT_JSONL,
         )
 
         # Verify formatter was created with correct parameters
@@ -240,7 +245,7 @@ async def test_generate_and_upload_jsonl_success(
 
         # Verify correct format was used
         mock_formatter.dump_to_file.assert_called_once_with(
-            "train", DatasetFormat.OPENAI_CHAT_JSONL
+            "train", DatasetFormat.OPENAI_CHAT_JSONL, FinetuneDataStrategy.final_only
         )
 
         # Verify file was opened and uploaded
@@ -290,7 +295,9 @@ async def test_generate_and_upload_jsonl_schema_success(
 
         # Verify correct format was used
         mock_formatter.dump_to_file.assert_called_once_with(
-            "train", DatasetFormat.OPENAI_CHAT_JSON_SCHEMA_JSONL
+            "train",
+            DatasetFormat.OPENAI_CHAT_JSON_SCHEMA_JSONL,
+            FinetuneDataStrategy.final_only,
         )
 
         # Verify file was opened and uploaded
@@ -541,3 +548,52 @@ async def test_status_updates_latest_status(openai_finetune, mock_response):
 
         # Verify file was saved
         assert openai_finetune.datamodel.path.exists()
+
+
+@pytest.mark.parametrize(
+    "data_strategy",
+    [
+        FinetuneDataStrategy.final_and_intermediate,
+        FinetuneDataStrategy.final_only,
+    ],
+)
+async def test_generate_and_upload_jsonl_with_data_strategy(
+    openai_finetune, mock_dataset, mock_task, data_strategy
+):
+    mock_path = Path("mock_path.jsonl")
+    mock_file_id = "file-123"
+
+    # Set a data strategy on the finetune model
+    openai_finetune.datamodel.data_strategy = data_strategy
+
+    # Mock the formatter
+    mock_formatter = MagicMock(spec=DatasetFormatter)
+    mock_formatter.dump_to_file.return_value = mock_path
+
+    # Mock the file response
+    mock_file_response = MagicMock()
+    mock_file_response.id = mock_file_id
+
+    with (
+        patch(
+            "kiln_ai.adapters.fine_tune.openai_finetune.DatasetFormatter",
+            return_value=mock_formatter,
+        ),
+        patch(
+            "kiln_ai.adapters.fine_tune.openai_finetune.oai_client.files.create",
+            return_value=mock_file_response,
+        ),
+        patch("builtins.open"),
+    ):
+        result = await openai_finetune.generate_and_upload_jsonl(
+            mock_dataset, "train", mock_task, DatasetFormat.OPENAI_CHAT_JSONL
+        )
+
+        # Verify formatter was created with correct parameters
+        mock_formatter.dump_to_file.assert_called_once_with(
+            "train",
+            DatasetFormat.OPENAI_CHAT_JSONL,
+            data_strategy,  # Verify data_strategy is passed through
+        )
+
+        assert result == mock_file_id
