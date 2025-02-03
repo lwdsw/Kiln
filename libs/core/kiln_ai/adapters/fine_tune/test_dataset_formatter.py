@@ -514,9 +514,9 @@ def test_build_training_data_with_thinking(mock_task):
     # Setup with needed fields for thinking
     mock_task_run = mock_task.runs()[0]
     assert mock_task_run.parent_task() == mock_task
-    # It should just use the thinking output if both thinking and chain_of_thought are present
+    # It should just use the reasoning output if both thinking and chain_of_thought are present
     mock_task_run.intermediate_outputs = {
-        "thinking": "thinking output",
+        "reasoning": "thinking output",
         "chain_of_thought": "cot output",
     }
     mock_task.thinking_instruction = "thinking instructions"

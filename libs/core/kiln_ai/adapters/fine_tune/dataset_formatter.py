@@ -85,7 +85,7 @@ def build_training_data(
         include_cot
         and task_run.intermediate_outputs is not None
         and (
-            "thinking" in task_run.intermediate_outputs
+            "reasoning" in task_run.intermediate_outputs
             or "chain_of_thought" in task_run.intermediate_outputs
         )
     ):
@@ -94,7 +94,7 @@ def build_training_data(
                 "TaskRuns for training required a parent Task for building a chain of thought prompts. Train without COT, or save this TaskRun to a parent Task."
             )
         thinking = task_run.intermediate_outputs.get(
-            "thinking"
+            "reasoning"
         ) or task_run.intermediate_outputs.get("chain_of_thought")
         thinking_instructions = chain_of_thought_prompt(parent_task)
         thinking_final_answer_prompt = COT_FINAL_ANSWER_PROMPT
