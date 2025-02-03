@@ -21,6 +21,7 @@ from kiln_ai.datamodel import (
     DatasetSplit,
     DataSource,
     DataSourceType,
+    FinetuneDataStrategy,
     Task,
     TaskOutput,
     TaskRun,
@@ -37,7 +38,6 @@ def mock_task():
                 "id": f"run{i}",
                 "input": '{"test": "input 你好"}',
                 "repaired_output": None,
-                "thinking_instructions": None,
                 "intermediate_outputs": {},
                 "input_source": Mock(
                     spec=DataSource,
@@ -63,7 +63,6 @@ def mock_task():
                         ),
                     },
                 ),
-                # "intermediate_outputs": {"thinking": "thinking output"},
             },
         )
         for i in range(1, 4)
@@ -75,6 +74,14 @@ def mock_task():
 
     task.runs.return_value = task_runs
     return task
+
+
+@pytest.fixture
+def mock_intermediate_outputs(mock_task):
+    for run in mock_task.runs():
+        run.intermediate_outputs = {"reasoning": "thinking output"}
+    mock_task.thinking_instruction = "thinking instructions"
+    return mock_task
 
 
 @pytest.fixture
@@ -196,9 +203,6 @@ def test_generate_chat_message_toolcall_thinking():
     }
 
 
-# TODO other format tests?
-
-
 def test_generate_chat_message_toolcall_invalid_json():
     training_data = ModelTrainingData(
         input="test input",
@@ -221,14 +225,20 @@ def test_dataset_formatter_dump_invalid_format(mock_dataset):
     formatter = DatasetFormatter(mock_dataset, "system message")
 
     with pytest.raises(ValueError, match="Unsupported format"):
-        formatter.dump_to_file("train", "invalid_format")  # type: ignore
+        formatter.dump_to_file(
+            "train", "invalid_format", FinetuneDataStrategy.final_only
+        )  # type: ignore
 
 
 def test_dataset_formatter_dump_invalid_split(mock_dataset):
     formatter = DatasetFormatter(mock_dataset, "system message")
 
     with pytest.raises(ValueError, match="Split invalid_split not found in dataset"):
-        formatter.dump_to_file("invalid_split", DatasetFormat.OPENAI_CHAT_JSONL)
+        formatter.dump_to_file(
+            "invalid_split",
+            DatasetFormat.OPENAI_CHAT_JSONL,
+            FinetuneDataStrategy.final_only,
+        )
 
 
 def test_dataset_formatter_dump_to_file(mock_dataset, tmp_path):
@@ -236,7 +246,10 @@ def test_dataset_formatter_dump_to_file(mock_dataset, tmp_path):
     output_path = tmp_path / "output.jsonl"
 
     result_path = formatter.dump_to_file(
-        "train", DatasetFormat.OPENAI_CHAT_JSONL, path=output_path, include_cot=False
+        "train",
+        DatasetFormat.OPENAI_CHAT_JSONL,
+        path=output_path,
+        data_strategy=FinetuneDataStrategy.final_only,
     )
 
     assert result_path == output_path
@@ -259,11 +272,18 @@ def test_dataset_formatter_dump_to_file(mock_dataset, tmp_path):
 def test_dataset_formatter_dump_to_temp_file(mock_dataset):
     formatter = DatasetFormatter(mock_dataset, "system message 你好")
 
-    result_path = formatter.dump_to_file("train", DatasetFormat.OPENAI_CHAT_JSONL)
+    result_path = formatter.dump_to_file(
+        "train",
+        DatasetFormat.OPENAI_CHAT_JSONL,
+        data_strategy=FinetuneDataStrategy.final_only,
+    )
 
     assert result_path.exists()
     assert result_path.parent == Path(tempfile.gettempdir())
-    assert result_path.name.startswith("test_dataset_train_")
+    # Test our nice naming
+    assert result_path.name.startswith(
+        "test_dataset -- split-train -- format-openai_chat_jsonl -- no-cot.jsonl"
+    )
     assert result_path.name.endswith(".jsonl")
     # Verify file contents
     with open(result_path) as f:
@@ -272,6 +292,10 @@ def test_dataset_formatter_dump_to_temp_file(mock_dataset):
         # check non-ascii characters are not escaped
         assert "你好" in lines[0]
         assert "你好" in lines[1]
+
+        # confirm didn't use COT for final_only
+        assert "thinking output" not in lines[0]
+        assert "thinking instructions" not in lines[0]
 
 
 def test_dataset_formatter_dump_to_file_tool_format(mock_dataset, tmp_path):
@@ -282,7 +306,7 @@ def test_dataset_formatter_dump_to_file_tool_format(mock_dataset, tmp_path):
         "train",
         DatasetFormat.OPENAI_CHAT_TOOLCALL_JSONL,
         path=output_path,
-        include_cot=False,
+        data_strategy=FinetuneDataStrategy.final_only,
     )
 
     assert result_path == output_path
@@ -308,6 +332,33 @@ def test_dataset_formatter_dump_to_file_tool_format(mock_dataset, tmp_path):
             assert tool_call["type"] == "function"
             assert tool_call["function"]["name"] == "task_response"
             assert tool_call["function"]["arguments"] == '{"test": "output 你好"}'
+
+
+def test_dataset_formatter_dump_with_intermediate_data(
+    mock_dataset, mock_intermediate_outputs
+):
+    formatter = DatasetFormatter(mock_dataset, "system message 你好")
+
+    result_path = formatter.dump_to_file(
+        "train",
+        DatasetFormat.OPENAI_CHAT_JSONL,
+        data_strategy=FinetuneDataStrategy.final_and_intermediate,
+    )
+
+    assert result_path.exists()
+    assert result_path.parent == Path(tempfile.gettempdir())
+    # Test our nice naming, with cot
+    assert (
+        result_path.name
+        == "test_dataset -- split-train -- format-openai_chat_jsonl -- cot.jsonl"
+    )
+    # Verify file contents
+    with open(result_path) as f:
+        lines = f.readlines()
+        assert len(lines) == 2
+        for line in lines:
+            assert "thinking output" in line
+            assert "thinking instructions" in line
 
 
 def test_generate_huggingface_chat_template():
@@ -560,7 +611,7 @@ def test_dataset_formatter_dump_to_file_json_schema_format(mock_dataset, tmp_pat
         "train",
         DatasetFormat.OPENAI_CHAT_JSON_SCHEMA_JSONL,
         path=output_path,
-        include_cot=False,
+        data_strategy=FinetuneDataStrategy.final_only,
     )
 
     assert result_path == output_path

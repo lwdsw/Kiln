@@ -19,6 +19,7 @@ from kiln_ai.datamodel import (
     AllSplitDefinition,
     DatasetSplit,
     Finetune,
+    FinetuneDataStrategy,
     FineTuneStatusType,
     HighRatingDatasetFilter,
     Task,
@@ -99,6 +100,7 @@ class CreateFinetuneRequest(BaseModel):
     base_model_id: str
     system_message_generator: str | None = None
     custom_system_message: str | None = None
+    data_strategy: FinetuneDataStrategy
 
 
 class FinetuneWithStatus(BaseModel):
@@ -254,6 +256,7 @@ def connect_fine_tune_api(app: FastAPI):
             name=request.name,
             description=request.description,
             validation_split_name=request.validation_split_name,
+            data_strategy=request.data_strategy,
         )
 
         return finetune_model
@@ -265,6 +268,7 @@ def connect_fine_tune_api(app: FastAPI):
         dataset_id: str,
         split_name: str,
         format_type: str,
+        data_strategy: str,
         system_message_generator: str | None = None,
         custom_system_message: str | None = None,
     ) -> StreamingResponse:
@@ -273,6 +277,14 @@ def connect_fine_tune_api(app: FastAPI):
                 status_code=400,
                 detail=f"Dataset format '{format_type}' not found",
             )
+        format_type_typed = DatasetFormat(format_type)
+        if data_strategy not in [strategy.value for strategy in FinetuneDataStrategy]:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Data strategy '{data_strategy}' not found",
+            )
+        data_strategy_typed = FinetuneDataStrategy(data_strategy)
+
         task = task_from_id(project_id, task_id)
         dataset = DatasetSplit.from_id_and_parent_path(dataset_id, task.path)
         if dataset is None:
@@ -291,7 +303,11 @@ def connect_fine_tune_api(app: FastAPI):
         )
 
         dataset_formatter = DatasetFormatter(dataset, system_message)
-        path = dataset_formatter.dump_to_file(split_name, format_type)  # type: ignore
+        path = dataset_formatter.dump_to_file(
+            split_name,
+            format_type_typed,
+            data_strategy_typed,
+        )
 
         # set headers to force download in a browser
         headers = {

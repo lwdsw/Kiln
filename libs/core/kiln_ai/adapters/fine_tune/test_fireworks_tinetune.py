@@ -13,6 +13,7 @@ from kiln_ai.adapters.fine_tune.dataset_formatter import DatasetFormat, DatasetF
 from kiln_ai.adapters.fine_tune.fireworks_finetune import FireworksFinetune
 from kiln_ai.datamodel import (
     DatasetSplit,
+    FinetuneDataStrategy,
     StructuredOutputMode,
     Task,
     Train80Test20SplitDefinition,
@@ -228,8 +229,15 @@ def mock_task():
     )
 
 
+@pytest.mark.parametrize(
+    "data_strategy",
+    [
+        FinetuneDataStrategy.final_and_intermediate,
+        FinetuneDataStrategy.final_only,
+    ],
+)
 async def test_generate_and_upload_jsonl_success(
-    fireworks_finetune, mock_dataset, mock_task, mock_api_key
+    fireworks_finetune, mock_dataset, mock_task, mock_api_key, data_strategy
 ):
     mock_path = Path("mock_path.jsonl")
     mock_dataset_id = "dataset-123"
@@ -248,6 +256,9 @@ async def test_generate_and_upload_jsonl_success(
     status_response = MagicMock(spec=httpx.Response)
     status_response.status_code = 200
     status_response.json.return_value = {"state": "READY"}
+
+    # Set the data strategy on the finetune model
+    fireworks_finetune.datamodel.data_strategy = data_strategy
 
     with (
         patch(
@@ -272,7 +283,9 @@ async def test_generate_and_upload_jsonl_success(
 
         # Verify formatter was created with correct parameters
         mock_formatter.dump_to_file.assert_called_once_with(
-            "train", DatasetFormat.OPENAI_CHAT_JSONL
+            "train",
+            DatasetFormat.OPENAI_CHAT_JSONL,
+            data_strategy,  # Confirm we use correct data strategy
         )
 
         assert result == mock_dataset_id

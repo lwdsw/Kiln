@@ -701,6 +701,7 @@ export interface components {
             system_message_generator?: string | null;
             /** Custom System Message */
             custom_system_message?: string | null;
+            data_strategy: components["schemas"]["FinetuneDataStrategy"];
         };
         /** DataGenCategoriesApiInput */
         DataGenCategoriesApiInput: {
@@ -985,6 +986,8 @@ export interface components {
              * @description A description of the fine-tune for you and your team. Not used in training.
              */
             description?: string | null;
+            /** @description The mode to use to train the model for structured output, if it was trained with structured output. Will determine how we call the tuned model, so we call with the matching mode. */
+            structured_output_mode?: components["schemas"]["StructuredOutputMode"] | null;
             /**
              * Provider
              * @description The provider to use for the fine-tune (e.g. 'openai').
@@ -1047,9 +1050,19 @@ export interface components {
             properties: {
                 [key: string]: string | number;
             };
+            /**
+             * @description The strategy to use for training the model. 'final_only' will only train on the final response. 'final_and_intermediate' will train on the final response and intermediate outputs (chain of thought or reasoning).
+             * @default final_only
+             */
+            data_strategy: components["schemas"]["FinetuneDataStrategy"];
             /** Model Type */
             readonly model_type: string;
         };
+        /**
+         * FinetuneDataStrategy
+         * @enum {string}
+         */
+        FinetuneDataStrategy: "final_only" | "final_and_intermediate";
         /**
          * FinetuneProvider
          * @description Finetune provider: list of models a provider supports for fine-tuning
@@ -1140,7 +1153,7 @@ export interface components {
          *     Where models have instruct and raw versions, instruct is default and raw is specified.
          * @enum {string}
          */
-        ModelName: "llama_3_1_8b" | "llama_3_1_70b" | "llama_3_1_405b" | "llama_3_2_1b" | "llama_3_2_3b" | "llama_3_2_11b" | "llama_3_2_90b" | "llama_3_3_70b" | "gpt_4o_mini" | "gpt_4o" | "phi_3_5" | "mistral_large" | "mistral_nemo" | "gemma_2_2b" | "gemma_2_9b" | "gemma_2_27b" | "claude_3_5_haiku" | "claude_3_5_sonnet" | "gemini_1_5_flash" | "gemini_1_5_flash_8b" | "gemini_1_5_pro" | "nemotron_70b" | "mixtral_8x7b" | "qwen_2p5_7b" | "qwen_2p5_72b" | "deepseek_3";
+        ModelName: "llama_3_1_8b" | "llama_3_1_70b" | "llama_3_1_405b" | "llama_3_2_1b" | "llama_3_2_3b" | "llama_3_2_11b" | "llama_3_2_90b" | "llama_3_3_70b" | "gpt_4o_mini" | "gpt_4o" | "phi_3_5" | "phi_4" | "mistral_large" | "mistral_nemo" | "gemma_2_2b" | "gemma_2_9b" | "gemma_2_27b" | "claude_3_5_haiku" | "claude_3_5_sonnet" | "gemini_1_5_flash" | "gemini_1_5_flash_8b" | "gemini_1_5_pro" | "nemotron_70b" | "mixtral_8x7b" | "qwen_2p5_7b" | "qwen_2p5_72b" | "deepseek_3" | "deepseek_r1";
         /** OllamaConnection */
         OllamaConnection: {
             /** Message */
@@ -1396,6 +1409,19 @@ export interface components {
             /** Tags */
             tags?: string[] | null;
         };
+        /**
+         * StructuredOutputMode
+         * @description Enumeration of supported structured output modes.
+         *
+         *     - default: let the adapter decide
+         *     - json_schema: request json using API capabilities for json_schema
+         *     - function_calling: request json using API capabilities for function calling
+         *     - json_mode: request json using API's JSON mode, which should return valid JSON, but isn't checking/passing the schema
+         *     - json_instructions: append instructions to the prompt to request json matching the schema. No API capabilities are used. You should have a custom parser on these models as they will be returning strings.
+         *     - json_instruction_and_object: append instructions to the prompt to request json matching the schema. Also request the response as json_mode via API capabilities (returning dictionaries).
+         * @enum {string}
+         */
+        StructuredOutputMode: "default" | "json_schema" | "function_calling" | "json_mode" | "json_instructions" | "json_instruction_and_object";
         /**
          * Task
          * @description Represents a specific task to be performed, with associated requirements and validation rules.
@@ -3152,6 +3178,7 @@ export interface operations {
                 dataset_id: string;
                 split_name: string;
                 format_type: string;
+                data_strategy: string;
                 system_message_generator?: string | null;
                 custom_system_message?: string | null;
             };

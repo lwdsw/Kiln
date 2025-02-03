@@ -170,7 +170,7 @@ class FireworksFinetune(BaseFinetuneAdapter):
         self, dataset: DatasetSplit, split_name: str, task: Task, format: DatasetFormat
     ) -> str:
         formatter = DatasetFormatter(dataset, self.datamodel.system_message)
-        path = formatter.dump_to_file(split_name, format)
+        path = formatter.dump_to_file(split_name, format, self.datamodel.data_strategy)
 
         # First call creates the dataset
         api_key = Config.shared().fireworks_api_key
