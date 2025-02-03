@@ -1,6 +1,6 @@
 import unittest.mock
 from pathlib import Path
-from unittest.mock import AsyncMock, Mock
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 from fastapi import FastAPI
@@ -28,6 +28,7 @@ from app.desktop.studio_server.finetune_api import (
     DatasetFilterType,
     DatasetSplitType,
     connect_fine_tune_api,
+    thinking_instructions_from_request,
 )
 
 
@@ -424,6 +425,7 @@ def mock_finetune_adapter():
                 base_model_id="base_model_1",
                 dataset_split_id="split1",
                 system_message="Test system message",
+                thinking_instructions=None,
             ),
         )
     )
@@ -431,8 +433,16 @@ def mock_finetune_adapter():
 
 
 @pytest.mark.parametrize(
-    "data_strategy",
-    [FinetuneDataStrategy.final_only, FinetuneDataStrategy.final_and_intermediate],
+    "data_strategy,custom_thinking_instructions,expected_thinking_instructions",
+    [
+        (FinetuneDataStrategy.final_only, None, None),
+        (
+            FinetuneDataStrategy.final_and_intermediate,
+            None,
+            "Think step by step, explaining your reasoning.",
+        ),  # Our default
+        (FinetuneDataStrategy.final_and_intermediate, "CTI", "CTI"),
+    ],
 )
 async def test_create_finetune(
     client,
@@ -441,6 +451,8 @@ async def test_create_finetune(
     mock_finetune_registry,
     mock_finetune_adapter,
     data_strategy,
+    custom_thinking_instructions,
+    expected_thinking_instructions,
 ):
     mock_finetune_registry["test_provider"] = mock_finetune_adapter
 
@@ -454,6 +466,7 @@ async def test_create_finetune(
         "provider": "test_provider",
         "base_model_id": "base_model_1",
         "custom_system_message": "Test system message",
+        "custom_thinking_instructions": custom_thinking_instructions,
         "data_strategy": data_strategy.value,
     }
 
@@ -477,6 +490,7 @@ async def test_create_finetune(
         provider_base_model_id="base_model_1",
         train_split_name="train",
         system_message="Test system message",
+        thinking_instructions=expected_thinking_instructions,
         parameters={"learning_rate": 0.001, "epochs": 10},
         name="New Finetune",
         description="Test description",
@@ -867,6 +881,7 @@ def test_download_dataset_jsonl_with_prompt_builder(
             "split_name": "train",
             "format_type": "openai_chat_jsonl",
             "system_message_generator": "test_prompt_builder",
+            "custom_thinking_instructions": "custom thinking instructions",
             "data_strategy": "final_only",
         },
     )
@@ -879,7 +894,11 @@ def test_download_dataset_jsonl_with_prompt_builder(
 
     split1 = next(split for split in test_task.dataset_splits() if split.id == "split1")
     # Verify formatter was created with generated system message
-    mock_formatter_class.assert_called_once_with(split1, "Generated system message")
+    mock_formatter_class.assert_called_once_with(
+        dataset=split1,
+        system_message="Generated system message",
+        thinking_instructions=None,
+    )
 
 
 async def test_get_finetune(client, mock_task_from_id_disk_backed):
@@ -960,3 +979,42 @@ async def test_get_finetunes_with_status_update(
     # Verify that status was only checked for the pending finetune
     mock_adapter_class.assert_called_once_with(tune1)
     mock_adapter.status.assert_called_once()
+
+
+def test_thinking_instructions_non_cot_strategy():
+    """Test that non-COT strategies return None regardless of other parameters"""
+    task = Mock(spec=Task)
+    result = thinking_instructions_from_request(
+        task=task,
+        data_strategy=FinetuneDataStrategy.final_only,
+        custom_thinking_instructions="custom instructions",
+    )
+    assert result is None
+
+
+def test_thinking_instructions_custom():
+    """Test that custom instructions are returned when provided"""
+    task = Mock(spec=Task)
+    custom_instructions = "My custom thinking instructions"
+    result = thinking_instructions_from_request(
+        task=task,
+        data_strategy=FinetuneDataStrategy.final_and_intermediate,
+        custom_thinking_instructions=custom_instructions,
+    )
+    assert result == custom_instructions
+
+
+@patch("app.desktop.studio_server.finetune_api.chain_of_thought_prompt")
+def test_thinking_instructions_default(mock_cot):
+    """Test that default chain of thought prompt is used when no custom instructions"""
+    task = Mock(spec=Task)
+    mock_cot.return_value = "Default COT instructions"
+
+    result = thinking_instructions_from_request(
+        task=task,
+        data_strategy=FinetuneDataStrategy.final_and_intermediate,
+        custom_thinking_instructions=None,
+    )
+
+    mock_cot.assert_called_once_with(task)
+    assert result == "Default COT instructions"

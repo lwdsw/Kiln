@@ -28,6 +28,8 @@
   let automatic_validation = disabled_header
   let data_strategy: FinetuneDataStrategy = "final_only"
   let finetune_custom_system_prompt = ""
+  let finetune_custom_thinking_instructions =
+    "Think step by step, explaining your reasoning."
   let system_prompt_method = "basic"
 
   $: project_id = $page.params.project_id
@@ -336,6 +338,12 @@
       ? finetune_custom_system_prompt
       : undefined
   }
+  function get_custom_thinking_instructions_param(): string | undefined {
+    return system_prompt_method === "custom" &&
+      data_strategy === "final_and_intermediate"
+      ? finetune_custom_thinking_instructions
+      : undefined
+  }
 
   let create_finetune_error: KilnError | null = null
   let create_finetune_loading = false
@@ -369,6 +377,8 @@
                 : undefined,
               system_message_generator: get_system_prompt_method_param(),
               custom_system_message: get_custom_system_prompt_param(),
+              custom_thinking_instructions:
+                get_custom_thinking_instructions_param(),
               parameters: hyperparameter_values,
               data_strategy: data_strategy,
               validation_split_name:
@@ -451,6 +461,7 @@
       format_type: download_model_select_options[model_provider],
       system_message_generator: get_system_prompt_method_param(),
       custom_system_message: get_custom_system_prompt_param(),
+      custom_thinking_instructions: get_custom_thinking_instructions_param(),
     }
 
     // Format params as query string, including escaping values and filtering undefined
@@ -613,14 +624,27 @@
             custom_prompt_name="Custom Fine Tuning Prompt"
           />
           {#if system_prompt_method === "custom"}
-            <FormElement
-              label="Custom System Message"
-              description="Enter a custom system message to use during fine-tuning."
-              info_description="There are tradeoffs to consider when choosing a system prompt for fine-tuning. Read more: https://platform.openai.com/docs/guides/fine-tuning/#crafting-prompts"
-              inputType="textarea"
-              id="finetune_custom_system_prompt"
-              bind:value={finetune_custom_system_prompt}
-            />
+            <div class="p-4 border-l-4 border-gray-300">
+              <FormElement
+                label="Custom System Prompt"
+                description="Enter a custom system prompt to use during fine-tuning."
+                info_description="There are tradeoffs to consider when choosing a system prompt for fine-tuning. Read more: https://platform.openai.com/docs/guides/fine-tuning/#crafting-prompts"
+                inputType="textarea"
+                id="finetune_custom_system_prompt"
+                bind:value={finetune_custom_system_prompt}
+              />
+              {#if data_strategy === "final_and_intermediate"}
+                <div class="mt-4"></div>
+                <FormElement
+                  label="Custom Thinking Instructions"
+                  description="Instructions for the model's 'thinking' stage, before returning the final response."
+                  info_description="When training with intermediate results (reasoning, chain of thought, etc.), this prompt will be used to ask the model to 'think' before returning the final response."
+                  inputType="textarea"
+                  id="finetune_custom_thinking_instructions"
+                  bind:value={finetune_custom_thinking_instructions}
+                />
+              {/if}
+            </div>
           {/if}
           <FormElement
             label="Training Strategy"

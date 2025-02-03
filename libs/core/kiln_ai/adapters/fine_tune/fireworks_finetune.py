@@ -169,7 +169,11 @@ class FireworksFinetune(BaseFinetuneAdapter):
     async def generate_and_upload_jsonl(
         self, dataset: DatasetSplit, split_name: str, task: Task, format: DatasetFormat
     ) -> str:
-        formatter = DatasetFormatter(dataset, self.datamodel.system_message)
+        formatter = DatasetFormatter(
+            dataset=dataset,
+            system_message=self.datamodel.system_message,
+            thinking_instructions=self.datamodel.thinking_instructions,
+        )
         path = formatter.dump_to_file(split_name, format, self.datamodel.data_strategy)
 
         # First call creates the dataset

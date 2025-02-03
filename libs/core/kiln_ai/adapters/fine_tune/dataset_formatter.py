@@ -63,7 +63,10 @@ class FormatGenerator(Protocol):
 
 
 def build_training_data(
-    task_run: TaskRun, system_message: str, include_cot: bool
+    task_run: TaskRun,
+    system_message: str,
+    include_cot: bool,
+    thinking_instructions: str | None = None,
 ) -> ModelTrainingData:
     """
     Generate data for training.
@@ -77,7 +80,6 @@ def build_training_data(
         final_output = task_run.repaired_output.output
 
     thinking = None
-    thinking_instructions = None
     thinking_final_answer_prompt = None
     parent_task = task_run.parent_task()
 
@@ -93,11 +95,19 @@ def build_training_data(
             raise ValueError(
                 "TaskRuns for training required a parent Task for building a chain of thought prompts. Train without COT, or save this TaskRun to a parent Task."
             )
+
+        # Prefer reasoning to cot if both are present
         thinking = task_run.intermediate_outputs.get(
             "reasoning"
         ) or task_run.intermediate_outputs.get("chain_of_thought")
-        thinking_instructions = chain_of_thought_prompt(parent_task)
+
         thinking_final_answer_prompt = COT_FINAL_ANSWER_PROMPT
+
+        # Always use the passed thinking instructions, but check they are present for COT
+        if not thinking_instructions:
+            raise ValueError(
+                "Thinking instructions are required when data_strategy is final_and_intermediate"
+            )
 
     return ModelTrainingData(
         input=task_run.input,
@@ -350,9 +360,15 @@ FORMAT_GENERATORS: Dict[DatasetFormat, FormatGenerator] = {
 class DatasetFormatter:
     """Handles formatting of datasets into various output formats"""
 
-    def __init__(self, dataset: DatasetSplit, system_message: str):
+    def __init__(
+        self,
+        dataset: DatasetSplit,
+        system_message: str,
+        thinking_instructions: str | None = None,
+    ):
         self.dataset = dataset
         self.system_message = system_message
+        self.thinking_instructions = thinking_instructions
 
         task = dataset.parent_task()
         if task is None:
@@ -410,7 +426,10 @@ class DatasetFormatter:
                     )
 
                 training_data = build_training_data(
-                    task_run, self.system_message, include_cot
+                    task_run=task_run,
+                    system_message=self.system_message,
+                    include_cot=include_cot,
+                    thinking_instructions=self.thinking_instructions,
                 )
                 example = generator(training_data)
                 # Allow non-ascii characters in the dataset.

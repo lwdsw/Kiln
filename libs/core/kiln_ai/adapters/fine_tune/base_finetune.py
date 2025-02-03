@@ -56,6 +56,7 @@ class BaseFinetuneAdapter(ABC):
         provider_base_model_id: str,
         train_split_name: str,
         system_message: str,
+        thinking_instructions: str | None,
         data_strategy: FinetuneDataStrategy,
         parameters: dict[str, str | int | float | bool] = {},
         name: str | None = None,
@@ -101,6 +102,7 @@ class BaseFinetuneAdapter(ABC):
             validation_split_name=validation_split_name,
             parameters=parameters,
             system_message=system_message,
+            thinking_instructions=thinking_instructions,
             parent=parent_task,
             data_strategy=data_strategy,
         )
