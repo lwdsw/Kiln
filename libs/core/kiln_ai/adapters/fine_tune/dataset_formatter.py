@@ -7,7 +7,6 @@ from typing import Any, Dict, Protocol
 from uuid import uuid4
 
 from kiln_ai.adapters.model_adapters.base_adapter import COT_FINAL_ANSWER_PROMPT
-from kiln_ai.adapters.prompt_builders import chain_of_thought_prompt
 from kiln_ai.datamodel import DatasetSplit, FinetuneDataStrategy, TaskRun
 
 
@@ -83,23 +82,17 @@ def build_training_data(
     thinking_final_answer_prompt = None
     parent_task = task_run.parent_task()
 
-    if (
-        include_cot
-        and task_run.intermediate_outputs is not None
-        and (
-            "reasoning" in task_run.intermediate_outputs
-            or "chain_of_thought" in task_run.intermediate_outputs
-        )
-    ):
+    if include_cot and task_run.has_thinking_training_data():
         if not parent_task:
             raise ValueError(
                 "TaskRuns for training required a parent Task for building a chain of thought prompts. Train without COT, or save this TaskRun to a parent Task."
             )
 
         # Prefer reasoning to cot if both are present
-        thinking = task_run.intermediate_outputs.get(
-            "reasoning"
-        ) or task_run.intermediate_outputs.get("chain_of_thought")
+        intermediate_outputs = task_run.intermediate_outputs or {}
+        thinking = intermediate_outputs.get("reasoning") or intermediate_outputs.get(
+            "chain_of_thought"
+        )
 
         thinking_final_answer_prompt = COT_FINAL_ANSWER_PROMPT
 

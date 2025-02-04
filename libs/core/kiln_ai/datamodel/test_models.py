@@ -586,3 +586,34 @@ def test_finetune_thinking_instructions_validation(
         finetune = Finetune(**base_params)
         assert finetune.thinking_instructions == thinking_instructions
         assert finetune.data_strategy == data_strategy
+
+
+@pytest.mark.parametrize(
+    "intermediate_outputs,expected",
+    [
+        # No intermediate outputs
+        (None, False),
+        # Empty intermediate outputs
+        ({}, False),
+        # Only chain_of_thought
+        ({"chain_of_thought": "thinking process"}, True),
+        # Only reasoning
+        ({"reasoning": "reasoning process"}, True),
+        # Both chain_of_thought and reasoning
+        (
+            {"chain_of_thought": "thinking process", "reasoning": "reasoning process"},
+            True,
+        ),
+        # Other intermediate outputs but no thinking data
+        ({"other_output": "some data"}, False),
+        # Mixed other outputs with thinking data
+        ({"chain_of_thought": "thinking process", "other_output": "some data"}, True),
+    ],
+)
+def test_task_run_has_thinking_training_data(intermediate_outputs, expected):
+    task_run = TaskRun(
+        input="test input",
+        output=TaskOutput(output="test output"),
+        intermediate_outputs=intermediate_outputs,
+    )
+    assert task_run.has_thinking_training_data() == expected

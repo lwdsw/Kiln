@@ -5,6 +5,7 @@ from pydantic import ValidationError
 from kiln_ai.datamodel import (
     AllDatasetFilter,
     AllSplitDefinition,
+    DatasetFilterType,
     DatasetSplit,
     DatasetSplitDefinition,
     DataSource,
@@ -15,6 +16,8 @@ from kiln_ai.datamodel import (
     TaskOutputRating,
     TaskOutputRatingType,
     TaskRun,
+    ThinkingModelDatasetFilter,
+    ThinkingModelHighRatedFilter,
     Train60Test20Val20SplitDefinition,
     Train80Test20SplitDefinition,
 )
@@ -196,8 +199,10 @@ def test_dataset_split_with_high_rating_filter(sample_task, sample_task_runs):
         "Split Name",
         sample_task,
         Train80Test20SplitDefinition,
-        filter=HighRatingDatasetFilter,
+        filter_type=DatasetFilterType.HIGH_RATING,
     )
+
+    assert dataset.filter == DatasetFilterType.HIGH_RATING
 
     # Check that only high-rated task runs are included
     all_ids = []
@@ -255,3 +260,72 @@ def test_smaller_sample(sample_task, sample_task_runs):
 
     # Now we should have 0 missing runs. It's okay that dataset has newer data.
     assert dataset.missing_count() == 0
+
+
+@pytest.mark.parametrize(
+    "thinking_data,expected_result",
+    [
+        ({"reasoning": "Here's my answer"}, True),
+        ({"chain_of_thought": "Here's my answer"}, True),
+        ({"unknown": "Here's my answer"}, False),
+        ({}, False),
+        (None, False),
+    ],
+)
+def test_thinking_model_dataset_filter(
+    sample_task_runs, thinking_data, expected_result
+):
+    # Create a task run with thinking output
+    task_run = sample_task_runs[0].model_copy(
+        update={
+            "output": TaskOutput(
+                output="Let me think about this...\nHere's my answer",
+                source=DataSource(
+                    type=DataSourceType.human,
+                    properties={"created_by": "test-user"},
+                ),
+                rating=TaskOutputRating(value=5, type=TaskOutputRatingType.five_star),
+            ),
+            "intermediate_outputs": thinking_data,
+        }
+    )
+
+    assert ThinkingModelDatasetFilter(task_run) is expected_result
+
+
+@pytest.mark.parametrize(
+    "thinking_data,rating,expected_result",
+    [
+        ({"reasoning": "Here's my answer"}, 5, True),
+        ({"chain_of_thought": "Here's my answer"}, 5, True),
+        ({"unknown": "Here's my answer"}, 5, False),
+        ({}, 5, False),
+        (None, 5, False),
+        ({"reasoning": "Here's my answer"}, 1, False),
+        ({"chain_of_thought": "Here's my answer"}, 1, False),
+        ({"unknown": "Here's my answer"}, 1, False),
+        ({}, 1, False),
+        (None, 1, False),
+    ],
+)
+def test_thinking_model_dataset_filter_high_rated(
+    sample_task_runs, thinking_data, rating, expected_result
+):
+    # Create a task run with thinking output
+    task_run = sample_task_runs[0].model_copy(
+        update={
+            "output": TaskOutput(
+                output="Let me think about this...\nHere's my answer",
+                source=DataSource(
+                    type=DataSourceType.human,
+                    properties={"created_by": "test-user"},
+                ),
+                rating=TaskOutputRating(
+                    value=rating, type=TaskOutputRatingType.five_star
+                ),
+            ),
+            "intermediate_outputs": thinking_data,
+        }
+    )
+
+    assert ThinkingModelHighRatedFilter(task_run) is expected_result

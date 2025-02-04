@@ -639,7 +639,7 @@ def test_build_training_data_with_repaired_output(mock_task):
         ),
     )
 
-    training_data_output = build_training_data(mock_task_run, "system message", True)
+    training_data_output = build_training_data(mock_task_run, "system message", False)
     assert training_data_output.final_output == '{"test": "repaired output"}'
     assert training_data_output.thinking is None
     assert training_data_output.thinking_instructions is None

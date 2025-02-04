@@ -774,7 +774,7 @@
         <FormElement
           label="Dataset Filter"
           description="Select a filter for your dataset. Typically you want to filter out examples that are not rated 4+ stars."
-          info_description="A 'High Rating' filter will include only examples that are rated 4+ stars. The 'All' filter will include all examples."
+          info_description="A 'High Rating' filter will include only examples that are rated 4+ stars. The 'All' filter will include all examples. Thinking filters will also check the sample has reasoning or chain-of-thought data for training thinking models."
           inputType="select"
           optional={false}
           id="dataset_filter"
@@ -782,6 +782,14 @@
             [disabled_header, "Select a dataset filter"],
             ["high_rating", "High Rating (4+ stars)"],
             ["all", "All (no filter)"],
+            [
+              "thinking_model",
+              "Thinking (items with reasoning/chain-of-thought)",
+            ],
+            [
+              "thinking_model_high_rated",
+              "Thinking + High Rated (4+ stars and thinking)",
+            ],
           ]}
           bind:value={new_dataset_filter}
         />
