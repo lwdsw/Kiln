@@ -337,7 +337,11 @@ def test_dataset_formatter_dump_to_file_tool_format(mock_dataset, tmp_path):
 def test_dataset_formatter_dump_with_intermediate_data(
     mock_dataset, mock_intermediate_outputs
 ):
-    formatter = DatasetFormatter(mock_dataset, "system message 你好")
+    formatter = DatasetFormatter(
+        mock_dataset,
+        "system message 你好",
+        thinking_instructions="thinking instructions",
+    )
 
     result_path = formatter.dump_to_file(
         "train",
@@ -359,6 +363,36 @@ def test_dataset_formatter_dump_with_intermediate_data(
         for line in lines:
             assert "thinking output" in line
             assert "thinking instructions" in line
+
+
+def test_dataset_formatter_dump_with_intermediate_data_custom_instructions(
+    mock_dataset, mock_intermediate_outputs
+):
+    formatter = DatasetFormatter(
+        mock_dataset, "custom system message 你好", "custom thinking instructions"
+    )
+
+    result_path = formatter.dump_to_file(
+        "train",
+        DatasetFormat.OPENAI_CHAT_JSONL,
+        data_strategy=FinetuneDataStrategy.final_and_intermediate,
+    )
+
+    assert result_path.exists()
+    assert result_path.parent == Path(tempfile.gettempdir())
+    # Test our nice naming, with cot
+    assert (
+        result_path.name
+        == "test_dataset -- split-train -- format-openai_chat_jsonl -- cot.jsonl"
+    )
+    # Verify file contents
+    with open(result_path) as f:
+        lines = f.readlines()
+        assert len(lines) == 2
+        for line in lines:
+            assert "custom system message 你好" in line
+            assert "custom thinking instructions" in line
+            assert "thinking output" in line
 
 
 def test_generate_huggingface_chat_template():
@@ -542,6 +576,7 @@ def test_build_training_data(mock_task):
     assert training_data_output.thinking_final_answer_prompt is None
     assert training_data_output.input == '{"test": "input 你好"}'
     assert training_data_output.system_message == "system message"
+    assert not training_data_output.supports_cot()
 
 
 def test_build_training_data_with_COT(mock_task):
@@ -549,16 +584,20 @@ def test_build_training_data_with_COT(mock_task):
     mock_task_run = mock_task.runs()[0]
     assert mock_task_run.parent_task() == mock_task
     mock_task_run.intermediate_outputs = {"chain_of_thought": "cot output"}
-    mock_task.thinking_instruction = "thinking instructions"
-    assert mock_task.thinking_instruction == "thinking instructions"
 
-    training_data_output = build_training_data(mock_task_run, "system message", True)
+    training_data_output = build_training_data(
+        mock_task_run,
+        "system message",
+        True,
+        thinking_instructions="thinking instructions",
+    )
     assert training_data_output.final_output == '{"test":   "output 你好"}'
     assert training_data_output.thinking == "cot output"
     assert training_data_output.thinking_instructions == "thinking instructions"
     assert training_data_output.thinking_final_answer_prompt == COT_FINAL_ANSWER_PROMPT
     assert training_data_output.input == '{"test": "input 你好"}'
     assert training_data_output.system_message == "system message"
+    assert training_data_output.supports_cot()
 
 
 def test_build_training_data_with_thinking(mock_task):
@@ -573,13 +612,19 @@ def test_build_training_data_with_thinking(mock_task):
     mock_task.thinking_instruction = "thinking instructions"
     assert mock_task.thinking_instruction == "thinking instructions"
 
-    training_data_output = build_training_data(mock_task_run, "system message", True)
+    training_data_output = build_training_data(
+        mock_task_run,
+        "system message",
+        True,
+        thinking_instructions="thinking instructions",
+    )
     assert training_data_output.final_output == '{"test":   "output 你好"}'
     assert training_data_output.thinking == "thinking output"
     assert training_data_output.thinking_instructions == "thinking instructions"
     assert training_data_output.thinking_final_answer_prompt == COT_FINAL_ANSWER_PROMPT
     assert training_data_output.input == '{"test": "input 你好"}'
     assert training_data_output.system_message == "system message"
+    assert training_data_output.supports_cot()
 
 
 def test_build_training_data_with_repaired_output(mock_task):

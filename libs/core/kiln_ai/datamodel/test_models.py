@@ -9,6 +9,7 @@ from kiln_ai.datamodel import (
     DataSource,
     DataSourceType,
     Finetune,
+    FinetuneDataStrategy,
     Project,
     Prompt,
     Task,
@@ -527,3 +528,61 @@ def test_prompt_parent_task():
     task = Task(name="Test Task", instruction="Test Instruction")
     prompt = Prompt(name="Test Prompt", prompt="Test Prompt", parent=task)
     assert prompt.parent == task
+
+
+@pytest.mark.parametrize(
+    "thinking_instructions,data_strategy,should_raise,expected_message",
+    [
+        # Test 1: Valid case - no thinking instructions with final_only
+        (
+            None,
+            FinetuneDataStrategy.final_only,
+            False,
+            None,
+        ),
+        # Test 2: Valid case - thinking instructions with final_and_intermediate
+        (
+            "Think step by step",
+            FinetuneDataStrategy.final_and_intermediate,
+            False,
+            None,
+        ),
+        # Test 3: Invalid case - thinking instructions with final_only
+        (
+            "Think step by step",
+            FinetuneDataStrategy.final_only,
+            True,
+            "Thinking instructions can only be used when data_strategy is final_and_intermediate",
+        ),
+        # Test 4: Invalid case - no thinking instructions with final_and_intermediate
+        (
+            None,
+            FinetuneDataStrategy.final_and_intermediate,
+            True,
+            "Thinking instructions are required when data_strategy is final_and_intermediate",
+        ),
+    ],
+)
+def test_finetune_thinking_instructions_validation(
+    thinking_instructions, data_strategy, should_raise, expected_message
+):
+    base_params = {
+        "name": "test-finetune",
+        "provider": "openai",
+        "base_model_id": "gpt-3.5-turbo",
+        "dataset_split_id": "split1",
+        "system_message": "test message",
+        "data_strategy": data_strategy,
+    }
+
+    if thinking_instructions is not None:
+        base_params["thinking_instructions"] = thinking_instructions
+
+    if should_raise:
+        with pytest.raises(ValueError) as exc_info:
+            Finetune(**base_params)
+        assert expected_message in str(exc_info.value)
+    else:
+        finetune = Finetune(**base_params)
+        assert finetune.thinking_instructions == thinking_instructions
+        assert finetune.data_strategy == data_strategy

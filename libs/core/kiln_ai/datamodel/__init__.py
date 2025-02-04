@@ -348,6 +348,10 @@ class Finetune(KilnParentedModel):
     system_message: str = Field(
         description="The system message to use for this fine-tune.",
     )
+    thinking_instructions: str | None = Field(
+        default=None,
+        description="The thinking instructions to use for this fine-tune. Only used when data_strategy is final_and_intermediate.",
+    )
     latest_status: FineTuneStatusType = Field(
         default=FineTuneStatusType.unknown,
         description="The latest known status of this fine-tune. Not updated in real time.",
@@ -365,6 +369,24 @@ class Finetune(KilnParentedModel):
         if not isinstance(self.parent, Task):
             return None
         return self.parent
+
+    @model_validator(mode="after")
+    def validate_thinking_instructions(self) -> Self:
+        if (
+            self.thinking_instructions is not None
+            and self.data_strategy != FinetuneDataStrategy.final_and_intermediate
+        ):
+            raise ValueError(
+                "Thinking instructions can only be used when data_strategy is final_and_intermediate"
+            )
+        if (
+            self.thinking_instructions is None
+            and self.data_strategy == FinetuneDataStrategy.final_and_intermediate
+        ):
+            raise ValueError(
+                "Thinking instructions are required when data_strategy is final_and_intermediate"
+            )
+        return self
 
 
 class DataSourceType(str, Enum):

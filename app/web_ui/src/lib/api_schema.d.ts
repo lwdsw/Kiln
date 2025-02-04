@@ -701,6 +701,8 @@ export interface components {
             system_message_generator?: string | null;
             /** Custom System Message */
             custom_system_message?: string | null;
+            /** Custom Thinking Instructions */
+            custom_thinking_instructions?: string | null;
             data_strategy: components["schemas"]["FinetuneDataStrategy"];
         };
         /** DataGenCategoriesApiInput */
@@ -1037,6 +1039,11 @@ export interface components {
              * @description The system message to use for this fine-tune.
              */
             system_message: string;
+            /**
+             * Thinking Instructions
+             * @description The thinking instructions to use for this fine-tune. Only used when data_strategy is final_and_intermediate.
+             */
+            thinking_instructions?: string | null;
             /**
              * @description The latest known status of this fine-tune. Not updated in real time.
              * @default unknown
@@ -3181,6 +3188,7 @@ export interface operations {
                 data_strategy: string;
                 system_message_generator?: string | null;
                 custom_system_message?: string | null;
+                custom_thinking_instructions?: string | null;
             };
             header?: never;
             path?: never;

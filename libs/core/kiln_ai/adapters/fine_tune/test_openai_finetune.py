@@ -240,12 +240,14 @@ async def test_generate_and_upload_jsonl_success(
 
         # Verify formatter was created with correct parameters
         mock_formatter_class.assert_called_once_with(
-            mock_dataset, openai_finetune.datamodel.system_message
+            mock_dataset, openai_finetune.datamodel.system_message, None
         )
 
         # Verify correct format was used
         mock_formatter.dump_to_file.assert_called_once_with(
-            "train", DatasetFormat.OPENAI_CHAT_JSONL, FinetuneDataStrategy.final_only
+            "train",
+            DatasetFormat.OPENAI_CHAT_JSONL,
+            FinetuneDataStrategy.final_only,
         )
 
         # Verify file was opened and uploaded
@@ -290,7 +292,7 @@ async def test_generate_and_upload_jsonl_schema_success(
 
         # Verify formatter was created with correct parameters
         mock_formatter_class.assert_called_once_with(
-            mock_dataset, openai_finetune.datamodel.system_message
+            mock_dataset, openai_finetune.datamodel.system_message, None
         )
 
         # Verify correct format was used
@@ -551,20 +553,33 @@ async def test_status_updates_latest_status(openai_finetune, mock_response):
 
 
 @pytest.mark.parametrize(
-    "data_strategy",
+    "data_strategy,thinking_instructions",
     [
-        FinetuneDataStrategy.final_and_intermediate,
-        FinetuneDataStrategy.final_only,
+        (FinetuneDataStrategy.final_and_intermediate, "Custom thinking instructions"),
+        (FinetuneDataStrategy.final_only, None),
     ],
 )
 async def test_generate_and_upload_jsonl_with_data_strategy(
-    openai_finetune, mock_dataset, mock_task, data_strategy
+    mock_dataset, mock_task, data_strategy, thinking_instructions, tmp_path
 ):
     mock_path = Path("mock_path.jsonl")
     mock_file_id = "file-123"
 
-    # Set a data strategy on the finetune model
-    openai_finetune.datamodel.data_strategy = data_strategy
+    openai_finetune = OpenAIFinetune(
+        datamodel=FinetuneModel(
+            name="test-finetune",
+            provider="openai",
+            provider_id="openai-123",
+            base_model_id="gpt-4o",
+            train_split_name="train",
+            dataset_split_id="dataset-123",
+            system_message="Test system message",
+            fine_tune_model_id="ft-123",
+            path=tmp_path / "test-finetune.kiln",
+            data_strategy=data_strategy,
+            thinking_instructions=thinking_instructions,
+        ),
+    )
 
     # Mock the formatter
     mock_formatter = MagicMock(spec=DatasetFormatter)

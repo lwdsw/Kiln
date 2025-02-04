@@ -9,7 +9,10 @@ from kiln_ai.adapters.ml_model_list import (
     ModelProviderName,
     built_in_models,
 )
-from kiln_ai.adapters.prompt_builders import prompt_builder_from_ui_name
+from kiln_ai.adapters.prompt_builders import (
+    chain_of_thought_prompt,
+    prompt_builder_from_ui_name,
+)
 from kiln_ai.adapters.provider_tools import (
     provider_enabled,
     provider_name_from_id,
@@ -100,6 +103,7 @@ class CreateFinetuneRequest(BaseModel):
     base_model_id: str
     system_message_generator: str | None = None
     custom_system_message: str | None = None
+    custom_thinking_instructions: str | None = None
     data_strategy: FinetuneDataStrategy
 
 
@@ -245,6 +249,9 @@ def connect_fine_tune_api(app: FastAPI):
         system_message = system_message_from_request(
             task, request.custom_system_message, request.system_message_generator
         )
+        thinking_instructions = thinking_instructions_from_request(
+            task, request.data_strategy, request.custom_thinking_instructions
+        )
 
         _, finetune_model = await finetune_adapter_class.create_and_start(
             dataset=dataset,
@@ -252,6 +259,7 @@ def connect_fine_tune_api(app: FastAPI):
             provider_base_model_id=request.base_model_id,
             train_split_name=request.train_split_name,
             system_message=system_message,
+            thinking_instructions=thinking_instructions,
             parameters=request.parameters,
             name=request.name,
             description=request.description,
@@ -271,6 +279,7 @@ def connect_fine_tune_api(app: FastAPI):
         data_strategy: str,
         system_message_generator: str | None = None,
         custom_system_message: str | None = None,
+        custom_thinking_instructions: str | None = None,
     ) -> StreamingResponse:
         if format_type not in [format.value for format in DatasetFormat]:
             raise HTTPException(
@@ -301,8 +310,15 @@ def connect_fine_tune_api(app: FastAPI):
         system_message = system_message_from_request(
             task, custom_system_message, system_message_generator
         )
+        thinking_instructions = thinking_instructions_from_request(
+            task, data_strategy_typed, custom_thinking_instructions
+        )
 
-        dataset_formatter = DatasetFormatter(dataset, system_message)
+        dataset_formatter = DatasetFormatter(
+            dataset=dataset,
+            system_message=system_message,
+            thinking_instructions=thinking_instructions,
+        )
         path = dataset_formatter.dump_to_file(
             split_name,
             format_type_typed,
@@ -349,3 +365,20 @@ def system_message_from_request(
         )
 
     return system_message
+
+
+def thinking_instructions_from_request(
+    task: Task,
+    data_strategy: FinetuneDataStrategy,
+    custom_thinking_instructions: str | None,
+) -> str | None:
+    if data_strategy != FinetuneDataStrategy.final_and_intermediate:
+        # Not using COT/Thinking style
+        return None
+
+    if custom_thinking_instructions:
+        # prefer custom instructions
+        return custom_thinking_instructions
+
+    # default for this task
+    return chain_of_thought_prompt(task)

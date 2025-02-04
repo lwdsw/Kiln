@@ -230,14 +230,19 @@ def mock_task():
 
 
 @pytest.mark.parametrize(
-    "data_strategy",
+    "data_strategy,thinking_instructions",
     [
-        FinetuneDataStrategy.final_and_intermediate,
-        FinetuneDataStrategy.final_only,
+        (FinetuneDataStrategy.final_and_intermediate, "thinking instructions"),
+        (FinetuneDataStrategy.final_only, None),
     ],
 )
 async def test_generate_and_upload_jsonl_success(
-    fireworks_finetune, mock_dataset, mock_task, mock_api_key, data_strategy
+    mock_dataset,
+    mock_task,
+    mock_api_key,
+    data_strategy,
+    thinking_instructions,
+    tmp_path,
 ):
     mock_path = Path("mock_path.jsonl")
     mock_dataset_id = "dataset-123"
@@ -258,13 +263,26 @@ async def test_generate_and_upload_jsonl_success(
     status_response.json.return_value = {"state": "READY"}
 
     # Set the data strategy on the finetune model
-    fireworks_finetune.datamodel.data_strategy = data_strategy
+    tmp_file = tmp_path / "test-finetune.kiln"
+    fireworks_finetune = FireworksFinetune(
+        datamodel=FinetuneModel(
+            name="test-finetune",
+            provider="fireworks",
+            provider_id="fw-123",
+            base_model_id="llama-v2-7b",
+            train_split_name="train",
+            dataset_split_id="dataset-123",
+            system_message="Test system message",
+            path=tmp_file,
+            data_strategy=data_strategy,
+            thinking_instructions=thinking_instructions,
+        ),
+    )
 
     with (
         patch(
             "kiln_ai.adapters.fine_tune.fireworks_finetune.DatasetFormatter",
-            return_value=mock_formatter,
-        ),
+        ) as mock_formatter_constructor,
         patch("httpx.AsyncClient") as mock_client_class,
         patch("builtins.open"),
         patch(
@@ -272,6 +290,7 @@ async def test_generate_and_upload_jsonl_success(
             return_value=mock_dataset_id,
         ),
     ):
+        mock_formatter_constructor.return_value = mock_formatter
         mock_client = AsyncMock()
         mock_client.post = AsyncMock(side_effect=[create_response, upload_response])
         mock_client.get = AsyncMock(return_value=status_response)
@@ -282,11 +301,19 @@ async def test_generate_and_upload_jsonl_success(
         )
 
         # Verify formatter was created with correct parameters
-        mock_formatter.dump_to_file.assert_called_once_with(
-            "train",
-            DatasetFormat.OPENAI_CHAT_JSONL,
-            data_strategy,  # Confirm we use correct data strategy
-        )
+        assert mock_formatter_constructor.call_count == 1
+        assert mock_formatter_constructor.call_args[1] == {
+            "dataset": mock_dataset,
+            "system_message": "Test system message",
+            "thinking_instructions": thinking_instructions,
+        }
+
+        # Verify the thinking instructions were set on the formatter
+        mock_formatter.method_calls[0][0] == "dump_to_file"
+        mock_formatter.method_calls[0][1] == {
+            "dataset": mock_dataset,
+            "thinking_instructions": thinking_instructions,
+        }
 
         assert result == mock_dataset_id
         assert mock_client.post.call_count == 2
