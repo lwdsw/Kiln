@@ -39,8 +39,8 @@ def test_generate_model_table():
 
     # Table header
     table = [
-        "| Model Name | Providers | Structured Output | Synthetic Data | API Fine-Tuneable |",
-        "|------------|-----------|-------------------|----------------|-------------------|",
+        "| Model Name | Providers | Structured Output | Reasoning | Synthetic Data | API Fine-Tuneable |",
+        "|------------|-----------|-------------------|-----------|----------------|-------------------|",
     ]
 
     for model in built_in_models:
@@ -50,10 +50,11 @@ def test_generate_model_table():
         structured_output = _get_support_status(
             model.providers, "supports_structured_output"
         )
+        reasoning = _get_support_status(model.providers, "reasoning_capable")
         data_gen = _get_support_status(model.providers, "supports_data_gen")
         finetune = _has_finetune_support(model.providers)
 
-        row = f"| {model.friendly_name} | {provider_names} | {structured_output} | {data_gen} | {finetune} |"
+        row = f"| {model.friendly_name} | {provider_names} | {structured_output} | {reasoning} | {data_gen} | {finetune} |"
         table.append(row)
 
     # Print the table (useful for documentation)
