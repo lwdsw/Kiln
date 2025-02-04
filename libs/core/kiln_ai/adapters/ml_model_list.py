@@ -80,6 +80,10 @@ class ModelName(str, Enum):
     qwen_2p5_72b = "qwen_2p5_72b"
     deepseek_3 = "deepseek_3"
     deepseek_r1 = "deepseek_r1"
+    mistral_small_3 = "mistral_small_3"
+    deepseek_r1_distill_qwen_32b = "deepseek_r1_distill_qwen_32b"
+    deepseek_r1_distill_llama_70b = "deepseek_r1_distill_llama_70b"
+    deepseek_r1_distill_qwen_14b = "deepseek_r1_distill_qwen_14b"
 
 
 class ModelParserID(str, Enum):
@@ -784,6 +788,90 @@ built_in_models: List[KilnModel] = [
                 # provider_finetune_id="accounts/fireworks/models/qwen2p5-72b-instruct",
                 # Tool calling forces schema -- fireworks doesn't support json_schema, just json_mode
                 structured_output_mode=StructuredOutputMode.function_calling,
+            ),
+        ],
+    ),
+    # Mistral Small 3
+    KilnModel(
+        family=ModelFamily.mistral,
+        name=ModelName.mistral_small_3,
+        friendly_name="Mistral Small 3",
+        providers=[
+            KilnModelProvider(
+                name=ModelProviderName.openrouter,
+                structured_output_mode=StructuredOutputMode.json_instruction_and_object,
+                provider_options={"model": "mistralai/mistral-small-24b-instruct-2501"},
+            ),
+            KilnModelProvider(
+                name=ModelProviderName.ollama,
+                structured_output_mode=StructuredOutputMode.json_schema,
+                provider_options={"model": "mistral-small:24b"},
+            ),
+        ],
+    ),
+    # DeepSeek R1 Distill Qwen 32B
+    KilnModel(
+        family=ModelFamily.deepseek,
+        name=ModelName.deepseek_r1_distill_qwen_32b,
+        friendly_name="DeepSeek R1 Distill Qwen 32B",
+        providers=[
+            KilnModelProvider(
+                name=ModelProviderName.openrouter,
+                reasoning_capable=True,
+                structured_output_mode=StructuredOutputMode.json_instruction_and_object,
+                provider_options={"model": "deepseek/deepseek-r1-distill-qwen-32b"},
+            ),
+            KilnModelProvider(
+                name=ModelProviderName.ollama,
+                parser=ModelParserID.r1_thinking,
+                reasoning_capable=True,
+                structured_output_mode=StructuredOutputMode.json_schema,
+                provider_options={"model": "deepseek-r1:32b"},
+            ),
+        ],
+    ),
+    # DeepSeek R1 Distill Llama 70B
+    KilnModel(
+        family=ModelFamily.deepseek,
+        name=ModelName.deepseek_r1_distill_llama_70b,
+        friendly_name="DeepSeek R1 Distill Llama 70B",
+        providers=[
+            KilnModelProvider(
+                name=ModelProviderName.openrouter,
+                reasoning_capable=True,
+                structured_output_mode=StructuredOutputMode.json_instruction_and_object,
+                provider_options={"model": "deepseek/deepseek-r1-distill-llama-70b"},
+            ),
+            KilnModelProvider(
+                name=ModelProviderName.ollama,
+                supports_data_gen=False,
+                parser=ModelParserID.r1_thinking,
+                reasoning_capable=True,
+                structured_output_mode=StructuredOutputMode.json_schema,
+                provider_options={"model": "deepseek-r1:70b"},
+            ),
+        ],
+    ),
+    # DeepSeek R1 Distill Qwen 14B
+    KilnModel(
+        family=ModelFamily.deepseek,
+        name=ModelName.deepseek_r1_distill_qwen_14b,
+        friendly_name="DeepSeek R1 Distill Qwen 14B",
+        providers=[
+            KilnModelProvider(
+                name=ModelProviderName.openrouter,
+                supports_data_gen=False,
+                reasoning_capable=True,
+                structured_output_mode=StructuredOutputMode.json_instruction_and_object,
+                provider_options={"model": "deepseek/deepseek-r1-distill-qwen-14b"},
+            ),
+            KilnModelProvider(
+                name=ModelProviderName.ollama,
+                supports_data_gen=False,
+                parser=ModelParserID.r1_thinking,
+                reasoning_capable=True,
+                structured_output_mode=StructuredOutputMode.json_schema,
+                provider_options={"model": "deepseek-r1:14b"},
             ),
         ],
     ),
