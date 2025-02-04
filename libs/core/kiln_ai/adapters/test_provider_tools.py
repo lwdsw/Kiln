@@ -220,14 +220,14 @@ def test_get_model_and_provider_valid_model_wrong_provider():
 def test_get_model_and_provider_multiple_providers():
     # Test with a model that has multiple providers
     model, provider = get_model_and_provider(
-        ModelName.llama_3_1_70b, ModelProviderName.groq
+        ModelName.llama_3_3_70b, ModelProviderName.groq
     )
 
     assert model is not None
     assert provider is not None
-    assert model.name == ModelName.llama_3_1_70b
+    assert model.name == ModelName.llama_3_3_70b
     assert provider.name == ModelProviderName.groq
-    assert provider.provider_options["model"] == "llama-3.1-70b-versatile"
+    assert provider.provider_options["model"] == "llama-3.3-70b-versatile"
 
 
 @pytest.mark.asyncio
@@ -421,12 +421,12 @@ async def test_builtin_model_from_valid_model_specific_provider(mock_config):
     mock_config.return_value = "fake-api-key"
 
     provider = builtin_model_from(
-        ModelName.llama_3_1_70b, provider_name=ModelProviderName.groq
+        ModelName.llama_3_3_70b, provider_name=ModelProviderName.groq
     )
 
     assert provider is not None
     assert provider.name == ModelProviderName.groq
-    assert provider.provider_options["model"] == "llama-3.1-70b-versatile"
+    assert provider.provider_options["model"] == "llama-3.3-70b-versatile"
 
 
 @pytest.mark.asyncio
@@ -465,7 +465,7 @@ async def test_builtin_model_from_provider_warning_check(mock_config):
     mock_config.return_value = None
 
     with pytest.raises(ValueError) as exc_info:
-        await builtin_model_from(ModelName.llama_3_1_70b, ModelProviderName.groq)
+        await builtin_model_from(ModelName.llama_3_3_70b, ModelProviderName.groq)
 
     assert provider_warnings[ModelProviderName.groq].message in str(exc_info.value)
 

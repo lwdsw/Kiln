@@ -347,10 +347,6 @@ built_in_models: List[KilnModel] = [
         friendly_name="Llama 3.1 70B",
         providers=[
             KilnModelProvider(
-                name=ModelProviderName.groq,
-                provider_options={"model": "llama-3.1-70b-versatile"},
-            ),
-            KilnModelProvider(
                 name=ModelProviderName.amazon_bedrock,
                 structured_output_mode=StructuredOutputMode.json_schema,
                 supports_data_gen=False,
@@ -462,6 +458,11 @@ built_in_models: List[KilnModel] = [
         friendly_name="Llama 3.2 1B",
         providers=[
             KilnModelProvider(
+                name=ModelProviderName.groq,
+                provider_options={"model": "llama-3.2-1b-preview"},
+                supports_data_gen=False,
+            ),
+            KilnModelProvider(
                 name=ModelProviderName.openrouter,
                 supports_structured_output=False,
                 supports_data_gen=False,
@@ -482,6 +483,11 @@ built_in_models: List[KilnModel] = [
         name=ModelName.llama_3_2_3b,
         friendly_name="Llama 3.2 3B",
         providers=[
+            KilnModelProvider(
+                name=ModelProviderName.groq,
+                provider_options={"model": "llama-3.2-3b-preview"},
+                supports_data_gen=False,
+            ),
             KilnModelProvider(
                 name=ModelProviderName.openrouter,
                 supports_structured_output=False,
@@ -512,6 +518,10 @@ built_in_models: List[KilnModel] = [
         friendly_name="Llama 3.2 11B",
         providers=[
             KilnModelProvider(
+                name=ModelProviderName.groq,
+                provider_options={"model": "llama-3.2-11b-vision-preview"},
+            ),
+            KilnModelProvider(
                 name=ModelProviderName.openrouter,
                 structured_output_mode=StructuredOutputMode.json_schema,
                 provider_options={"model": "meta-llama/llama-3.2-11b-vision-instruct"},
@@ -537,6 +547,10 @@ built_in_models: List[KilnModel] = [
         name=ModelName.llama_3_2_90b,
         friendly_name="Llama 3.2 90B",
         providers=[
+            KilnModelProvider(
+                name=ModelProviderName.groq,
+                provider_options={"model": "llama-3.2-90b-vision-preview"},
+            ),
             KilnModelProvider(
                 name=ModelProviderName.openrouter,
                 structured_output_mode=StructuredOutputMode.json_schema,
