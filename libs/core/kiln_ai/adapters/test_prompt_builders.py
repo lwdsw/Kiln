@@ -9,6 +9,7 @@ from kiln_ai.adapters.model_adapters.test_structured_output import (
 from kiln_ai.adapters.prompt_builders import (
     FewShotChainOfThoughtPromptBuilder,
     FewShotPromptBuilder,
+    FineTunePromptBuilder,
     MultiShotChainOfThoughtPromptBuilder,
     MultiShotPromptBuilder,
     RepairsPromptBuilder,
@@ -22,6 +23,8 @@ from kiln_ai.adapters.test_prompt_adaptors import build_test_task
 from kiln_ai.datamodel import (
     DataSource,
     DataSourceType,
+    Finetune,
+    FinetuneDataStrategy,
     Project,
     Prompt,
     Task,
@@ -348,6 +351,18 @@ def test_prompt_builder_from_ui_name(task_with_examples):
     with pytest.raises(ValueError, match="Prompt ID not found: 123"):
         prompt_builder_from_ui_name("id::123", task)
 
+    with pytest.raises(
+        ValueError,
+        match="Invalid fine-tune ID format. Expected 'project_id::task_id::fine_tune_id'",
+    ):
+        prompt_builder_from_ui_name("fine_tune_prompt::123", task)
+
+    with pytest.raises(
+        ValueError,
+        match="Fine-tune ID not found",
+    ):
+        prompt_builder_from_ui_name("fine_tune_prompt::123::456::789", task)
+
     prompt = Prompt(
         name="test_prompt_name",
         prompt="test_prompt",
@@ -360,6 +375,29 @@ def test_prompt_builder_from_ui_name(task_with_examples):
     assert pb.prompt_id() == prompt.id
     assert pb.build_prompt(include_json_instructions=False) == "test_prompt"
     assert pb.chain_of_thought_prompt() == "coti"
+
+    finetune = Finetune(
+        name="test_finetune_name",
+        system_message="test_system_message",
+        thinking_instructions="test_thinking_instructions",
+        parent=task,
+        base_model_id="test_base_model_id",
+        dataset_split_id="asdf",
+        provider="test_provider",
+        data_strategy=FinetuneDataStrategy.final_and_intermediate,
+    )
+    finetune.save_to_file()
+    nested_fine_tune_id = (
+        task_with_examples.parent.id + "::" + task_with_examples.id + "::" + finetune.id
+    )
+    pb = prompt_builder_from_ui_name(
+        "fine_tune_prompt::" + nested_fine_tune_id,
+        task_with_examples,
+    )
+    assert isinstance(pb, FineTunePromptBuilder)
+    assert pb.prompt_id() == nested_fine_tune_id
+    assert pb.build_base_prompt() == "test_system_message"
+    assert pb.chain_of_thought_prompt() == "test_thinking_instructions"
 
 
 def test_example_count():

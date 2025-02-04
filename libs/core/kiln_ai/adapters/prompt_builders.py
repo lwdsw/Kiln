@@ -300,6 +300,43 @@ class SavedPromptBuilder(BasePromptBuilder):
         return self.prompt_model.chain_of_thought_instructions
 
 
+class FineTunePromptBuilder(BasePromptBuilder):
+    """A prompt builder that looks up a fine-tune prompt."""
+
+    def __init__(self, task: Task, nested_fine_tune_id: str):
+        super().__init__(task)
+
+        # IDs are in project_id::task_id::fine_tune_id format
+        self.full_fine_tune_id = nested_fine_tune_id
+        parts = nested_fine_tune_id.split("::")
+        if len(parts) != 3:
+            raise ValueError(
+                f"Invalid fine-tune ID format. Expected 'project_id::task_id::fine_tune_id', got: {nested_fine_tune_id}"
+            )
+        fine_tune_id = parts[2]
+
+        fine_tune_model = next(
+            (
+                fine_tune
+                for fine_tune in task.finetunes(readonly=True)
+                if fine_tune.id == fine_tune_id
+            ),
+            None,
+        )
+        if not fine_tune_model:
+            raise ValueError(f"Fine-tune ID not found: {fine_tune_id}")
+        self.fine_tune_model = fine_tune_model
+
+    def prompt_id(self) -> str | None:
+        return self.full_fine_tune_id
+
+    def build_base_prompt(self) -> str:
+        return self.fine_tune_model.system_message
+
+    def chain_of_thought_prompt(self) -> str | None:
+        return self.fine_tune_model.thinking_instructions
+
+
 # TODO P2: we end up with 2 IDs for these: the keys here (ui_name) and the prompt_builder_name from the class
 # We end up maintaining this in _prompt_generators as well.
 prompt_builder_registry = {
@@ -331,6 +368,11 @@ def prompt_builder_from_ui_name(ui_name: str, task: Task) -> BasePromptBuilder:
     if ui_name.startswith("id::"):
         prompt_id = ui_name[4:]
         return SavedPromptBuilder(task, prompt_id)
+
+    # Fine-tune prompts are prefixed with "fine_tune_prompt::"
+    if ui_name.startswith("fine_tune_prompt::"):
+        fine_tune_id = ui_name[18:]
+        return FineTunePromptBuilder(task, fine_tune_id)
 
     match ui_name:
         case "basic":

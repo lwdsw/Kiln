@@ -345,6 +345,7 @@ class Finetune(KilnParentedModel):
         default={},
         description="The parameters to use for this fine-tune. These are provider-specific.",
     )
+    # These two fields are saved exactly used for training. Even if they map exactly to a custom prompt or generator, those can change, so we want to keep a record of the training prompt.
     system_message: str = Field(
         description="The system message to use for this fine-tune.",
     )
@@ -460,7 +461,8 @@ class DataSource(BaseModel):
             not_allowed_for=[DataSourceType.human],
         ),
         DataSourceProperty(
-            # Optional prompt builders with IDs (like static prompts)
+            # Optional: an ID within the scope of the prompt_builder_name.
+            # Used for prompt builders with IDs (like saved prompts, fine-tune prompts)
             name="prompt_id",
             type=str,
             not_allowed_for=[DataSourceType.human],
