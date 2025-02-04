@@ -17,6 +17,8 @@ from kiln_ai.datamodel import (
     HighRatingDatasetFilter,
     Project,
     Task,
+    ThinkingModelDatasetFilter,
+    ThinkingModelHighRatedFilter,
     Train60Test20Val20SplitDefinition,
     Train80Test10Val10SplitDefinition,
     Train80Test20SplitDefinition,
@@ -300,12 +302,19 @@ def test_api_split_types_mapping():
 
 
 def test_api_filter_types_mapping():
-    from app.desktop.studio_server.finetune_api import api_filter_types
+    from kiln_ai.datamodel import dataset_filters
 
-    assert api_filter_types[DatasetFilterType.ALL] == AllDatasetFilter
-    assert api_filter_types[DatasetFilterType.HIGH_RATING] == HighRatingDatasetFilter
+    assert dataset_filters[DatasetFilterType.ALL] == AllDatasetFilter
+    assert dataset_filters[DatasetFilterType.HIGH_RATING] == HighRatingDatasetFilter
+    assert (
+        dataset_filters[DatasetFilterType.THINKING_MODEL] == ThinkingModelDatasetFilter
+    )
+    assert (
+        dataset_filters[DatasetFilterType.THINKING_MODEL_HIGH_RATED]
+        == ThinkingModelHighRatedFilter
+    )
     for filter_type in DatasetFilterType:
-        assert filter_type in api_filter_types
+        assert filter_type in dataset_filters
 
 
 @pytest.fixture
@@ -331,7 +340,7 @@ def test_create_dataset_split(
     with mock_from_task as from_task_mock, mock_save as save_mock:
         request_data = {
             "dataset_split_type": "train_test",
-            "filter_type": "all",
+            "filter_type": "high_rating",
             "name": "Test Split",
             "description": "Test description",
         }
@@ -348,6 +357,8 @@ def test_create_dataset_split(
         # Verify the mocks were called correctly
         mock_task_from_id_disk_backed.assert_called_once_with("project1", "task1")
         from_task_mock.assert_called_once()
+        args, kwargs = from_task_mock.call_args
+        assert kwargs["filter_type"] == DatasetFilterType.HIGH_RATING
         save_mock.assert_called_once()
 
 

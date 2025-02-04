@@ -18,17 +18,17 @@ from kiln_ai.adapters.provider_tools import (
     provider_name_from_id,
 )
 from kiln_ai.datamodel import (
-    AllDatasetFilter,
     AllSplitDefinition,
+    DatasetFilterType,
     DatasetSplit,
     Finetune,
     FinetuneDataStrategy,
     FineTuneStatusType,
-    HighRatingDatasetFilter,
     Task,
     Train60Test20Val20SplitDefinition,
     Train80Test10Val10SplitDefinition,
     Train80Test20SplitDefinition,
+    dataset_filters,
 )
 from kiln_ai.utils.name_generator import generate_memorable_name
 from kiln_server.task_api import task_from_id
@@ -65,19 +65,6 @@ api_split_types = {
     DatasetSplitType.TRAIN_TEST_VAL: Train60Test20Val20SplitDefinition,
     DatasetSplitType.TRAIN_TEST_VAL_80: Train80Test10Val10SplitDefinition,
     DatasetSplitType.ALL: AllSplitDefinition,
-}
-
-
-class DatasetFilterType(Enum):
-    """Dataset filter types used in the API. Any filter style can be created in code."""
-
-    ALL = "all"
-    HIGH_RATING = "high_rating"
-
-
-api_filter_types = {
-    DatasetFilterType.ALL: AllDatasetFilter,
-    DatasetFilterType.HIGH_RATING: HighRatingDatasetFilter,
 }
 
 
@@ -209,14 +196,17 @@ def connect_fine_tune_api(app: FastAPI):
     ) -> DatasetSplit:
         task = task_from_id(project_id, task_id)
         split_definitions = api_split_types[request.dataset_split_type]
-        filter = api_filter_types[request.filter_type]
 
         name = request.name
         if not name:
             name = generate_memorable_name()
 
         dataset_split = DatasetSplit.from_task(
-            name, task, split_definitions, filter, request.description
+            name,
+            task,
+            split_definitions,
+            filter_type=request.filter_type,
+            description=request.description,
         )
         dataset_split.save_to_file()
         return dataset_split

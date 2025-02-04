@@ -540,6 +540,17 @@ class TaskRun(KilnParentedModel):
         description="Tags for the task run. Tags are used to categorize task runs for filtering and reporting.",
     )
 
+    def has_thinking_training_data(self) -> bool:
+        """
+        Does this run have thinking data that we can use to train a thinking model?
+        """
+        if self.intermediate_outputs is None:
+            return False
+        return (
+            "chain_of_thought" in self.intermediate_outputs
+            or "reasoning" in self.intermediate_outputs
+        )
+
     def parent_task(self) -> Task | None:
         if not isinstance(self.parent, Task):
             return None
@@ -663,6 +674,37 @@ def HighRatingDatasetFilter(task_run: TaskRun) -> bool:
     return task_run.output.rating.is_high_quality()
 
 
+def ThinkingModelDatasetFilter(task_run: TaskRun) -> bool:
+    """
+    A filter that returns True if the task has intermediate outputs we can training a 'thinking' model on (reasoning or chain of thought)
+    """
+    return task_run.has_thinking_training_data()
+
+
+def ThinkingModelHighRatedFilter(task_run: TaskRun) -> bool:
+    """
+    A filter that returns True if the task has thinking data and the output is high quality
+    """
+    return ThinkingModelDatasetFilter(task_run) and HighRatingDatasetFilter(task_run)
+
+
+class DatasetFilterType(str, Enum):
+    """Dataset filter names."""
+
+    ALL = "all"
+    HIGH_RATING = "high_rating"
+    THINKING_MODEL = "thinking_model"
+    THINKING_MODEL_HIGH_RATED = "thinking_model_high_rated"
+
+
+dataset_filters = {
+    DatasetFilterType.ALL: AllDatasetFilter,
+    DatasetFilterType.HIGH_RATING: HighRatingDatasetFilter,
+    DatasetFilterType.THINKING_MODEL: ThinkingModelDatasetFilter,
+    DatasetFilterType.THINKING_MODEL_HIGH_RATED: ThinkingModelHighRatedFilter,
+}
+
+
 class DatasetSplitDefinition(BaseModel):
     """
     A definition of a split in a dataset.
@@ -722,6 +764,10 @@ class DatasetSplit(KilnParentedModel):
     split_contents: dict[str, list[str]] = Field(
         description="The contents of each split in the dataset. The key is the split name, and the value is a list of task run IDs.",
     )
+    filter: DatasetFilterType | None = Field(
+        default=None,
+        description="The filter used to build the dataset.",
+    )
 
     @model_validator(mode="after")
     def validate_split_percentages(self) -> "DatasetSplit":
@@ -736,12 +782,13 @@ class DatasetSplit(KilnParentedModel):
         name: str,
         task: "Task",
         splits: list[DatasetSplitDefinition],
-        filter: DatasetFilter = AllDatasetFilter,
+        filter_type: DatasetFilterType = DatasetFilterType.ALL,
         description: str | None = None,
     ):
         """
         Build a dataset split from a task.
         """
+        filter = dataset_filters[filter_type]
         split_contents = cls.build_split_contents(task, splits, filter)
         return cls(
             parent=task,
@@ -749,6 +796,7 @@ class DatasetSplit(KilnParentedModel):
             description=description,
             splits=splits,
             split_contents=split_contents,
+            filter=filter_type,
         )
 
     @classmethod

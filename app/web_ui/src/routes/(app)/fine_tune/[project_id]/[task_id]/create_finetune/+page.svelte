@@ -8,6 +8,7 @@
   import { onMount } from "svelte"
   import { formatDate } from "$lib/utils/formatters"
   import type { FinetuneDataStrategy } from "$lib/types"
+  import Warning from "$lib/ui/warning.svelte"
 
   import PromptTypeSelector from "../../../../run/prompt_type_selector.svelte"
 
@@ -41,6 +42,9 @@
   let available_models_loading = true
 
   $: selected_dataset = datasets?.find((d) => d.id === dataset_id)
+  $: selecting_thinking_dataset =
+    selected_dataset?.filter === "thinking_model" ||
+    selected_dataset?.filter === "thinking_model_high_rated"
   $: selected_dataset_has_val = selected_dataset?.splits?.find(
     (s) => s.name === "val",
   )
@@ -646,21 +650,28 @@
               {/if}
             </div>
           {/if}
-          <FormElement
-            label="Training Strategy"
-            description="Should the model be trained on the final response only, or also include intermediate thinking?"
-            info_description="If you select 'Final Response and Intermediate Thinking', the model will also be trained on the intermediate thinking such as reasoning or chain of thought. Use this if you want to call the tuned model with a chain-of-thought prompt for additional inference time compute."
-            inputType="select"
-            id="data_strategy"
-            select_options={[
-              ["final_only", "Final Response Only"],
-              [
-                "final_and_intermediate",
-                "Final Response and Intermediate Thinking",
-              ],
-            ]}
-            bind:value={data_strategy}
-          />
+          <div>
+            <FormElement
+              label="Training Strategy"
+              description="Should the model be trained on the final response only, or also include intermediate thinking?"
+              info_description="If you select 'Final Response and Intermediate Thinking', the model will also be trained on the intermediate thinking such as reasoning or chain of thought. Use this if you want to call the tuned model with a chain-of-thought prompt for additional inference time compute."
+              inputType="select"
+              id="data_strategy"
+              select_options={[
+                ["final_only", "Final Response Only"],
+                [
+                  "final_and_intermediate",
+                  "Final Response and Intermediate Thinking",
+                ],
+              ]}
+              bind:value={data_strategy}
+            />
+            {#if data_strategy === "final_and_intermediate" && !selecting_thinking_dataset}
+              <Warning
+                warning_message="You are training a model for inference-time thinking, but are not using a dataset filtered to samples with reasoning or chain-of-thought training data. This is not recommended, as it may lead to poor performance. We suggest creating a new dataset with a thinking filter."
+              />
+            {/if}
+          </div>
           {#if !is_download}
             <div class="collapse collapse-arrow bg-base-200">
               <input type="checkbox" class="peer" />
@@ -774,7 +785,7 @@
         <FormElement
           label="Dataset Filter"
           description="Select a filter for your dataset. Typically you want to filter out examples that are not rated 4+ stars."
-          info_description="A 'High Rating' filter will include only examples that are rated 4+ stars. The 'All' filter will include all examples."
+          info_description="A 'High Rating' filter will include only examples that are rated 4+ stars. The 'All' filter will include all examples. Thinking filters will also check the sample has reasoning or chain-of-thought data for training thinking models."
           inputType="select"
           optional={false}
           id="dataset_filter"
@@ -782,6 +793,14 @@
             [disabled_header, "Select a dataset filter"],
             ["high_rating", "High Rating (4+ stars)"],
             ["all", "All (no filter)"],
+            [
+              "thinking_model",
+              "Thinking (items with reasoning/chain-of-thought)",
+            ],
+            [
+              "thinking_model_high_rated",
+              "Thinking + High Rated (4+ stars and thinking)",
+            ],
           ]}
           bind:value={new_dataset_filter}
         />

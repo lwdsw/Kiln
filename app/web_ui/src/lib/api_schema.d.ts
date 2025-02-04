@@ -837,10 +837,10 @@ export interface components {
         DataSourceType: "human" | "synthetic";
         /**
          * DatasetFilterType
-         * @description Dataset filter types used in the API. Any filter style can be created in code.
+         * @description Dataset filter names.
          * @enum {string}
          */
-        DatasetFilterType: "all" | "high_rating";
+        DatasetFilterType: "all" | "high_rating" | "thinking_model" | "thinking_model_high_rated";
         /**
          * DatasetSplit
          * @description A collection of task runs, with optional splits (train, test, validation).
@@ -888,6 +888,8 @@ export interface components {
             split_contents: {
                 [key: string]: string[];
             };
+            /** @description The filter used to build the dataset. */
+            filter?: components["schemas"]["DatasetFilterType"] | null;
             /** Model Type */
             readonly model_type: string;
         };
