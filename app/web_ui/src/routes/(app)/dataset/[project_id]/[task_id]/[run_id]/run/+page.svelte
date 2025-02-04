@@ -39,7 +39,15 @@
         generator.ui_id ===
         run?.output?.source?.properties?.prompt_builder_name,
     )?.name
-    if (!prompt_generator_name && !prompt_name) {
+
+    // Special case for fine-tuned prompts
+    if (
+      run?.output?.source?.properties?.prompt_builder_name ===
+      "fine_tune_prompt_builder"
+    ) {
+      prompt_generator_name = "Fine-Tune Prompt"
+      prompt_name = undefined
+    } else if (!prompt_generator_name && !prompt_name) {
       prompt_generator_name =
         "" + run?.output?.source?.properties?.prompt_builder_name
     }
