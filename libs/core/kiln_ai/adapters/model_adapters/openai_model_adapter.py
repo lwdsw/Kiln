@@ -93,11 +93,17 @@ class OpenAICompatibleAdapter(BaseAdapter):
                 ]
             )
 
+        # OpenRouter specific options for reasoning models
         extra_body = {}
-        if self.config.openrouter_style_reasoning and provider.reasoning_capable:
+        require_or_reasoning = (
+            self.config.openrouter_style_reasoning and provider.reasoning_capable
+        )
+        if require_or_reasoning:
             extra_body["include_reasoning"] = True
             # Filter to providers that support the reasoning parameter
-            extra_body["provider"] = {"require_parameters": True}
+            extra_body["provider"] = {
+                "require_parameters": True,
+            }
 
         # Main completion call
         response_format_options = await self.response_format_options()
@@ -124,13 +130,16 @@ class OpenAICompatibleAdapter(BaseAdapter):
 
         message = response.choices[0].message
 
-        # Save reasoning if it exists
-        if (
-            self.config.openrouter_style_reasoning
-            and hasattr(message, "reasoning")
-            and message.reasoning  # pyright: ignore
-        ):
-            intermediate_outputs["reasoning"] = message.reasoning  # pyright: ignore
+        # Save reasoning if it exists (OpenRouter specific format)
+        if require_or_reasoning:
+            if (
+                hasattr(message, "reasoning") and message.reasoning  # pyright: ignore
+            ):
+                intermediate_outputs["reasoning"] = message.reasoning  # pyright: ignore
+            else:
+                raise RuntimeError(
+                    "Reasoning is required for this model, but no reasoning was returned from OpenRouter."
+                )
 
         # the string content of the response
         response_content = message.content

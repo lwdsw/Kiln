@@ -818,14 +818,14 @@ built_in_models: List[KilnModel] = [
             KilnModelProvider(
                 name=ModelProviderName.openrouter,
                 reasoning_capable=True,
-                structured_output_mode=StructuredOutputMode.json_instruction_and_object,
+                structured_output_mode=StructuredOutputMode.json_instructions,
                 provider_options={"model": "deepseek/deepseek-r1-distill-qwen-32b"},
             ),
             KilnModelProvider(
                 name=ModelProviderName.ollama,
                 parser=ModelParserID.r1_thinking,
                 reasoning_capable=True,
-                structured_output_mode=StructuredOutputMode.json_schema,
+                structured_output_mode=StructuredOutputMode.json_instructions,
                 provider_options={"model": "deepseek-r1:32b"},
             ),
         ],
@@ -839,7 +839,7 @@ built_in_models: List[KilnModel] = [
             KilnModelProvider(
                 name=ModelProviderName.openrouter,
                 reasoning_capable=True,
-                structured_output_mode=StructuredOutputMode.json_instruction_and_object,
+                structured_output_mode=StructuredOutputMode.json_instructions,
                 provider_options={"model": "deepseek/deepseek-r1-distill-llama-70b"},
             ),
             KilnModelProvider(
@@ -847,7 +847,7 @@ built_in_models: List[KilnModel] = [
                 supports_data_gen=False,
                 parser=ModelParserID.r1_thinking,
                 reasoning_capable=True,
-                structured_output_mode=StructuredOutputMode.json_schema,
+                structured_output_mode=StructuredOutputMode.json_instructions,
                 provider_options={"model": "deepseek-r1:70b"},
             ),
         ],
@@ -862,7 +862,7 @@ built_in_models: List[KilnModel] = [
                 name=ModelProviderName.openrouter,
                 supports_data_gen=False,
                 reasoning_capable=True,
-                structured_output_mode=StructuredOutputMode.json_instruction_and_object,
+                structured_output_mode=StructuredOutputMode.json_instructions,
                 provider_options={"model": "deepseek/deepseek-r1-distill-qwen-14b"},
             ),
             KilnModelProvider(
@@ -870,7 +870,7 @@ built_in_models: List[KilnModel] = [
                 supports_data_gen=False,
                 parser=ModelParserID.r1_thinking,
                 reasoning_capable=True,
-                structured_output_mode=StructuredOutputMode.json_schema,
+                structured_output_mode=StructuredOutputMode.json_instructions,
                 provider_options={"model": "deepseek-r1:14b"},
             ),
         ],

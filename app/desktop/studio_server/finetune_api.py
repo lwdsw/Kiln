@@ -28,7 +28,6 @@ from kiln_ai.datamodel import (
     Train60Test20Val20SplitDefinition,
     Train80Test10Val10SplitDefinition,
     Train80Test20SplitDefinition,
-    dataset_filters,
 )
 from kiln_ai.utils.name_generator import generate_memorable_name
 from kiln_server.task_api import task_from_id
