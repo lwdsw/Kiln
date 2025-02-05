@@ -57,6 +57,8 @@ Kiln is quite intuitive, so we suggest launching the desktop app and diving in. 
 - [Quick Start](https://docs.getkiln.ai/getting-started/quickstart)
 - [How to use any AI model or provider in Kiln](https://docs.getkiln.ai/docs/models-and-ai-providers)
 - [Fine Tuning LLM Models](https://docs.getkiln.ai/docs/fine-tuning-guide)
+- [Guide: Train a Reasoning Model](https://docs.getkiln.ai/docs/guide-train-a-reasoning-model)
+- [Reasoning & Chain of Thought](https://docs.getkiln.ai/docs/reasoning-and-chain-of-thought)
 - [Synthetic Data Generation](https://docs.getkiln.ai/docs/synthetic-data-generation)
 - [Collaborating with Kiln](https://docs.getkiln.ai/docs/collaboration)
 - [Rating and Labeling Data](https://docs.getkiln.ai/docs/reviewing-and-rating)
