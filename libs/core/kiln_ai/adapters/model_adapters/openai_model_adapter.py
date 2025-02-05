@@ -103,6 +103,10 @@ class OpenAICompatibleAdapter(BaseAdapter):
             # Filter to providers that support the reasoning parameter
             extra_body["provider"] = {
                 "require_parameters": True,
+                # Ugly to have these here, but big range of quality of R1 providers
+                "order": ["Fireworks", "Together"],
+                # fp8 quants are awful
+                "ignore": ["DeepInfra"],
             }
 
         # Main completion call
