@@ -7,7 +7,7 @@ from kiln_ai.adapters.model_adapters.base_adapter import AdapterInfo, BaseAdapte
 from kiln_ai.datamodel import Task
 
 
-class TestAdapter(BaseAdapter):
+class MockAdapter(BaseAdapter):
     """Concrete implementation of BaseAdapter for testing"""
 
     async def _run(self, input):
@@ -36,7 +36,7 @@ def base_task():
 
 @pytest.fixture
 def adapter(base_task):
-    return TestAdapter(
+    return MockAdapter(
         kiln_task=base_task,
         model_name="test_model",
         model_provider_name="test_provider",
@@ -84,7 +84,7 @@ async def test_model_provider_loads_and_caches(adapter, mock_provider):
 async def test_model_provider_missing_names(base_task):
     """Test error when model or provider name is missing"""
     # Test with missing model name
-    adapter = TestAdapter(
+    adapter = MockAdapter(
         kiln_task=base_task, model_name="", model_provider_name="test_provider"
     )
     with pytest.raises(
@@ -93,7 +93,7 @@ async def test_model_provider_missing_names(base_task):
         await adapter.model_provider()
 
     # Test with missing provider name
-    adapter = TestAdapter(
+    adapter = MockAdapter(
         kiln_task=base_task, model_name="test_model", model_provider_name=""
     )
     with pytest.raises(

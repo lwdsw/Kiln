@@ -478,7 +478,7 @@ def test_from_id_and_parent_path_without_parent():
     assert not_found is None
 
 
-class TestAdapter(BaseAdapter):
+class MockAdapter(BaseAdapter):
     """Implementation of BaseAdapter for testing"""
 
     async def _run(self, input):
@@ -500,7 +500,7 @@ def base_task():
 
 @pytest.fixture
 def adapter(base_task):
-    return TestAdapter(
+    return MockAdapter(
         kiln_task=base_task,
         model_name="test_model",
         model_provider_name="test_provider",
