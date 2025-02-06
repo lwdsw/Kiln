@@ -324,27 +324,21 @@
   <div class="flex flex-col md:flex-row gap-32 justify-center items-center">
     {#if is_empty}
       <div class="flex flex-col items-center justify-center min-h-[60vh]">
-        <DataGenIntro />
+        <DataGenIntro
+          generate_subtopics={open_generate_subtopics_modal}
+          generate_samples={open_generate_samples_modal}
+        />
+      </div>
+    {:else}
+      <div class="flex flex-row justify-center mb-6 gap-8">
+        <button class="btn" on:click={() => open_generate_subtopics_modal()}>
+          Add Top Level Topics
+        </button>
+        <button class="btn" on:click={() => open_generate_samples_modal()}>
+          Add Top Level Data
+        </button>
       </div>
     {/if}
-    <div
-      class="flex flex-row justify-center {is_empty
-        ? ' flex-col gap-6'
-        : 'mb-6 gap-8'}"
-    >
-      <button
-        class="btn {is_empty ? 'btn-primary' : ''}"
-        on:click={() => open_generate_subtopics_modal()}
-      >
-        Add Top Level Topics
-      </button>
-      <button
-        class="btn {is_empty ? 'btn-primary' : ''}"
-        on:click={() => open_generate_samples_modal()}
-      >
-        Add Top Level Data
-      </button>
-    </div>
   </div>
 {:else}
   <div

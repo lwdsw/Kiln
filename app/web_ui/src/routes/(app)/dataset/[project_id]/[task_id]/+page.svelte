@@ -484,7 +484,7 @@
       <div class="loading loading-spinner loading-lg"></div>
     </div>
   {:else if runs && runs.length == 0}
-    <div class="flex flex-col items-center justify-center min-h-[60vh]">
+    <div class="flex flex-col items-center justify-center min-h-[75vh]">
       <EmptyInto {project_id} {task_id} />
     </div>
   {:else if runs}
