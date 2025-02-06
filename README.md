@@ -122,6 +122,18 @@ If your product goals shift or new bugs are found (as is almost always the case)
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for information on how to setup a development environment and contribute to Kiln.
 
+## Citation
+
+```bibtex
+@software{kiln_ai,
+  title = {Kiln: Rapid AI Prototyping and Dataset Collaboration Tool},
+  author = {{Chesterfield Laboratories Inc.}},
+  year = {2025},
+  url = {https://github.com/Kiln-AI/Kiln},
+  version = {latest}
+}
+```
+
 ## Licenses & Trademarks
 
 - Python Library: [MIT License](libs/core/LICENSE.txt)
