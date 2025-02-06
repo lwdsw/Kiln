@@ -5,6 +5,7 @@
   export let title: string = ""
   export let subtitle: string = ""
   export let sub_subtitle: string = ""
+  export let sub_subtitle_link: string | undefined = undefined
   export let no_y_padding: boolean = false
 
   export let action_buttons: ActionButton[] = []
@@ -51,7 +52,15 @@
       <p class="text-base font-medium mt-1">{subtitle}</p>
     {/if}
     {#if sub_subtitle}
-      <p class="text-sm font-light mt-1">{sub_subtitle}</p>
+      {#if sub_subtitle_link}
+        <p class="text-sm font-light mt-1">
+          <a href={sub_subtitle_link} class="link" target="_blank">
+            {sub_subtitle}
+          </a>
+        </p>
+      {:else}
+        <p class="text-sm font-light mt-1">{sub_subtitle}</p>
+      {/if}
     {/if}
   </div>
   <div class="flex flex-col md:flex-row gap-2">

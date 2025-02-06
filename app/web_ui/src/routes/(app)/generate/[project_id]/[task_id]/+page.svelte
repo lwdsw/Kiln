@@ -297,6 +297,8 @@
   <AppPage
     title="Generate Synthetic Data"
     subtitle={`Grow your dataset with synthetic data`}
+    sub_subtitle_link="https://docs.getkiln.ai/docs/synthetic-data-generation"
+    sub_subtitle="Read our synthetic data guide"
     {action_buttons}
   >
     <div
