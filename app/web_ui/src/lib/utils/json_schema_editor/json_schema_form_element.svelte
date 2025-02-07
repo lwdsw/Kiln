@@ -22,7 +22,7 @@
     if (raw) {
       return raw_schema
     } else {
-      return JSON.stringify(schema_from_model(schema_model))
+      return JSON.stringify(schema_from_model(schema_model, true))
     }
   }
 
@@ -98,7 +98,7 @@
     raw = true
 
     // Convert the schema model to a pretty JSON Schema string
-    const json_schema_format = schema_from_model(schema_model)
+    const json_schema_format = schema_from_model(schema_model, true)
     raw_schema = JSON.stringify(json_schema_format, null, 2)
 
     // Close the dialog
