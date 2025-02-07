@@ -892,6 +892,13 @@ built_in_models: List[KilnModel] = [
         friendly_name="DeepSeek R1 Distill Llama 8B",
         providers=[
             KilnModelProvider(
+                name=ModelProviderName.openrouter,
+                supports_data_gen=False,
+                reasoning_capable=True,
+                structured_output_mode=StructuredOutputMode.json_instructions,
+                provider_options={"model": "deepseek/deepseek-r1-distill-llama-8b"},
+            ),
+            KilnModelProvider(
                 name=ModelProviderName.ollama,
                 supports_data_gen=False,
                 parser=ModelParserID.r1_thinking,
@@ -923,6 +930,14 @@ built_in_models: List[KilnModel] = [
         name=ModelName.deepseek_r1_distill_qwen_1p5b,
         friendly_name="DeepSeek R1 Distill Qwen 1.5B",
         providers=[
+            KilnModelProvider(
+                name=ModelProviderName.openrouter,
+                supports_structured_output=False,
+                supports_data_gen=False,
+                reasoning_capable=True,
+                structured_output_mode=StructuredOutputMode.json_instructions,
+                provider_options={"model": "deepseek/deepseek-r1-distill-qwen-1.5b"},
+            ),
             KilnModelProvider(
                 name=ModelProviderName.ollama,
                 supports_data_gen=False,
