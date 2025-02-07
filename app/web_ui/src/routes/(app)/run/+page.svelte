@@ -96,12 +96,12 @@
   }
 
   // Finetunes are tuned with specific prompts.
-  $: is_fine_tune_model = model.startsWith("kiln_fine_tune/")
+  $: is_fine_tune_model = model && model.startsWith("kiln_fine_tune/")
   $: {
     update_fine_tune_prompt_selection(model)
   }
   function update_fine_tune_prompt_selection(model_id: string) {
-    if (model_id.startsWith("kiln_fine_tune/")) {
+    if (model_id && model_id.startsWith("kiln_fine_tune/")) {
       // Select the fine-tune prompt automatically, when selecting a fine-tuned model
       prompt_method = "custom"
     } else {
@@ -143,7 +143,7 @@
               ? "Fine-Tune Specific Prompt"
               : undefined}
           />
-          {#if model.startsWith("kiln_fine_tune/") && prompt_method != "custom"}
+          {#if is_fine_tune_model && prompt_method != "custom"}
             <Warning
               warning_message="We strongly recommend using prompt the model was trained on when running a fine-tuned model."
             />
