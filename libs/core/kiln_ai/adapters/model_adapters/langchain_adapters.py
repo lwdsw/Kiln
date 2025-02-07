@@ -233,8 +233,12 @@ class LangchainAdapter(BaseAdapter):
                 # JSON done via instructions in prompt, not via API
                 pass
             case StructuredOutputMode.default:
-                # Let langchain decide the default
-                pass
+                if provider.name == ModelProviderName.ollama:
+                    # Ollama has great json_schema support, so use that: https://ollama.com/blog/structured-outputs
+                    options["method"] = "json_schema"
+                else:
+                    # Let langchain decide the default
+                    pass
             case _:
                 raise_exhaustive_enum_error(provider.structured_output_mode)
 
