@@ -74,6 +74,7 @@ class ModelName(str, Enum):
     gemini_1_5_flash = "gemini_1_5_flash"
     gemini_1_5_flash_8b = "gemini_1_5_flash_8b"
     gemini_1_5_pro = "gemini_1_5_pro"
+    gemini_2_0_flash = "gemini_2_0_flash"
     nemotron_70b = "nemotron_70b"
     mixtral_8x7b = "mixtral_8x7b"
     qwen_2p5_7b = "qwen_2p5_7b"
@@ -283,6 +284,19 @@ built_in_models: List[KilnModel] = [
                 name=ModelProviderName.openrouter,
                 provider_options={"model": "google/gemini-flash-1.5-8b"},
                 structured_output_mode=StructuredOutputMode.json_mode,
+            ),
+        ],
+    ),
+    # Gemini 2.0 Flash
+    KilnModel(
+        family=ModelFamily.gemini,
+        name=ModelName.gemini_2_0_flash,
+        friendly_name="Gemini 2.0 Flash",
+        providers=[
+            KilnModelProvider(
+                name=ModelProviderName.openrouter,
+                structured_output_mode=StructuredOutputMode.json_schema,
+                provider_options={"model": "google/gemini-2.0-flash-001"},
             ),
         ],
     ),
