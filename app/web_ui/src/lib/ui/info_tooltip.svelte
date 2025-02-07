@@ -2,7 +2,7 @@
   export let tooltip_text: string
 </script>
 
-<button class="tooltip" data-tip={tooltip_text}>
+<button class="tooltip tooltip-left" data-tip={tooltip_text}>
   <svg
     fill="currentColor"
     class="w-6 h-6 inline"

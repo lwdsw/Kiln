@@ -487,7 +487,7 @@
         <FormElement
           id="save_all_samples_mode_element"
           inputType="select"
-          info_description="Run in parallel or sequentially. Parallel is ideal for APIs (OpenAI, Fireworks, etc.) as they can handle thousands of requests in parallel. Sequential is ideal for Ollama or other servers that can only handle one request at a time."
+          info_description="Parallel is ideal for APIs (OpenAI, Fireworks, etc.) as they can handle thousands of requests in parallel. Sequential is ideal for Ollama or other servers that can only handle one request at a time."
           select_options={[
             ["parallel", "Parallel - Ideal for APIs (OpenAI, Fireworks)"],
             ["sequential", "Sequential - Ideal for Ollama"],
