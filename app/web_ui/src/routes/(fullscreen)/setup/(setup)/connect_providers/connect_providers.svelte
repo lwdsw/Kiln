@@ -1,11 +1,11 @@
 <script lang="ts">
   import { fade } from "svelte/transition"
   import { onMount } from "svelte"
-  import { client } from "$lib/api_client"
   import type { OllamaConnection } from "$lib/types"
   import FormElement from "$lib/utils/form_element.svelte"
   import FormContainer from "$lib/utils/form_container.svelte"
   import { KilnError, createKilnError } from "$lib/utils/error_handlers"
+  import { client } from "$lib/api_client"
 
   type Provider = {
     name: string
@@ -163,7 +163,13 @@
     intermediate_step = api_key_provider != null
   }
 
-  const disconnect_provider = (provider: Provider) => {
+  const disconnect_provider = async (provider: Provider) => {
+    if (provider.id === "ollama") {
+      alert(
+        "Ollama automatically connects to the localhost Ollama instance when it is running. It can't be manually disconnected. To change your preferred Ollama URL, turn of your localhost Ollama instance then return to this screen.",
+      )
+      return
+    }
     if (
       !confirm(
         "Are you sure you want to disconnect this provider? Your connection details will be deleted and can not be recovered.",
@@ -171,7 +177,27 @@
     ) {
       return
     }
-    // status[provider.id].connected = false
+    try {
+      const { error: disconnect_error } = await client.POST(
+        "/api/provider/disconnect_api_key",
+        {
+          params: {
+            query: {
+              provider_id: provider.id,
+            },
+          },
+        },
+      )
+      if (disconnect_error) {
+        throw disconnect_error
+      }
+
+      status[provider.id].connected = false
+    } catch (e) {
+      console.error("disconnect_provider error", e)
+      alert("Failed to disconnect provider. Unknown error.")
+      return
+    }
   }
   const connect_provider = (provider: Provider) => {
     if (status[provider.id].connected) {

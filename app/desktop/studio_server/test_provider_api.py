@@ -1325,3 +1325,96 @@ def test_openai_compatible_providers_uncached_api_error():
         # Confirm the cache knows about the error and reports stale
         assert result.had_error
         assert result.is_stale()
+
+
+@pytest.mark.asyncio
+async def test_disconnect_api_key_openai(client):
+    with patch("app.desktop.studio_server.provider_api.Config.shared") as mock_config:
+        mock_config_instance = MagicMock()
+        mock_config.return_value = mock_config_instance
+
+        response = client.post(
+            "/api/provider/disconnect_api_key",
+            params={"provider_id": "openai"},
+        )
+
+        assert response.status_code == 200
+        assert response.json() == {"message": "Provider disconnected"}
+        assert mock_config_instance.open_ai_api_key is None
+
+
+@pytest.mark.asyncio
+async def test_disconnect_api_key_groq(client):
+    with patch("app.desktop.studio_server.provider_api.Config.shared") as mock_config:
+        mock_config_instance = MagicMock()
+        mock_config.return_value = mock_config_instance
+
+        response = client.post(
+            "/api/provider/disconnect_api_key",
+            params={"provider_id": "groq"},
+        )
+
+        assert response.status_code == 200
+        assert response.json() == {"message": "Provider disconnected"}
+        assert mock_config_instance.groq_api_key is None
+
+
+@pytest.mark.asyncio
+async def test_disconnect_api_key_openrouter(client):
+    with patch("app.desktop.studio_server.provider_api.Config.shared") as mock_config:
+        mock_config_instance = MagicMock()
+        mock_config.return_value = mock_config_instance
+
+        response = client.post(
+            "/api/provider/disconnect_api_key",
+            params={"provider_id": "openrouter"},
+        )
+
+        assert response.status_code == 200
+        assert response.json() == {"message": "Provider disconnected"}
+        assert mock_config_instance.open_router_api_key is None
+
+
+@pytest.mark.asyncio
+async def test_disconnect_api_key_fireworks(client):
+    with patch("app.desktop.studio_server.provider_api.Config.shared") as mock_config:
+        mock_config_instance = MagicMock()
+        mock_config.return_value = mock_config_instance
+
+        response = client.post(
+            "/api/provider/disconnect_api_key",
+            params={"provider_id": "fireworks_ai"},
+        )
+
+        assert response.status_code == 200
+        assert response.json() == {"message": "Provider disconnected"}
+        assert mock_config_instance.fireworks_api_key is None
+        assert mock_config_instance.fireworks_account_id is None
+
+
+@pytest.mark.asyncio
+async def test_disconnect_api_key_bedrock(client):
+    with patch("app.desktop.studio_server.provider_api.Config.shared") as mock_config:
+        mock_config_instance = MagicMock()
+        mock_config.return_value = mock_config_instance
+
+        response = client.post(
+            "/api/provider/disconnect_api_key",
+            params={"provider_id": "bedrock"},
+        )
+
+        assert response.status_code == 200
+        assert response.json() == {"message": "Provider disconnected"}
+        assert mock_config_instance.bedrock_access_key is None
+        assert mock_config_instance.bedrock_secret_key is None
+
+
+@pytest.mark.asyncio
+async def test_disconnect_api_key_unsupported_provider(client):
+    response = client.post(
+        "/api/provider/disconnect_api_key",
+        params={"provider_id": "unsupported_provider"},
+    )
+
+    assert response.status_code == 400
+    assert response.json() == {"message": "Provider not supported"}
