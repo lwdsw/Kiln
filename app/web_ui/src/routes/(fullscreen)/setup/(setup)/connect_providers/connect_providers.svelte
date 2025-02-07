@@ -34,7 +34,7 @@
     {
       name: "OpenAI",
       id: "openai",
-      description: "The OG home to GPT-4 and more. Supports fine-tuning.",
+      description: "The OG home to GPT-4o and more. Supports fine-tuning.",
       image: "/images/openai.svg",
       featured: false,
       api_key_steps: [
@@ -163,6 +163,16 @@
     intermediate_step = api_key_provider != null
   }
 
+  const disconnect_provider = (provider: Provider) => {
+    if (
+      !confirm(
+        "Are you sure you want to disconnect this provider? Your connection details will be deleted and can not be recovered.",
+      )
+    ) {
+      return
+    }
+    // status[provider.id].connected = false
+  }
   const connect_provider = (provider: Provider) => {
     if (status[provider.id].connected) {
       return
@@ -307,7 +317,8 @@
     }
   }
 
-  let loaded_initial_providers = true
+  let loading_initial_providers = true
+  let initial_load_failure = false
   type CustomOpenAICompatibleProvider = {
     name: string
     base_url: string
@@ -345,8 +356,9 @@
       }
     } catch (e) {
       console.error("check_existing_providers error", e)
+      initial_load_failure = true
     } finally {
-      loaded_initial_providers = false
+      loading_initial_providers = false
     }
   }
 
@@ -538,6 +550,8 @@
   {:else}
     <div class="w-full flex flex-col gap-6 max-w-lg">
       {#each providers as provider}
+        {@const is_connected =
+          status[provider.id] && status[provider.id].connected}
         <div class="flex flex-row gap-4 items-center">
           <img
             src={provider.image}
@@ -576,33 +590,55 @@
                 Set Custom Ollama URL
               </button>
             {/if}
-            {#if provider.id === "openai_compatible" && status[provider.id] && status[provider.id].connected}
-              <button
-                class="link text-left text-sm text-gray-500"
-                on:click={show_custom_api_dialog}
-              >
-                Update Custom APIs
-              </button>
-            {/if}
           </div>
-          <button
-            class="btn md:min-w-[100px]"
-            on:click={() => connect_provider(provider)}
-          >
-            {#if loaded_initial_providers}
-              &nbsp;
-            {:else if status[provider.id] && status[provider.id].connected}
+
+          {#if loading_initial_providers}
+            <!-- Light loading state-->
+            <div class="btn md:min-w-[100px] skeleton bg-base-200"></div>
+            &nbsp;
+          {:else if is_connected && provider.id === "openai_compatible"}
+            <button
+              class="btn md:min-w-[100px]"
+              on:click={() => show_custom_api_dialog()}
+            >
+              Manage
+            </button>
+          {:else if is_connected}
+            <button
+              class="btn md:min-w-[100px] hover:btn-error group"
+              on:click={() => disconnect_provider(provider)}
+            >
               <img
                 src="/images/circle-check.svg"
-                class="size-6"
+                class="size-6 group-hover:hidden"
                 alt="Connected"
               />
-            {:else if status[provider.id].connecting}
-              <div class="loading loading-spinner loading-md"></div>
-            {:else}
+              {#if provider.id === "openai_compatible"}
+                <span class="text-xs hidden group-hover:inline">Manage</span>
+              {:else}
+                <span class="text-xs hidden group-hover:inline">Disconnect</span
+                >
+              {/if}
+            </button>
+          {:else if status[provider.id].connecting}
+            <div class="btn md:min-w-[100px]">
+              <div class=" loading loading-spinner loading-md"></div>
+            </div>
+          {:else if initial_load_failure}
+            <div>
+              <div class="btn md:min-w-[100px] btn-error text-xs">Error</div>
+              <div class="text-xs text-gray-500 text-center pt-1">
+                Reload page
+              </div>
+            </div>
+          {:else}
+            <button
+              class="btn md:min-w-[100px]"
+              on:click={() => connect_provider(provider)}
+            >
               Connect
-            {/if}
-          </button>
+            </button>
+          {/if}
         </div>
       {/each}
     </div>
