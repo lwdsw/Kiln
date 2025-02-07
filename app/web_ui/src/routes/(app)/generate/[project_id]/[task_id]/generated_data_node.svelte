@@ -42,9 +42,12 @@
     return sample.input
   }
 
+  // Export these so we can share a var across all nodes -- makes it nicer if the UI saves the last value
+  export let num_subtopics_to_generate: number = 8
+  export let num_samples_to_generate: number = 8
+
   let topic_generation_error: KilnError | null = null
   let generate_subtopics: boolean = false
-  let num_subtopics_to_generate: number = 6
   let custom_topics_string: string = ""
   async function open_generate_subtopics_modal() {
     // Avoid having a trillion of these hidden in the DOM
@@ -223,7 +226,6 @@
     scroll_to_bottom_of_element_by_id(`${id}-samples`)
   }
 
-  let num_samples_to_generate: number = 8
   let sample_generating: boolean = false
   let sample_generation_error: KilnError | null = null
   async function generate_samples() {
@@ -409,6 +411,8 @@
         {project_id}
         {task_id}
         {human_guidance}
+        bind:num_subtopics_to_generate
+        bind:num_samples_to_generate
         on:delete_topic={handleChildDeleteTopic}
       />
     {/each}

@@ -31,6 +31,10 @@
   let prompt_method = "basic"
   let model: string = $ui_state.selected_model
 
+  // Shared vars for all nodes, so UI saves last used value
+  let num_subtopics_to_generate: number = 8
+  let num_samples_to_generate: number = 8
+
   const save_action_button = {
     label: "Save All",
     handler: show_save_all_modal,
@@ -358,6 +362,8 @@
           {project_id}
           {task_id}
           {human_guidance}
+          bind:num_subtopics_to_generate
+          bind:num_samples_to_generate
         />
       </div>
     {:else if task_error}
