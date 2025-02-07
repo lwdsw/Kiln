@@ -127,7 +127,7 @@
 </script>
 
 <AppPage
-  title="Add Models"
+  title="Add Models from Existing Providers"
   sub_subtitle="Each AI provider already includes models tested for Kiln. Add additional models here."
   action_buttons={custom_models && custom_models.length > 0
     ? [
