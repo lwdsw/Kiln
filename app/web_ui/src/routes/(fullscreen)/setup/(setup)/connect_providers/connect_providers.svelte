@@ -199,6 +199,7 @@
       return
     }
   }
+
   const connect_provider = (provider: Provider) => {
     if (status[provider.id].connected) {
       return
@@ -639,12 +640,7 @@
                 class="size-6 group-hover:hidden"
                 alt="Connected"
               />
-              {#if provider.id === "openai_compatible"}
-                <span class="text-xs hidden group-hover:inline">Manage</span>
-              {:else}
-                <span class="text-xs hidden group-hover:inline">Disconnect</span
-                >
-              {/if}
+              <span class="text-xs hidden group-hover:inline">Disconnect</span>
             </button>
           {:else if status[provider.id].connecting}
             <div class="btn md:min-w-[100px]">
