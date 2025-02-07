@@ -11,12 +11,10 @@
 <div class="max-w-[1400px]">
   <AppPage
     title="Prompts"
-    subtitle={`Explore prompts for the task "${$current_task?.name}"`}
+    subtitle={`Prompts for the task "${$current_task?.name}"`}
+    sub_subtitle="Read the Docs"
+    sub_subtitle_link="https://docs.getkiln.ai/docs/prompts"
     action_buttons={[
-      {
-        label: "Docs",
-        href: "https://docs.getkiln.ai/docs/prompts",
-      },
       {
         label: "Create Prompt",
         href: `/prompts/${project_id}/${task_id}/create`,

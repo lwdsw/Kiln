@@ -478,7 +478,12 @@
   }
 </script>
 
-<AppPage title="Dataset" no_y_padding>
+<AppPage
+  title="Dataset"
+  sub_subtitle="Read the Docs"
+  sub_subtitle_link="https://docs.getkiln.ai/docs/organizing-datasets"
+  no_y_padding
+>
   {#if loading}
     <div class="w-full min-h-[50vh] flex justify-center items-center">
       <div class="loading loading-spinner loading-lg"></div>

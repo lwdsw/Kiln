@@ -246,6 +246,32 @@ def connect_provider_api(app: FastAPI):
                 content={"message": f"Provider {provider} missing API key"},
             )
 
+    @app.post("/api/provider/disconnect_api_key")
+    async def disconnect_api_key(provider_id: str):
+        match provider_id:
+            case "openai":
+                Config.shared().open_ai_api_key = None
+            case "groq":
+                Config.shared().groq_api_key = None
+            case "openrouter":
+                Config.shared().open_router_api_key = None
+            case "fireworks_ai":
+                Config.shared().fireworks_api_key = None
+                Config.shared().fireworks_account_id = None
+            case "bedrock":
+                Config.shared().bedrock_access_key = None
+                Config.shared().bedrock_secret_key = None
+            case _:
+                return JSONResponse(
+                    status_code=400,
+                    content={"message": "Provider not supported"},
+                )
+
+        return JSONResponse(
+            status_code=200,
+            content={"message": "Provider disconnected"},
+        )
+
 
 async def connect_openrouter(key: str):
     try:
