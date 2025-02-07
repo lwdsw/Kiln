@@ -224,8 +224,12 @@
 
       if (result.error) {
         save_all_sub_errors.push(result.error)
+        // Trigger reactivity
+        save_all_sub_errors = save_all_sub_errors
       } else if (!result.saved_id) {
         save_all_sub_errors.push(new KilnError("No ID returned from server"))
+        // Trigger reactivity
+        save_all_sub_errors = save_all_sub_errors
       } else {
         sample.saved_id = result.saved_id
         saved_count++
@@ -388,6 +392,9 @@
         ></progress>
         <div class="font-light text-xs text-center mt-1">
           {saved_count} of {samples_to_save.length}
+          {#if save_all_sub_errors && save_all_sub_errors.length > 0}
+            complete — {save_all_sub_errors.length} failed
+          {/if}
         </div>
       </div>
     {:else if save_all_completed}
