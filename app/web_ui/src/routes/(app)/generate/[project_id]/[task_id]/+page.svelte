@@ -295,10 +295,9 @@
 
 <div class="max-w-[1400px]">
   <AppPage
-    title="Generate Synthetic Data"
-    subtitle={`Grow your dataset with synthetic data`}
+    title="Synthetic Data Generation"
     sub_subtitle_link="https://docs.getkiln.ai/docs/synthetic-data-generation"
-    sub_subtitle="Read our synthetic data guide"
+    sub_subtitle="Read the Docs"
     {action_buttons}
   >
     <div
