@@ -40,7 +40,10 @@ def test_parse_invalid_json():
     json_str = '{"key": "value", invalid}'
     with pytest.raises(ValueError) as exc_info:
         parse_json_string(json_str)
-    assert "Failed to parse JSON" in str(exc_info.value)
+    assert (
+        "This task requires JSON output but the model didn't return valid JSON."
+        in str(exc_info.value)
+    )
 
 
 def test_parse_empty_code_block():
@@ -48,7 +51,10 @@ def test_parse_empty_code_block():
     ```"""
     with pytest.raises(ValueError) as exc_info:
         parse_json_string(json_str)
-    assert "Failed to parse JSON" in str(exc_info.value)
+    assert (
+        "This task requires JSON output but the model didn't return valid JSON."
+        in str(exc_info.value)
+    )
 
 
 def test_parse_complex_json():

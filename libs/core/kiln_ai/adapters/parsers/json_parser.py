@@ -32,4 +32,6 @@ def parse_json_string(json_string: str) -> Dict[str, Any]:
     try:
         return json.loads(cleaned_string)
     except json.JSONDecodeError as e:
-        raise ValueError(f"Failed to parse JSON: {str(e)}\n\n{cleaned_string}") from e
+        raise ValueError(
+            f"This task requires JSON output but the model didn't return valid JSON. Search 'Troubleshooting Structured Data Issues' in our docs for more information. The model produced the following: {cleaned_string}"
+        ) from e
