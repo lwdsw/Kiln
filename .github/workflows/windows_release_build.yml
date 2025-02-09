@@ -33,14 +33,17 @@ jobs:
       - name: Sign internal files with Trusted Signing
         uses: azure/trusted-signing-action@v0.5.1
         with:
-          azure-username: ${{ secrets.AZURE_USERNAME }}
-          azure-password: ${{ secrets.AZURE_PASSWORD }}
+          azure-tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          azure-client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          azure-client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
           endpoint: https://eus.codesigning.azure.net/
           trusted-signing-account-name: vscx-codesigning
           certificate-profile-name: vscx-certificate-profile
           files-folder: ${{ github.workspace }}/app/desktop/build/dist
           files-folder-recurse: true
-          files-folder-filter: exe,dll
+          files-folder-filter: exe
+          # TODO: consider signing dlls as well. But for testing, we don't want to use all our quota.
+          # files-folder-filter: exe,dll
           file-digest: SHA256
           timestamp-rfc3161: http://timestamp.acs.microsoft.com
           timestamp-digest: SHA256
