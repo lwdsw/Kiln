@@ -97,7 +97,7 @@ if __name__ == "__main__":
             on_quit()
         # TK without a window, to get dock events on MacOS
         root = tk.Tk()
-        root.title("kiln")
+        root.title("Kiln")
         root.withdraw()  # remove the window
         # Register callback for the dock icon to reopen the web app
         root.createcommand("tk::mac::ReopenApplication", show_studio)
