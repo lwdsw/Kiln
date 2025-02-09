@@ -39,10 +39,9 @@
     ([task.name, task.description, task.instruction].some((value) => !!value) ||
       task.requirements.some((req) => !!req.name || !!req.instruction))
 
-  export let target_project_id: string | null = null
-  if (!target_project_id) {
-    target_project_id = $current_project?.id || null
-  }
+  // Allow explicitly setting project ID, or infer current project ID
+  export let explicit_project_id: string | undefined = undefined
+  $: target_project_id = explicit_project_id || $current_project?.id || null
 
   export let project_target_name: string | null = null
   $: {

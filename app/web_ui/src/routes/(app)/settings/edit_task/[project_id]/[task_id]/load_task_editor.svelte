@@ -71,8 +71,8 @@
 {:else if task}
   <EditTask
     {task}
-    redirect_on_created={null}
+    redirect_on_created={clone_mode ? "/run" : null}
     hide_example_task={true}
-    target_project_id={project_id}
+    explicit_project_id={project_id}
   />
 {/if}
