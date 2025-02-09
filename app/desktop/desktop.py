@@ -102,6 +102,7 @@ if __name__ == "__main__":
         # Register callback for the dock icon to reopen the web app
         root.createcommand("tk::mac::ReopenApplication", show_studio)
         tray = run_taskbar()
-        root.after(10, show_studio)
-        root.after(10, close_splash)
+        # Show the web app after a short delay, to avoid race with the server starting
+        root.after(200, show_studio)
+        root.after(200, close_splash)
         root.mainloop()
