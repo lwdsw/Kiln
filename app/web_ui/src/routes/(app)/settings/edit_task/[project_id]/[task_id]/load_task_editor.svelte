@@ -1,12 +1,10 @@
 <script lang="ts">
-  import AppPage from "../../../../app_page.svelte"
   import EditTask from "../../../../../(fullscreen)/setup/(setup)/create_task/edit_task.svelte"
   import { onMount } from "svelte"
   import { createKilnError, KilnError } from "$lib/utils/error_handlers"
   import { page } from "$app/stores"
   import type { Task } from "$lib/types"
   import { client } from "$lib/api_client"
-  import { goto } from "$app/navigation"
 
   export let clone_mode: boolean = false
 
@@ -64,37 +62,17 @@
   }
 </script>
 
-<div class="max-w-[900px]">
-  <AppPage
-    title={clone_mode ? "Clone Task" : "Edit Task"}
-    subtitle={task?.id
-      ? `Task ID: ${task.id}`
-      : clone_mode
-        ? "Create a new task, using an existing task as a template"
-        : undefined}
-    sub_subtitle={clone_mode
-      ? "The cloned task will not contain any data from the original task."
-      : undefined}
-    action_buttons={!clone_mode
-      ? [
-          {
-            label: "Clone Task",
-            primary: true,
-            handler: () => {
-              goto(`/settings/clone_task/${project_id}/${task_id}`)
-            },
-          },
-        ]
-      : undefined}
-  >
-    {#if loading}
-      <div class="w-full min-h-[50vh] flex justify-center items-center">
-        <div class="loading loading-spinner loading-lg"></div>
-      </div>
-    {:else if error}
-      <div class="text-red-500">Error loading task: {error.getMessage()}</div>
-    {:else if task}
-      <EditTask {task} redirect_on_created={null} hide_example_task={true} />
-    {/if}
-  </AppPage>
-</div>
+{#if loading}
+  <div class="w-full min-h-[50vh] flex justify-center items-center">
+    <div class="loading loading-spinner loading-lg"></div>
+  </div>
+{:else if error}
+  <div class="text-red-500">Error loading task: {error.getMessage()}</div>
+{:else if task}
+  <EditTask
+    {task}
+    redirect_on_created={null}
+    hide_example_task={true}
+    target_project_id={project_id}
+  />
+{/if}
