@@ -52,6 +52,17 @@
         "" + run?.output?.source?.properties?.prompt_builder_name
     }
 
+    let topic_path: string | undefined = undefined
+    if (
+      run?.input_source?.properties?.topic_path &&
+      typeof run?.input_source?.properties?.topic_path === "string"
+    ) {
+      topic_path = run?.input_source?.properties?.topic_path?.replaceAll(
+        ">>>>>",
+        " > ",
+      )
+    }
+
     model_props = Object.fromEntries(
       Object.entries({
         ID: run?.id || undefined,
@@ -68,6 +79,7 @@
         Prompt: prompt_name,
         "Created By": run?.input_source?.properties?.created_by,
         "Created At": formatDate(run?.created_at),
+        Topic: topic_path,
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
       }).filter(([_, value]) => value !== undefined),
     )
@@ -225,7 +237,7 @@
           >
             {#each Object.entries(model_props) as [key, value]}
               <div class="flex items-center">{key}</div>
-              <div class="flex items-center text-gray-500 truncate">
+              <div class="flex items-center text-gray-500 overflow-x-hidden">
                 {value}
               </div>
             {/each}
