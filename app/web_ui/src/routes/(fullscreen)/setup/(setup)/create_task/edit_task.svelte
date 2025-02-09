@@ -374,8 +374,8 @@
         <div>
           <div class="text-sm mb-2 flex flex-col gap-1">
             <p>
-              You can't edit a task's input format after creating it, as
-              existing dataset items would not confirm to the new schema.
+              You can't edit an existing task's input format, as existing
+              dataset items would not conform to the new schema.
             </p>
             <p>
               You can
@@ -413,8 +413,8 @@
         <div>
           <div class="text-sm mb-2 flex flex-col gap-1">
             <p>
-              You can't edit a task's output format after creating it, as
-              existing dataset items would not confirm to the new schema.
+              You can't edit an existing task's output format, as existing
+              dataset items would not conform to the new schema.
             </p>
             <p>
               You can
