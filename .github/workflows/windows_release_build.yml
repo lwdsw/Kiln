@@ -30,6 +30,21 @@ jobs:
       - name: Build Desktop App
         run: uv run bash ./app/desktop/build_desktop_app.sh
 
+      - name: Sign internal files with Trusted Signing
+        uses: azure/trusted-signing-action@v0.5.1
+        with:
+          azure-username: ${{ secrets.AZURE_USERNAME }}
+          azure-password: ${{ secrets.AZURE_PASSWORD }}
+          endpoint: https://eus.codesigning.azure.net/
+          trusted-signing-account-name: vscx-codesigning
+          certificate-profile-name: vscx-certificate-profile
+          files-folder: ${{ github.workspace }}/app/desktop/build/dist
+          files-folder-recurse: true
+          files-folder-filter: exe,dll
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+
       - name: Build Windows Installer
         uses: Minionguyjpro/Inno-Setup-Action@v1.2.5
         with:
