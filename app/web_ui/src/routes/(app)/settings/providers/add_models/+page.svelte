@@ -34,7 +34,7 @@
         connected_providers.push(["groq", "Groq"])
       }
       if (settings["bedrock_access_key"] && settings["bedrock_secret_key"]) {
-        connected_providers.push(["bedrock", "AWS Bedrock"])
+        connected_providers.push(["amazon_bedrock", "AWS Bedrock"])
       }
       if (settings["open_router_api_key"]) {
         connected_providers.push(["openrouter", "OpenRouter"])

@@ -79,7 +79,7 @@
     },
     {
       name: "Amazon Bedrock",
-      id: "bedrock",
+      id: "amazon_bedrock",
       description: "So your company has an AWS contract?",
       image: "/images/aws.svg",
       featured: false,
@@ -133,7 +133,7 @@
       error: null,
       custom_description: null,
     },
-    bedrock: {
+    amazon_bedrock: {
       connected: false,
       connecting: false,
       error: null,
@@ -363,7 +363,7 @@
         status.groq.connected = true
       }
       if (data["bedrock_access_key"] && data["bedrock_secret_key"]) {
-        status.bedrock.connected = true
+        status.amazon_bedrock.connected = true
       }
       if (data["open_router_api_key"]) {
         status.openrouter.connected = true

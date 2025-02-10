@@ -256,7 +256,9 @@ async def test_connect_bedrock_success(mock_chat_bedrock, mock_environ):
     mock_chat_bedrock.return_value = mock_llm
     mock_llm.invoke.side_effect = Exception("Some non-credential error")
 
-    result = await connect_bedrock("test_access_key", "test_secret_key")
+    result = await connect_bedrock(
+        {"Access Key": "test_access_key", "Secret Key": "test_secret_key"}
+    )
 
     assert isinstance(result, JSONResponse)
     assert result.status_code == 200
@@ -278,7 +280,9 @@ async def test_connect_bedrock_invalid_credentials(mock_chat_bedrock, mock_envir
     mock_chat_bedrock.return_value = mock_llm
     mock_llm.invoke.side_effect = Exception("UnrecognizedClientException")
 
-    result = await connect_bedrock("invalid_access_key", "invalid_secret_key")
+    result = await connect_bedrock(
+        {"Access Key": "invalid_access_key", "Secret Key": "invalid_secret_key"}
+    )
 
     assert isinstance(result, JSONResponse)
     assert result.status_code == 401
@@ -298,7 +302,9 @@ async def test_connect_bedrock_unknown_error(mock_chat_bedrock, mock_environ):
     mock_chat_bedrock.return_value = mock_llm
     mock_llm.invoke.side_effect = Exception("Some unexpected error")
 
-    result = await connect_bedrock("test_access_key", "test_secret_key")
+    result = await connect_bedrock(
+        {"Access Key": "test_access_key", "Secret Key": "test_secret_key"}
+    )
 
     assert isinstance(result, JSONResponse)
     assert result.status_code == 200
@@ -314,7 +320,9 @@ async def test_connect_bedrock_environment_variables(mock_chat_bedrock, mock_env
     mock_chat_bedrock.return_value = mock_llm
     mock_llm.invoke.side_effect = Exception("Some non-credential error")
 
-    await connect_bedrock("test_access_key", "test_secret_key")
+    await connect_bedrock(
+        {"Access Key": "test_access_key", "Secret Key": "test_secret_key"}
+    )
 
     assert "AWS_ACCESS_KEY_ID" not in mock_environ
     assert "AWS_SECRET_ACCESS_KEY" not in mock_environ
@@ -1327,11 +1335,23 @@ def test_openai_compatible_providers_uncached_api_error():
         assert result.is_stale()
 
 
+@pytest.fixture
+def mock_config_all_providers():
+    mock_config = MagicMock()
+    mock_config.open_ai_api_key = "test_key"
+    mock_config.groq_api_key = "test_key"
+    mock_config.open_router_api_key = "test_key"
+    mock_config.fireworks_api_key = "test_key"
+    mock_config.fireworks_account_id = "test_key"
+    mock_config.bedrock_access_key = "test_key"
+    mock_config.bedrock_secret_key = "test_key"
+    return mock_config
+
+
 @pytest.mark.asyncio
-async def test_disconnect_api_key_openai(client):
+async def test_disconnect_api_key_openai(client, mock_config_all_providers):
     with patch("app.desktop.studio_server.provider_api.Config.shared") as mock_config:
-        mock_config_instance = MagicMock()
-        mock_config.return_value = mock_config_instance
+        mock_config.return_value = mock_config_all_providers
 
         response = client.post(
             "/api/provider/disconnect_api_key",
@@ -1340,14 +1360,16 @@ async def test_disconnect_api_key_openai(client):
 
         assert response.status_code == 200
         assert response.json() == {"message": "Provider disconnected"}
-        assert mock_config_instance.open_ai_api_key is None
+        assert mock_config_all_providers.open_ai_api_key is None
+
+        # Check it didn't unset the other providers
+        assert mock_config_all_providers.groq_api_key is not None
 
 
 @pytest.mark.asyncio
-async def test_disconnect_api_key_groq(client):
+async def test_disconnect_api_key_groq(client, mock_config_all_providers):
     with patch("app.desktop.studio_server.provider_api.Config.shared") as mock_config:
-        mock_config_instance = MagicMock()
-        mock_config.return_value = mock_config_instance
+        mock_config.return_value = mock_config_all_providers
 
         response = client.post(
             "/api/provider/disconnect_api_key",
@@ -1356,14 +1378,16 @@ async def test_disconnect_api_key_groq(client):
 
         assert response.status_code == 200
         assert response.json() == {"message": "Provider disconnected"}
-        assert mock_config_instance.groq_api_key is None
+        assert mock_config_all_providers.groq_api_key is None
+
+        # Check it didn't unset the other providers
+        assert mock_config_all_providers.open_ai_api_key is not None
 
 
 @pytest.mark.asyncio
-async def test_disconnect_api_key_openrouter(client):
+async def test_disconnect_api_key_openrouter(client, mock_config_all_providers):
     with patch("app.desktop.studio_server.provider_api.Config.shared") as mock_config:
-        mock_config_instance = MagicMock()
-        mock_config.return_value = mock_config_instance
+        mock_config.return_value = mock_config_all_providers
 
         response = client.post(
             "/api/provider/disconnect_api_key",
@@ -1372,14 +1396,16 @@ async def test_disconnect_api_key_openrouter(client):
 
         assert response.status_code == 200
         assert response.json() == {"message": "Provider disconnected"}
-        assert mock_config_instance.open_router_api_key is None
+        assert mock_config_all_providers.open_router_api_key is None
+
+        # Check it didn't unset the other providers
+        assert mock_config_all_providers.open_ai_api_key is not None
 
 
 @pytest.mark.asyncio
-async def test_disconnect_api_key_fireworks(client):
+async def test_disconnect_api_key_fireworks(client, mock_config_all_providers):
     with patch("app.desktop.studio_server.provider_api.Config.shared") as mock_config:
-        mock_config_instance = MagicMock()
-        mock_config.return_value = mock_config_instance
+        mock_config.return_value = mock_config_all_providers
 
         response = client.post(
             "/api/provider/disconnect_api_key",
@@ -1388,33 +1414,53 @@ async def test_disconnect_api_key_fireworks(client):
 
         assert response.status_code == 200
         assert response.json() == {"message": "Provider disconnected"}
-        assert mock_config_instance.fireworks_api_key is None
-        assert mock_config_instance.fireworks_account_id is None
+        assert mock_config_all_providers.fireworks_api_key is None
+        assert mock_config_all_providers.fireworks_account_id is None
+
+        # Check it didn't unset the other providers
+        assert mock_config_all_providers.open_ai_api_key is not None
 
 
 @pytest.mark.asyncio
-async def test_disconnect_api_key_bedrock(client):
+async def test_disconnect_api_key_bedrock(client, mock_config_all_providers):
     with patch("app.desktop.studio_server.provider_api.Config.shared") as mock_config:
-        mock_config_instance = MagicMock()
-        mock_config.return_value = mock_config_instance
+        mock_config.return_value = mock_config_all_providers
 
         response = client.post(
             "/api/provider/disconnect_api_key",
-            params={"provider_id": "bedrock"},
+            params={"provider_id": "amazon_bedrock"},
         )
 
         assert response.status_code == 200
         assert response.json() == {"message": "Provider disconnected"}
-        assert mock_config_instance.bedrock_access_key is None
-        assert mock_config_instance.bedrock_secret_key is None
+        assert mock_config_all_providers.bedrock_access_key is None
+        assert mock_config_all_providers.bedrock_secret_key is None
+
+        # Check it didn't unset the other providers
+        assert mock_config_all_providers.open_ai_api_key is not None
 
 
 @pytest.mark.asyncio
-async def test_disconnect_api_key_unsupported_provider(client):
+async def test_disconnect_api_key_invalid_provider(client, mock_config_all_providers):
     response = client.post(
         "/api/provider/disconnect_api_key",
         params={"provider_id": "unsupported_provider"},
     )
 
     assert response.status_code == 400
-    assert response.json() == {"message": "Provider not supported"}
+    assert response.json() == {"message": "Invalid provider: unsupported_provider"}
+
+
+@pytest.mark.parametrize(
+    "provider_id",
+    ["kiln_custom_registry", "kiln_fine_tune", "openai_compatible", "ollama"],
+)
+@pytest.mark.asyncio
+async def test_disconnect_api_key_unsupported_provider(client, provider_id):
+    response = client.post(
+        "/api/provider/disconnect_api_key",
+        params={"provider_id": provider_id},
+    )
+
+    assert response.status_code == 400
+    assert response.json() == {"message": f"Provider not supported"}
