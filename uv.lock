@@ -1615,15 +1615,15 @@ wheels = [
 
 [[package]]
 name = "pyinstaller-hooks-contrib"
-version = "2024.9"
+version = "2025.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "packaging" },
     { name = "setuptools" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/fe/ca/218b8dc15d48e69fafef69a97a4455db7a01c01aea4eb4bf1ae8a6ad7ef9/pyinstaller_hooks_contrib-2024.9.tar.gz", hash = "sha256:4793869f370d1dc4806c101efd2890e3c3e703467d8d27bb5a3db005ebfb008d", size = 139956 }
+sdist = { url = "https://files.pythonhosted.org/packages/2f/1b/dc256d42f4217db99b50d6d32dbbf841a41b9615506cde77d2345d94f4a5/pyinstaller_hooks_contrib-2025.1.tar.gz", hash = "sha256:130818f9e9a0a7f2261f1fd66054966a3a50c99d000981c5d1db11d3ad0c6ab2", size = 147043 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/57/b4/23338112c76750f494a2fded981d40ebd723585b2b6eadde6a821ddc7208/pyinstaller_hooks_contrib-2024.9-py3-none-any.whl", hash = "sha256:1ddf9ba21d586afa84e505bb5c65fca10b22500bf3fdb89ee2965b99da53b891", size = 336956 },
+    { url = "https://files.pythonhosted.org/packages/b7/48/833d67a585275e395f351e5787b4b7a8d462d87bca22a8c038f6ffdc2b3c/pyinstaller_hooks_contrib-2025.1-py3-none-any.whl", hash = "sha256:d3c799470cbc0bda60dcc8e6b4ab976777532b77621337f2037f558905e3a8e9", size = 346409 },
 ]
 
 [[package]]

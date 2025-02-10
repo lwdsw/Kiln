@@ -28,8 +28,8 @@ jobs:
       - name: Install the project
         run: uv sync
 
-      - name: Build Desktop App
-        run: uv run bash ./app/desktop/build_desktop_app.sh
+      - name: Build Desktop App, including custom build of pyinstaller bootloader
+        run: uv run bash ./app/desktop/build_desktop_app.sh --build-bootloader
 
       - name: Sign internal files with Trusted Signing
         uses: azure/trusted-signing-action@v0.5.1
