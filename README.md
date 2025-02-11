@@ -29,6 +29,7 @@
 - 🚀 **Intuitive Desktop Apps**: One-click apps for Windows, MacOS, and Linux. Truly intuitive design.
 - 🎛️ **Fine Tuning**: Zero-code fine-tuning for Llama, GPT4o, and Mixtral. Automatic serverless deployment of models.
 - 🤖 **Synthetic Data Generation**: Generate training data with our interactive visual tooling.
+- 🧠 **Reasoning Models**: Train or distill your own custom reasoning models.
 - 🤝 **Team Collaboration**: Git-based version control for your AI datasets. Intuitive UI makes it easy to collaborate with QA, PM, and subject matter experts on structured data (examples, prompts, ratings, feedback, issues, etc.).
 - 📝 **Prompt Generation**: Automatically generate prompts from your data, including chain-of-thought, few-shot, and multi-shot, and more.
 - 🌐 **Wide Model and Provider Support**: Use any model via Ollama, OpenAI, OpenRouter, Fireworks, Groq, AWS, or any OpenAI compatible API.
