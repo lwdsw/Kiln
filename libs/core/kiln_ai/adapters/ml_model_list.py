@@ -219,6 +219,13 @@ built_in_models: List[KilnModel] = [
                 provider_options={"model": "deepseek/deepseek-chat"},
                 structured_output_mode=StructuredOutputMode.function_calling,
             ),
+            KilnModelProvider(
+                name=ModelProviderName.fireworks_ai,
+                provider_options={"model": "accounts/fireworks/models/deepseek-v3"},
+                structured_output_mode=StructuredOutputMode.json_mode,
+                supports_structured_output=True,
+                supports_data_gen=False,
+            ),
         ],
     ),
     # DeepSeek R1
