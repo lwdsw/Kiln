@@ -12,7 +12,6 @@ from kiln_ai.datamodel.datamodel_enums import TaskOutputRatingType
 from kiln_ai.datamodel.json_schema import validate_schema
 from kiln_ai.datamodel.strict_mode import strict_mode
 
-# TODO Needed?
 if TYPE_CHECKING:
     from kiln_ai.datamodel.task import Task
 
