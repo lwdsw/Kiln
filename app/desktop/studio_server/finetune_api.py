@@ -18,13 +18,15 @@ from kiln_ai.adapters.provider_tools import (
     provider_name_from_id,
 )
 from kiln_ai.datamodel import (
-    AllSplitDefinition,
-    DatasetFilterType,
     DatasetSplit,
     Finetune,
     FinetuneDataStrategy,
     FineTuneStatusType,
     Task,
+)
+from kiln_ai.datamodel.dataset_split import (
+    AllSplitDefinition,
+    DatasetFilterType,
     Train60Test20Val20SplitDefinition,
     Train80Test10Val10SplitDefinition,
     Train80Test20SplitDefinition,

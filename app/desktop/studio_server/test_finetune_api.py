@@ -9,14 +9,16 @@ from kiln_ai.adapters.fine_tune.base_finetune import FineTuneParameter
 from kiln_ai.adapters.fine_tune.dataset_formatter import DatasetFormat
 from kiln_ai.adapters.ml_model_list import KilnModel, KilnModelProvider
 from kiln_ai.datamodel import (
-    AllDatasetFilter,
-    AllSplitDefinition,
     DatasetSplit,
     Finetune,
     FinetuneDataStrategy,
-    HighRatingDatasetFilter,
     Project,
     Task,
+)
+from kiln_ai.datamodel.dataset_split import (
+    AllDatasetFilter,
+    AllSplitDefinition,
+    HighRatingDatasetFilter,
     ThinkingModelDatasetFilter,
     ThinkingModelHighRatedFilter,
     Train60Test20Val20SplitDefinition,
@@ -302,7 +304,7 @@ def test_api_split_types_mapping():
 
 
 def test_api_filter_types_mapping():
-    from kiln_ai.datamodel import dataset_filters
+    from kiln_ai.datamodel.dataset_split import dataset_filters
 
     assert dataset_filters[DatasetFilterType.ALL] == AllDatasetFilter
     assert dataset_filters[DatasetFilterType.HIGH_RATING] == HighRatingDatasetFilter

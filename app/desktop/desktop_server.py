@@ -3,11 +3,10 @@ import threading
 import time
 from contextlib import asynccontextmanager
 
+import kiln_ai.datamodel.strict_mode as datamodel_strict_mode
 import kiln_server.server as kiln_server
 import uvicorn
 from fastapi import FastAPI
-from kiln_ai.datamodel import set_strict_mode as set_strict_mode_datamodel
-from kiln_ai.datamodel import strict_mode as strict_mode_datamodel
 
 from app.desktop.studio_server.data_gen_api import connect_data_gen_api
 from app.desktop.studio_server.finetune_api import connect_fine_tune_api
@@ -20,12 +19,12 @@ from app.desktop.studio_server.webhost import connect_webhost
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Set strict mode on startup
-    original_strict_mode = strict_mode_datamodel()
-    set_strict_mode_datamodel(True)
+    # Set datamodel strict mode on startup
+    original_strict_mode = datamodel_strict_mode.strict_mode()
+    datamodel_strict_mode.set_strict_mode(True)
     yield
-    # Reset strict mode on shutdown
-    set_strict_mode_datamodel(original_strict_mode)
+    # Reset datamodel strict mode on shutdown
+    datamodel_strict_mode.set_strict_mode(original_strict_mode)
 
 
 def make_app():
