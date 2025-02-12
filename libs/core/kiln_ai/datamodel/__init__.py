@@ -11,7 +11,6 @@ User docs: https://docs.getkiln.ai/developers/kiln-datamodel
 
 from __future__ import annotations
 
-import kiln_ai.datamodel.strict_mode
 from kiln_ai.datamodel.datamodel_enums import (
     FinetuneDataStrategy,
     FineTuneStatusType,
