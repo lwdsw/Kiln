@@ -30,6 +30,7 @@ from kiln_ai.datamodel.prompt import Prompt
 from kiln_ai.datamodel.task import Task, TaskRequirement
 from kiln_ai.datamodel.task_output import (
     DataSource,
+    DataSourceProperty,
     DataSourceType,
     RequirementRating,
     TaskOutput,
@@ -41,6 +42,7 @@ from kiln_ai.datamodel.task_run import (
 
 __all__ = [
     "strict_mode",
+    "dataset_split",
     "Task",
     "Project",
     "TaskRun",

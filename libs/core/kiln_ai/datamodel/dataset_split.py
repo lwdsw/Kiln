@@ -1,3 +1,7 @@
+"""
+Tools for splitting datasets into train/test/validation splits. Includes filters for selecting which task runs to include in each split.
+"""
+
 import math
 import random
 from enum import Enum
@@ -12,7 +16,8 @@ if TYPE_CHECKING:
     from kiln_ai.datamodel.task import Task
 
 
-# Define the type alias for clarity
+# A type alias that takes a TaskRun and returns a boolean indicating whether the task run should be included in the split.
+# Several filters are defined below like AllDatasetFilter, HighRatingDatasetFilter, etc.
 DatasetFilter = Callable[[TaskRun], bool]
 
 
