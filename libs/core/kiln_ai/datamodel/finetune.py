@@ -1,6 +1,7 @@
-from typing import TYPE_CHECKING, Dict, Self, Union
+from typing import TYPE_CHECKING, Dict, Union
 
 from pydantic import Field, model_validator
+from typing_extensions import Self
 
 from kiln_ai.datamodel.basemodel import NAME_FIELD, KilnParentedModel
 from kiln_ai.datamodel.datamodel_enums import (

@@ -1,9 +1,10 @@
 import json
-from typing import TYPE_CHECKING, Dict, List, Self, Union
+from typing import TYPE_CHECKING, Dict, List, Union
 
 import jsonschema
 import jsonschema.exceptions
 from pydantic import Field, ValidationInfo, model_validator
+from typing_extensions import Self
 
 from kiln_ai.datamodel.basemodel import KilnParentedModel
 from kiln_ai.datamodel.json_schema import validate_schema
