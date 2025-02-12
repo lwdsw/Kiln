@@ -3,19 +3,21 @@ from pydantic import ValidationError
 
 # import datamodel first or we get circular import errors
 from kiln_ai.datamodel import (
-    AllDatasetFilter,
-    AllSplitDefinition,
-    DatasetFilterType,
     DatasetSplit,
     DatasetSplitDefinition,
     DataSource,
     DataSourceType,
-    HighRatingDatasetFilter,
     Task,
     TaskOutput,
     TaskOutputRating,
     TaskOutputRatingType,
     TaskRun,
+)
+from kiln_ai.datamodel.dataset_split import (
+    AllDatasetFilter,
+    AllSplitDefinition,
+    DatasetFilterType,
+    HighRatingDatasetFilter,
     ThinkingModelDatasetFilter,
     ThinkingModelHighRatedFilter,
     Train60Test20Val20SplitDefinition,

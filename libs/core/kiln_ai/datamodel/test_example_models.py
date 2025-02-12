@@ -11,7 +11,6 @@ from kiln_ai.datamodel import (
     Finetune,
     Project,
     Task,
-    TaskDeterminism,
     TaskOutput,
     TaskOutputRating,
     TaskOutputRatingType,
@@ -125,7 +124,6 @@ def test_structured_output_workflow(tmp_path):
         name="Structured Output Task",
         parent=project,
         instruction="Generate a JSON object with name and age",
-        determinism=TaskDeterminism.semantic_match,
         output_json_schema=json.dumps(
             {
                 "type": "object",
