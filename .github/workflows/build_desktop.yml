@@ -15,6 +15,7 @@ jobs:
           - os: macos-latest # arm64
           - os: macos-13 # x86_64
           - os: ubuntu-latest # x86_64 (no arm64 support on GH Actions yet)
+          - os: ubuntu-22.04-arm # arm build
 
     steps:
       - uses: actions/checkout@v4
