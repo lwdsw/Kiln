@@ -4,6 +4,7 @@
   import { ui_state } from "$lib/stores"
   import { goto } from "$app/navigation"
   import { client } from "$lib/api_client"
+  import { _ } from 'svelte-i18n'
 
   let id = "select-tasks-menu-" + Math.random().toString(36)
 
@@ -107,7 +108,7 @@
         class="flex flex-row pr-1"
       >
         <div class="grow">
-          <span class="badge badge-secondary badge-outline">Project</span>
+          <span class="badge badge-secondary badge-outline">{$_('common.project')}</span>
           {project.name}
         </div>
         <div>
@@ -186,7 +187,7 @@
                   fill="#000000"
                 />
               </svg>
-              New Task
+              {$_('common.newTask')}
             </a>
           </li>
         </ul>
@@ -209,7 +210,7 @@
           fill="#000000"
         />
       </svg>
-      New Project</a
+      {$_('common.newProject')}</a
     >
   </li>
 </ul>

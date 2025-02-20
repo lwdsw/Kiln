@@ -1,0 +1,117 @@
+{
+  "providers": {
+    "openrouter": {
+      "name": "OpenRouter.ai",
+      "description": "代理OpenAI、Anthropic等服务的请求。几乎支持所有模型。",
+      "api_key_steps": [
+        "前往 https://openrouter.ai/settings/keys",
+        "创建新的API密钥",
+        "复制新的API密钥，粘贴到下方并点击'连接'"
+      ]
+    },
+    "openai": {
+      "name": "OpenAI",
+      "description": "GPT-4等模型的发源地。支持微调。",
+      "api_key_steps": [
+        "前往 https://platform.openai.com/account/api-keys",
+        "点击'创建新的密钥'",
+        "复制新的密钥，粘贴到下方并点击'连接'"
+      ]
+    },
+    "ollama": {
+      "name": "Ollama",
+      "description": "本地运行模型。无需API密钥。",
+      "customUrl": "自定义Ollama URL"
+    },
+    "groq": {
+      "name": "Groq",
+      "description": "最快的模型托管服务。提供Llama、Gemma和Mistral模型。",
+      "api_key_steps": [
+        "前往 https://console.groq.com/keys",
+        "创建API密钥",
+        "复制新的密钥，粘贴到下方并点击'连接'"
+      ]
+    },
+    "fireworks_ai": {
+      "name": "Fireworks AI",
+      "description": "开放模型（Llama、Phi），并支持微调。",
+      "api_key_steps": [
+        "前往 https://fireworks.ai/account/api-keys",
+        "创建新的API密钥并粘贴到下方",
+        "前往 https://fireworks.ai/account/profile",
+        "复制账户ID，粘贴到下方，然后点击'连接'"
+      ],
+      "api_key_fields": ["API密钥", "账户ID"]
+    },
+    "amazon_bedrock": {
+      "name": "Amazon Bedrock",
+      "description": "您的公司有AWS合同吗？",
+      "api_key_steps": [
+        "前往 https://us-west-2.console.aws.amazon.com/bedrock/home?region=us-west-2#/overview - 请确保选择us-west-2区域，因为它拥有最多的模型，且Kiln默认使用此区域",
+        "为支持的模型（如Llama和Mistral）申请访问权限",
+        "使用此指南创建IAM密钥 https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html 并确保在创建IAM用户时选择'AmazonBedrockFullAccess'策略",
+        "获取新用户的访问密钥ID和秘密访问密钥。将它们粘贴到下方并点击'连接'"
+      ],
+      "api_key_warning": "Bedrock的设置比较困难。\n\n我们建议使用OpenRouter，因为它更容易设置且拥有更多模型。",
+      "api_key_fields": ["访问密钥", "秘密密钥"]
+    },
+    "openai_compatible": {
+      "name": "自定义API",
+      "description": "连接任何兼容OpenAI的API。"
+    }
+  },
+  "common": {
+    "connect": "连接",
+    "disconnect": "断开连接",
+    "connected": "已连接",
+    "connecting": "连接中",
+    "cancel": "取消",
+    "error": "错误",
+    "reload_page": "重新加载页面",
+    "recommended": "推荐",
+    "manage": "管理",
+    "remove": "移除",
+    "add": "添加"
+  },
+  "dialogs": {
+    "ollama": {
+      "title": "自定义Ollama URL",
+      "description": "默认情况下，Kiln尝试连接运行在localhost:11434上的Ollama。如果您在自定义URL或端口上运行Ollama，请在此处输入以连接。",
+      "url_label": "Ollama URL",
+      "url_info": "应包含http前缀和端口号。例如，http://localhost:11434",
+      "url_placeholder": "http://localhost:11434"
+    },
+    "custom_api": {
+      "title": "连接自定义API",
+      "description": "通过添加基础URL和API密钥连接任何兼容OpenAI的API。",
+      "existing_apis": "现有API",
+      "add_new_api": "添加新API",
+      "name_label": "API名称",
+      "name_placeholder": "我的家用服务器",
+      "name_info": "为此端点设置一个名称供您使用。例如：'我的家用服务器'",
+      "base_url_label": "基础URL",
+      "base_url_placeholder": "https://.../v1",
+      "base_url_info": "兼容OpenAI的API的基础URL。例如，https://openrouter.ai/api/v1",
+      "api_key_label": "API密钥",
+      "api_key_placeholder": "sk-...",
+      "api_key_info": "OpenAI兼容API的API密钥。"
+    }
+  },
+  "errors": {
+    "disconnect_confirm": "您确定要断开此提供商的连接吗？您的连接详情将被删除且无法恢复。",
+    "ollama_disconnect": "Ollama在运行时会自动连接到本地Ollama实例。无法手动断开连接。要更改首选的Ollama URL，请关闭本地Ollama实例，然后返回此页面。",
+    "base_url_http": "基础URL必须以http开头",
+    "failed_disconnect": "断开提供商连接失败。未知错误。",
+    "failed_connect": "连接到提供商失败。未知错误。",
+    "failed_connect_exception": "连接到提供商失败（异常：{error}）",
+    "ollama_no_models": "Ollama正在运行，但没有可用的模型。使用ollama cli安装一些模型（例如'ollama pull llama3.1'）。",
+    "ollama_connect": "连接失败。请确保Ollama应用正在运行。"
+  },
+  "status": {
+    "ollama_connected": "Ollama已连接。",
+    "supported_models": "以下支持的模型可用：{models}。",
+    "no_supported_models": "未安装支持的模型 -- 我们建议安装一些（例如'ollama pull llama3.1'）。",
+    "untested_models": "以下未测试的模型已安装：{models}。",
+    "custom_url": "自定义Ollama URL：{url}"
+  }
+}

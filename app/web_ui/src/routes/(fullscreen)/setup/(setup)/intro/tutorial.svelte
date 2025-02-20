@@ -1,50 +1,51 @@
 <script lang="ts">
   import TutorialSection from "./tutorial_section.svelte"
   import { fly } from "svelte/transition"
+  import { _ } from 'svelte-i18n'
   let section = 0
 
   let sections = [
     {
-      title: "Data Driven Improvements",
+      title: $_('setup.intro.tutorial.dataDriven.title'),
       promos: [
-        "As you use your models, Kiln automatically creates a rich dataset.",
-        "Prompts improve themselves, using past results and ratings.",
-        "Handle structured input and output with ease.",
+        $_('setup.intro.tutorial.dataDriven.promo1'),
+        $_('setup.intro.tutorial.dataDriven.promo2'),
+        $_('setup.intro.tutorial.dataDriven.promo3'),
       ],
       image_path: "/images/data_driven.png",
     },
     {
-      title: "Collaborate with Your Team",
+      title: $_('setup.intro.tutorial.collaborate.title'),
       promos: [
-        "Our data format is designed for Git. Work with your team, with tools you know.",
-        "Our easy-to-use app makes it easy for non-technical team members to contribute.",
-        "Completely private: we don't see your dataset, period.",
+        $_('setup.intro.tutorial.collaborate.promo1'),
+        $_('setup.intro.tutorial.collaborate.promo2'),
+        $_('setup.intro.tutorial.collaborate.promo3'),
       ],
       image_path: "/images/collaborate.png",
     },
     {
-      title: "Find the best way to run your task",
+      title: $_('setup.intro.tutorial.findBestWay.title'),
       promos: [
-        "Try over a dozen different foundation models.",
-        "Bring your own keys, or run locally with Ollama.",
-        "Optimize performance and costs for your task.",
+        $_('setup.intro.tutorial.findBestWay.promo1'),
+        $_('setup.intro.tutorial.findBestWay.promo2'),
+        $_('setup.intro.tutorial.findBestWay.promo3'),
       ],
       image_path: "/images/logo_grid.png",
     },
     {
-      title: "Fine Tuning and Synthetic Data Generation",
+      title: $_('setup.intro.tutorial.fineTuning.title'),
       promos: [
-        "Fine tune your models to your specific use case.",
-        "Create synthetic data to train your models.",
-        "Dozens of base models to choose from, locally or in the cloud.",
+        $_('setup.intro.tutorial.fineTuning.promo1'),
+        $_('setup.intro.tutorial.fineTuning.promo2'),
+        $_('setup.intro.tutorial.fineTuning.promo3'),
       ],
       image_path: "/images/training.png",
     },
     {
-      title: "Library and API",
+      title: $_('setup.intro.tutorial.libraryAndApi.title'),
       promos: [
-        "Our open-source python library makes it easy to extend Kiln.",
-        "Use our REST API to integrate Kiln with your own applications.",
+        $_('setup.intro.tutorial.libraryAndApi.promo1'),
+        $_('setup.intro.tutorial.libraryAndApi.promo2'),
       ],
       image_path: "/images/developers.png",
     },

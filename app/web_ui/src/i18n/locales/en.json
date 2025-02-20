@@ -1,0 +1,238 @@
+{
+    "setup": {
+        "subscribe": {
+            "title": "Newsletter",
+            "subtitle": "Zero spam, unsubscribe any time, totally optional.",
+            "description": "Subscribe to our newsletter to learn about new features, updates, new models, and other Kiln AI news.",
+            "submitButton": "Subscribe",
+            "emailLabel": "Email",
+            "successMessage": "Subscribed!",
+            "thankYouMessage": "Thanks for subscribing! ❤️",
+            "continueButton": "Continue",
+            "withoutSubscribing": "Without Subscribing"
+        },
+        "selectTask": {
+            "title": "Select a Project and Task",
+            "description": "Select a project and task to get started. You can also create new projects and tasks."
+        },
+        "createTask": {
+            "title": "Create a Task",
+            "description": "Let's define what this model should do. We call this a \"task\"."
+        },
+        "createProject": {
+            "title": "Create Project",
+            "exampleProjectName": "Example Project",
+            "exampleProjectDescription": "This is an example project just to try things out.",
+            "exampleText": "\"Example\" is fine if you're just trying things out.",
+            "exploringText": "Just exploring?",
+            "createExampleButton": "Create an example"
+        },
+        "connect_providers": {
+            "title": "Connect AI Providers",
+            "description": "Connect to AI providers to start using their models. You can connect to multiple providers."
+        },
+        "intro": {
+            "title": "Introduction",
+            "continue": "Continue",
+            "skipTutorial": "Skip Tutorial",
+            "tutorial": {
+                "dataDriven": {
+                    "title": "Data Driven Improvements",
+                    "promo1": "As you use your models, Kiln automatically creates a rich dataset.",
+                    "promo2": "Prompts improve themselves, using past results and ratings.",
+                    "promo3": "Handle structured input and output with ease."
+                },
+                "collaborate": {
+                    "title": "Collaborate with Your Team",
+                    "promo1": "Our data format is designed for Git. Work with your team, with tools you know.",
+                    "promo2": "Our easy-to-use app makes it easy for non-technical team members to contribute.",
+                    "promo3": "Completely private: we don't see your dataset, period."
+                },
+                "findBestWay": {
+                    "title": "Find the best way to run your task",
+                    "promo1": "Try over a dozen different foundation models.",
+                    "promo2": "Bring your own keys, or run locally with Ollama.",
+                    "promo3": "Optimize performance and costs for your task."
+                },
+                "fineTuning": {
+                    "title": "Fine Tuning and Synthetic Data Generation",
+                    "promo1": "Fine tune your models to your specific use case.",
+                    "promo2": "Create synthetic data to train your models.",
+                    "promo3": "Dozens of base models to choose from, locally or in the cloud."
+                },
+                "libraryAndApi": {
+                    "title": "Library and API",
+                    "promo1": "Our open-source python library makes it easy to extend Kiln.",
+                    "promo2": "Use our REST API to integrate Kiln with your own applications."
+                }
+            }
+        }
+    },
+    "welcome": {
+        "title": "Welcome to Kiln Studio",
+        "subtitle": "The open source ML product platform",
+        "getStarted": "Get Started",
+        "viewOur": "View our",
+        "licenseAgreement": "License Agreement"
+    },
+    "common": {
+        "project": "Project",
+        "newTask": "New Task",
+        "newProject": "New Project",
+        "optional": "Optional",
+        "continue": "Continue",
+        "connect": "Connect",
+        "cancel": "Cancel",
+        "add": "Add",
+        "disconnect": "Disconnect",
+        "recommended": "Recommended"
+    },
+    "editProject": {
+        "errors": {
+            "projectNameRequired": "Project name is required"
+        },
+        "labels": {
+            "updateProject": "Update Project",
+            "createProject": "Create Project",
+            "projectName": "Project Name",
+            "projectDescription": "Project Description",
+            "or": "Or",
+            "importExisting": "import an existing project",
+            "importProject": "Import Project",
+            "existingProjectPath": "Existing Project Path",
+            "existingProjectPathDescription": "The path to the project on your local machine. For example, /Users/username/Kiln Projects/my_project/project.kiln",
+            "createNew": "create a new project"
+        },
+        "messages": {
+            "projectImported": "Project Imported!",
+            "projectImportedDescription": "Your project \"{path}\" has been imported.",
+            "projectCreated": "Project Created!",
+            "projectCreatedDescription": "Your new project \"{name}\" has been created."
+        }
+    },
+    "task": {
+        "edit": {
+            "saveTask": "Save Task",
+            "createTask": "Create Task",
+            "part1": "Part 1: Overview",
+            "exploring": "Just exploring?",
+            "tryExample": "Try an example.",
+            "taskName": "Task Name",
+            "taskDescription": "Task Description",
+            "taskInstructions": "Task Instructions",
+            "taskInstructionsDescription": "This will form the basis of the model's prompt. Keep this high level, and define any details in the 'Requirements' section below.",
+            "thinkingInstructions": "Thinking Instructions",
+            "thinkingInstructionsDescription": "Instructions for how the model should think about the task prior to answering.",
+            "thinkingInstructionsInfo": "Used when running a 'Chain of Thought' prompt. If left blank, a default 'think step by step' prompt will be used.",
+            "requirement": "Requirement",
+            "requirementName": "Requirement Name",
+            "ratingType": "Rating Type",
+            "priority": "Priority",
+            "instructions": "Instructions",
+            "fiveStar": "5 Star",
+            "passFail": "Pass / Fail",
+            "passFailCritical": "Pass / Fail / Critical",
+            "priorityCritical": "P0 - Critical",
+            "priorityHigh": "P1 - High",
+            "priorityMedium": "P2 - Medium",
+            "priorityLow": "P3 - Low",
+            "inputSchemaDescription": "What kind of input will the model receive?",
+            "outputSchemaDescription": "What kind of output will the model produce?",
+            "part2": "Part 2: Input Schema",
+            "part3": "Part 3: Output Schema"
+        }
+    },
+    "schema": {
+        "plaintext": "Plaintext",
+        "structuredJSON": "Structured JSON"
+    },
+    "providers": {
+        "openrouter": {
+            "name": "OpenRouter",
+            "description": "Access dozens of models from Anthropic, Google, Meta, and more with a single API key.",
+            "steps": {
+                "1": "Go to openrouter.ai",
+                "2": "Create an account and get your API key",
+                "3": "Paste your API key below and click 'Connect'"
+            }
+        },
+        "openai": {
+            "name": "OpenAI",
+            "description": "Access GPT-4, GPT-3.5 and other OpenAI models.",
+            "steps": {
+                "1": "Go to https://platform.openai.com/account/api-keys",
+                "2": "Create a new API key",
+                "3": "Paste your API key below and click 'Connect'"
+            }
+        },
+        "ollama": {
+            "name": "Ollama",
+            "description": "Run models locally on your machine with Ollama.",
+            "connected": "Ollama connected!",
+            "error": "Ollama running, but no models available. Install some using ollama cli (e.g. 'ollama pull llama3.1').",
+            "supportedModels": "Supported models: ",
+            "supportedModelsNone": "No supported models are installed -- we suggest installing some (e.g. 'ollama pull llama3.1'). ",
+            "untestedModels": "Untested models: ",
+            "customUrl": "Custom URL: ",
+            "dialog": {
+                "setCustomUrl": "Set Custom Ollama URL",
+                "title": "Set Ollama URL",
+                "description": "Set a custom Ollama server URL. Use the default if you are running Ollama locally.",
+                "urlLabel": "Ollama URL",
+                "urlInfo": "URL of the Ollama server, typically http://localhost:11434",
+                "urlPlaceholder": "http://localhost:11434"
+            }
+        },
+        "groq": {
+            "name": "Groq",
+            "description": "Access Mixtral and Llama models with ultra-fast inference.",
+            "steps": {
+                "1": "Go to https://console.groq.com/keys",
+                "2": "Create a new API key",
+                "3": "Paste your API key below and click 'Connect'"
+            }
+        },
+        "fireworks": {
+            "name": "Fireworks.ai",
+            "description": "Access Llama, Mixtral and other models with fast inference.",
+            "steps": {
+                "1": "Go to https://fireworks.ai/account/api-keys",
+                "2": "Create a new API Key and paste it below",
+                "3": "Go to https://fireworks.ai/account/profile",
+                "4": "Copy the Account ID, paste it below, and click 'Connect'"
+            }
+        },
+        "amazon_bedrock": {
+            "name": "Amazon Bedrock",
+            "description": "Access Claude, Llama and other models through AWS Bedrock.",
+            "warning": "Bedrock is difficult to setup.\n\nWe suggest OpenRouter as it's easier to setup and has more models.",
+            "steps": {
+                "1": "Go to AWS Console and create a new IAM user",
+                "2": "Add AWSBedrockFullAccess permission to the user",
+                "3": "Create access key and copy the Access Key ID",
+                "4": "Copy the Secret Key, paste both below, and click 'Connect'"
+            }
+        },
+        "openai_compatible": {
+            "name": "Custom API",
+            "description": "Connect to any OpenAI-compatible API endpoint.",
+            "dialog": {
+                "title": "Manage Custom APIs",
+                "description": "Add and manage OpenAI-compatible API endpoints.",
+                "existing_apis": "Existing APIs",
+                "add_new_api": "Add New API",
+                "name_label": "Name",
+                "name_placeholder": "e.g., My Custom API",
+                "name_info": "Name to identify this API",
+                "base_url_label": "Base URL",
+                "base_url_placeholder": "e.g., https://api.example.com/v1",
+                "base_url_info": "Base URL of the API, must start with http:// or https://",
+                "api_key_label": "API Key",
+                "api_key_placeholder": "Optional",
+                "api_key_info": "Provide API key if required"
+            }
+        },
+        "disconnect_confirm": "Are you sure you want to disconnect?",
+        "disconnect_error": "Error while disconnecting."
+    }
+}

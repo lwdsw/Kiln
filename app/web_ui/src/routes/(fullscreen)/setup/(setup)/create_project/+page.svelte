@@ -1,6 +1,7 @@
 <script lang="ts">
   import EditProject from "./edit_project.svelte"
   import { type Project } from "$lib/types"
+  import { _ } from 'svelte-i18n'
 
   let project: Project = {
     v: 1,
@@ -9,8 +10,8 @@
   }
 
   function example_project() {
-    project.name = "Example Project"
-    project.description = "This is an example project just to try things out."
+    project.name =$_("setup.createProject.exampleProjectName")
+    project.description =$_("setup.createProject.exampleProjectDescription")
   }
 </script>
 
@@ -19,15 +20,15 @@
   <img src="/logo.svg" alt="logo" class="size-8 mb-3" />
 </div>
 <h1 class="text-2xl lg:text-4xl flex-none font-bold text-center">
-  Create a Project
+  {$_('setup.createProject.title')}
 </h1>
 <h3 class="text-base font-medium text-center mt-3 max-w-[600px] mx-auto">
-  "Example" is fine if you're just trying things out.
+  {$_('setup.createProject.exampleText')}
 </h3>
 <h3 class="text-sm text-center mt-1 max-w-[600px] mx-auto">
-  Just exploring?
+  {$_('setup.createProject.exploringText')}
   <button class="link text-primary" on:click={example_project}
-    >Create an example</button
+    >{$_('setup.createProject.createExampleButton')}</button
   >
 </h3>
 

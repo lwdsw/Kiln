@@ -1,3 +1,7 @@
+<script lang="ts">
+  import { _ } from "svelte-i18n";
+</script>
+
 <div class="min-h-screen p-4 flex flex-col items-center">
   <div class="grow"></div>
   <img
@@ -7,19 +11,20 @@
   />
 
   <h1 class="text-2xl lg:text-4xl font-bold mt-6 flex-none">
-    Welcome to Kiln AI
+    {$_('welcome.title')}
   </h1>
   <h2 class="text-lg lg:text-xl font-light mt-2 flex-none">
-    Your AI Product Launchpad
+    {$_('welcome.subtitle')}
   </h2>
   <a href="/setup/intro" class="btn btn-primary btn-wide mt-12 flex-none"
-    >Get Started</a
+    >{$_('welcome.getStarted')}</a
   >
   <div class="text-sm font-light mt-4">
-    View our <a
+    
+    {$_('welcome.viewOur')} <a
       href="https://github.com/Kiln-AI/Kiln/blob/main/app/EULA.md"
       class="link"
-      target="_blank">License Agreement</a
+      target="_blank">{$_('welcome.licenseAgreement')}</a
     >
   </div>
   <div class="grow-[1.5]"></div>

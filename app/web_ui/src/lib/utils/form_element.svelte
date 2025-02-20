@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { _ } from 'svelte-i18n'
+
   import InfoTooltip from "$lib/ui/info_tooltip.svelte"
 
   export let inputType: "input" | "textarea" | "select" = "input"
@@ -77,10 +79,10 @@
   >
     <div class="flex flex-row items-center">
       <span class="grow {light_label ? 'text-xs text-gray-500' : ''}"
-        >{label}</span
+        >{$_(label)}</span
       >
       <span class="pl-1 text-xs text-gray-500 flex-none"
-        >{info_msg || (optional ? "Optional" : "")}</span
+        >{info_msg || (optional ? $_("common.optional") : "")}</span
       >
       {#if info_description}
         <div>
@@ -90,7 +92,7 @@
     </div>
     {#if description}
       <div class="text-xs text-gray-500">
-        {description}
+        {$_(description)}
       </div>
     {/if}
   </label>
@@ -99,7 +101,7 @@
       <!-- Ensure compiler doesn't optimize away the heights -->
       <span class="h-18 h-60 hidden"></span>
       <textarea
-        placeholder={error_message || placeholder || label}
+        placeholder={error_message || placeholder || $_(label)}
         {id}
         class="textarea text-base textarea-bordered w-full {tall
           ? 'h-60'
@@ -113,7 +115,7 @@
     {:else if inputType === "input"}
       <input
         type="text"
-        placeholder={error_message || placeholder || label}
+        placeholder={error_message || placeholder || $_(label)}
         {id}
         class="input text-base input-bordered w-full font-base {error_message ||
         inline_error
@@ -136,12 +138,12 @@
       >
         {#if select_options_grouped.length > 0}
           {#each select_options_grouped as group}
-            <optgroup label={group[0]}>
+            <optgroup label={$_(group[0])}>
               {#each group[1] as option}
                 <option
                   value={option[0]}
                   disabled={("" + option[0]).startsWith("disabled")}
-                  selected={option[0] === value}>{option[1]}</option
+                  selected={option[0] === value}>{$_(option[1])}</option
                 >
               {/each}
             </optgroup>
@@ -151,7 +153,7 @@
             <option
               value={option[0]}
               disabled={("" + option[0]).startsWith("disabled")}
-              selected={option[0] === value}>{option[1]}</option
+              selected={option[0] === value}>{$_(option[1])}</option
             >
           {/each}
         {/if}

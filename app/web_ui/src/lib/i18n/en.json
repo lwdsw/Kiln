@@ -1,0 +1,64 @@
+{
+  "providers": {
+    "openrouter": {
+      "name": "OpenRouter.ai",
+      "description": "Proxy requests to OpenAI, Anthropic, and more. Almost all models supported.",
+      "api_key_steps": [
+        "Go to https://openrouter.ai/settings/keys",
+        "Create a new API key",
+        "Copy the new API key, paste it below and click 'Connect'"
+      ]
+    },
+    "openai": {
+      "name": "OpenAI",
+      "description": "Home of GPT-4 and more. Fine tuning supported.",
+      "api_key_steps": [
+        "Go to https://platform.openai.com/account/api-keys",
+        "Click 'Create new key'",
+        "Copy the new key, paste it below and click 'Connect'"
+      ]
+    },
+    "ollama": {
+      "name": "Ollama",
+      "description": "Run models locally. No API key required.",
+      "customUrl": "Custom Ollama URL",
+      "error": "Failed to connect to Ollama. Please ensure the Ollama app is running."
+    },
+    "groq": {
+      "name": "Groq",
+      "description": "Fastest model hosting service. Llama, Gemma and Mistral models available.",
+      "api_key_steps": [
+        "Go to https://console.groq.com/keys",
+        "Create an API key",
+        "Copy the new key, paste it below and click 'Connect'"
+      ]
+    },
+    "fireworks_ai": {
+      "name": "Fireworks AI",
+      "description": "Open models (Llama, Phi) with fine tuning support.",
+      "api_key_steps": [
+        "Go to https://fireworks.ai/account/api-keys",
+        "Create a new API key and paste it below",
+        "Go to https://fireworks.ai/account/profile",
+        "Copy your Account ID, paste it below, then click 'Connect'"
+      ],
+      "api_key_fields": ["API Key", "Account ID"]
+    },
+    "amazon_bedrock": {
+      "name": "Amazon Bedrock",
+      "description": "Does your company have an AWS contract?",
+      "api_key_steps": [
+        "Go to https://us-west-2.console.aws.amazon.com/bedrock/home?region=us-west-2#/overview - make sure to select us-west-2 region as it has the most models and Kiln defaults to this region",
+        "Request access to supported models like Llama and Mistral",
+        "Use this guide to create IAM keys https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html and make sure to select 'AmazonBedrockFullAccess' policy when creating the IAM user",
+        "Get the new user's Access Key ID and Secret Access Key. Paste them below and click 'Connect'"
+      ],
+      "api_key_warning": "Bedrock is difficult to set up.\n\nWe recommend using OpenRouter instead as it's easier to set up and has more models.",
+      "api_key_fields": ["Access Key", "Secret Key"]
+    },
+    "openai_compatible": {
+      "name": "Custom API",
+      "description": "Connect to any OpenAI compatible API."
+    }
+  }
+}

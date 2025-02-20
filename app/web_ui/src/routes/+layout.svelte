@@ -1,5 +1,7 @@
 <script lang="ts">
   import "../app.css"
+  import "../i18n"
+  import { waitLocale } from 'svelte-i18n'
   import { navigating } from "$app/stores"
   import { expoOut } from "svelte/easing"
   import { slide } from "svelte/transition"
@@ -15,6 +17,7 @@
   import { get } from "svelte/store"
   import { KilnError } from "$lib/utils/error_handlers"
   import { createKilnError } from "$lib/utils/error_handlers"
+  import LanguageSelector from "$lib/components/language_selector.svelte"
   let loading = true
   let load_error: string | null = null
   import posthog from "posthog-js"
@@ -64,62 +67,22 @@
   })
 </script>
 
-<svelte:head>
-  <title>Kiln Studio</title>
-  <meta name="description" content="The open source ML product platform" />
-
-  <link
-    rel="apple-touch-icon"
-    sizes="180x180"
-    href="/favicons/apple-touch-icon.png"
-  />
-  <link
-    rel="icon"
-    type="image/png"
-    sizes="32x32"
-    href="/favicons/favicon-32x32.png"
-  />
-  <link
-    rel="icon"
-    type="image/png"
-    sizes="16x16"
-    href="/favicons/favicon-16x16.png"
-  />
-  <link rel="manifest" href="/favicons/site.webmanifest" />
-</svelte:head>
-
-{#if loading || load_error}
-  <div
-    class="fixed w-full top-0 right-0 left-0 bottom-0 bg-base-200 z-[1000] flex place-items-center place-content-center"
-  >
-    {#if load_error}
-      <span class="text-center flex flex-col gap-4">
-        <h1 class="text-2xl font-bold">Error loading projects</h1>
-        <p class="text-error">{load_error}</p>
-        <button
-          class="btn btn-primary btn-sm"
-          on:click={() => window.location.reload()}
-        >
-          Retry
-        </button>
-      </span>
+<div class="min-h-screen flex flex-col">
+  <header class="p-4 flex justify-end">
+    <LanguageSelector />
+  </header>
+  
+  <main class="flex-1">
+    {#if loading}
+      <div class="flex items-center justify-center h-full">
+        <span class="loading loading-spinner loading-lg"></span>
+      </div>
+    {:else if load_error}
+      <div class="alert alert-error">
+        <span>{load_error}</span>
+      </div>
     {:else}
-      <span class="loading loading-spinner loading-lg"></span>
+      <slot />
     {/if}
-  </div>
-{/if}
-
-{#if $navigating}
-  <!--
-    Loading animation for next page since svelte doesn't show any indicator.
-     - delay 100ms because most page loads are instant, and we don't want to flash
-     - long 12s duration because we don't actually know how long it will take
-     - exponential easing so fast loads (>100ms and <1s) still see enough progress,
-       while slow networks see it moving for a full 12 seconds
-  -->
-  <div
-    class="fixed w-full top-0 right-0 left-0 h-1 z-50 bg-primary"
-    in:slide={{ delay: 100, duration: 12000, axis: "x", easing: expoOut }}
-  ></div>
-{/if}
-<slot />
+  </main>
+</div>

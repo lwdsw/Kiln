@@ -8,6 +8,7 @@
   import { client } from "$lib/api_client"
   import type { Project } from "$lib/types"
   import { onMount, tick } from "svelte"
+  import { _, init } from 'svelte-i18n'
 
   let importing = false
   onMount(() => {
@@ -40,7 +41,7 @@
       saved = false
       submitting = true
       if (!project?.name) {
-        throw new Error("Project name is required")
+        throw new Error($_("editProject.errors.projectNameRequired"))
       }
       let data: Project | undefined = undefined
       let error: unknown | undefined = undefined
@@ -141,7 +142,7 @@
   {#if !created}
     {#if !importing}
       <FormContainer
-        submit_label={project.id ? "Update Project" : "Create Project"}
+        submit_label={project.id ? $_("editProject.labels.updateProject") : $_("editProject.labels.createProject")}
         on:submit={save_project}
         bind:warn_before_unload
         bind:submitting
@@ -149,14 +150,14 @@
         bind:saved
       >
         <FormElement
-          label="Project Name"
+          label={$_("editProject.labels.projectName")}
           id="project_name"
           inputType="input"
           bind:value={project.name}
           max_length={120}
         />
         <FormElement
-          label="Project Description"
+          label={$_("editProject.labels.projectDescription")}
           id="project_description"
           inputType="textarea"
           optional={true}
@@ -165,15 +166,15 @@
       </FormContainer>
       {#if !project.id}
         <p class="mt-4 text-center">
-          Or
+          {$_("editProject.labels.or")}
           <button class="link font-bold" on:click={() => (importing = true)}>
-            import an existing project
+            {$_("editProject.labels.importExisting")}
           </button>
         </p>
       {/if}
     {:else}
       <FormContainer
-        submit_label="Import Project"
+        submit_label={$_("editProject.labels.importProject")}
         on:submit={import_project}
         bind:warn_before_unload
         bind:submitting
@@ -181,30 +182,30 @@
         bind:saved
       >
         <FormElement
-          label="Existing Project Path"
-          description="The path to the project on your local machine. For example, /Users/username/Kiln Projects/my_project/project.kiln"
+          label={$_("editProject.labels.existingProjectPath")}
+          description={$_("editProject.labels.existingProjectPathDescription")}
           id="import_project_path"
           inputType="input"
           bind:value={import_project_path}
         />
       </FormContainer>
       <p class="mt-4 text-center">
-        Or
+        {$_("editProject.labels.or")}
         <button class="link font-bold" on:click={() => (importing = false)}>
-          create a new project
+          {$_("editProject.labels.createNew")}
         </button>
       </p>
     {/if}
   {:else if !redirect_on_created}
     {#if importing}
-      <h2 class="text-xl font-medium text-center">Project Imported!</h2>
+      <h2 class="text-xl font-medium text-center">{$_("editProject.messages.projectImported")}</h2>
       <p class="text-sm text-center">
-        Your project "{import_project_path}" has been imported.
+        {$_("editProject.messages.projectImportedDescription", { path: import_project_path })}
       </p>
     {:else}
-      <h2 class="text-xl font-medium text-center">Project Created!</h2>
+      <h2 class="text-xl font-medium text-center">{$_("editProject.messages.projectCreated")}</h2>
       <p class="text-sm text-center">
-        Your new project "{project.name}" has been created.
+        {$_("editProject.messages.projectCreatedDescription", { name: project.name })}
       </p>
     {/if}
   {/if}

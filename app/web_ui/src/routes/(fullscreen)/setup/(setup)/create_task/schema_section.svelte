@@ -5,6 +5,7 @@
     example_schema_model,
     model_from_schema,
   } from "$lib/utils/json_schema_editor/json_schema_templates"
+  import { _ } from 'svelte-i18n'
 
   let id = Math.random().toString(36)
 
@@ -52,7 +53,7 @@
         value={true}
         bind:group={plaintext}
       />
-      <span class="label-text text-left grow">Plaintext</span>
+      <span class="label-text text-left grow">{$_("schema.plaintext")}</span>
     </label>
   </div>
   <div class="form-control">
@@ -64,7 +65,7 @@
         value={false}
         bind:group={plaintext}
       />
-      <span class="label-text text-left grow">Structured JSON</span>
+      <span class="label-text text-left grow">{$_("schema.structuredJSON")}</span>
     </label>
   </div>
 

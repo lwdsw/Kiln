@@ -12,6 +12,7 @@
   import { get } from "svelte/store"
   import { client } from "$lib/api_client"
   import { tick } from "svelte"
+  import { _ } from 'svelte-i18n'
 
   // Prevents flash of complete UI if we're going to redirect
   export let redirect_on_created: string | null = "/"
@@ -231,7 +232,7 @@
 
 <div class="flex flex-col gap-2 w-full">
   <FormContainer
-    submit_label={task.id ? "Save Task" : "Create Task"}
+    submit_label={task.id ? $_("task.edit.saveTask") : $_("task.edit.createTask")}
     on:submit={create_task}
     bind:warn_before_unload
     bind:error
@@ -239,65 +240,64 @@
     bind:saved
   >
     <div>
-      <div class="text-xl font-bold">Part 1: Overview</div>
+      <div class="text-xl font-bold">{$_("task.edit.part1")}</div>
       {#if !task.id && !hide_example_task}
         <h3 class="text-sm mt-1">
-          Just exploring?
+          {$_("task.edit.exploring")}
           <button class="link text-primary" on:click={example_task}
-            >Try an example.</button
+            >{$_("task.edit.tryExample")}</button
           >
         </h3>
       {/if}
     </div>
     <FormElement
-      label="Task Name"
+      label={$_("task.edit.taskName")}
       id="task_name"
-      description="A description for you and your team, not used by the model."
+      description={$_("task.edit.taskDescription")}
       bind:value={task.name}
       max_length={120}
     />
 
     <FormElement
-      label="Task Description"
+      label={$_("task.edit.taskDescription")}
       inputType="textarea"
       id="task_description"
-      description="A description for you and your team, not used by the model."
+      description={$_("task.edit.taskDescription")}
       optional={true}
       bind:value={task.description}
     />
 
     <FormElement
-      label="Task Instructions"
+      label={$_("task.edit.taskInstructions")}
       inputType="textarea"
       id="task_instructions"
-      description="This will form the basis of the model's prompt. Keep this high level, and define any details in the 'Requirements' section below."
+      description={$_("task.edit.taskInstructionsDescription")}
       bind:value={task.instruction}
     />
 
     <FormElement
-      label="'Thinking' Instructions"
+      label={$_("task.edit.thinkingInstructions")}
       inputType="textarea"
       id="thinking_instructions"
       optional={true}
-      description="Instructions for how the model should 'think' about the task prior to answering. Used for chain of thought style prompting."
-      info_description="Used when running a 'Chain of Thought' prompt. If left blank, a default 'think step by step' prompt will be used. Optionally customize this with your own instructions to better fit this task."
+      description={$_("task.edit.thinkingInstructionsDescription")}
+      info_description={$_("task.edit.thinkingInstructionsInfo")}
       bind:value={task.thinking_instruction}
     />
 
     <div class="text-sm font-medium text-left pt-6 flex flex-col gap-1">
       <div class="text-xl font-bold" id="requirements_part">
-        Part 2: Requirements
+        {$_("task.edit.part2")}
       </div>
       <div class="text-xs text-gray-500">
-        Define any requirements for the task. These will become part of the
-        prompt, but are also broken out for model evals and training.
+        {$_("task.edit.inputSchemaDescription")}
       </div>
     </div>
 
     <!-- Requirements Section -->
     <FormList
       content={task.requirements}
-      content_label="Requirement"
+      content_label={$_("task.edit.requirement")}
       start_with_one={true}
       empty_content={{
         name: "",
@@ -311,7 +311,7 @@
         <div class="flex flex-row gap-1">
           <div class="grow flex flex-col gap-1">
             <FormElement
-              label="Requirement Name"
+              label={$_("task.edit.requirementName")}
               id="requirement_name_{item_index}"
               light_label={true}
               bind:value={task.requirements[item_index].name}
@@ -320,29 +320,29 @@
           </div>
           <div class="flex flex-col gap-1">
             <FormElement
-              label="Rating Type"
+              label={$_("task.edit.ratingType")}
               inputType="select"
               id="requirement_type_{item_index}"
               light_label={true}
               select_options={[
-                ["five_star", "5 Star"],
-                ["pass_fail", "Pass / Fail"],
-                ["pass_fail_critical", "Pass / Fail / Critical"],
+                ["five_star", $_("task.edit.fiveStar")],
+                ["pass_fail", $_("task.edit.passFail")],
+                ["pass_fail_critical", $_("task.edit.passFailCritical")],
               ]}
               bind:value={task.requirements[item_index].type}
             />
           </div>
           <div class="flex flex-col gap-1">
             <FormElement
-              label="Priority"
+              label={$_("task.edit.priority")}
               inputType="select"
               id="requirement_priority_{item_index}"
               light_label={true}
               select_options={[
-                [0, "P0 - Critical"],
-                [1, "P1 - High"],
-                [2, "P2 - Medium"],
-                [3, "P3 - Low"],
+                [0, $_("task.edit.priorityCritical")],
+                [1, $_("task.edit.priorityHigh")],
+                [2, $_("task.edit.priorityMedium")],
+                [3, $_("task.edit.priorityLow")],
               ]}
               bind:value={task.requirements[item_index].priority}
             />
@@ -350,7 +350,7 @@
         </div>
         <div class="grow flex flex-col gap-1">
           <FormElement
-            label="Instructions"
+            label={$_("task.edit.instructions")}
             inputType="textarea"
             id="requirement_instructions_{item_index}"
             light_label={true}
@@ -362,10 +362,10 @@
 
     <div class="text-sm font-medium text-left pt-6 flex flex-col gap-1">
       <div class="text-xl font-bold" id="requirements_part">
-        Part 3: Input Schema
+        {$_("task.edit.part3")}
       </div>
       <div class="text-xs text-gray-500">
-        What kind of input will the model receive?
+        {$_("task.edit.inputSchemaDescription")}
       </div>
     </div>
 
@@ -401,10 +401,10 @@
 
     <div class="text-sm font-medium text-left pt-6 flex flex-col gap-1">
       <div class="text-xl font-bold" id="requirements_part">
-        Part 4: Output Schema
+        {$_("task.edit.part4")}
       </div>
       <div class="text-xs text-gray-500">
-        What kind of output will the model produce?
+        {$_("task.edit.outputSchemaDescription")}
       </div>
     </div>
 
